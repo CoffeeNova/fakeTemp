@@ -1,0 +1,140 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="tempa.MainWindow"
+        Title="Code Line" Height="415.367" Width="484.334" Closed="Program_Closed" Opacity="0.85" Background="#FF272424" ResizeMode="NoResize" WindowStyle="None"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown" OpacityMask="White">
+    <Window.Resources>
+        <Storyboard x:Key="OnClick1">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="FileBrowsGrid">
+                <SplineDoubleKeyFrame KeyTime="0" Value="0"/>
+                <SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="-89.167"/>
+                <SplineDoubleKeyFrame KeyTime="0:0:0.6" Value="-236.917"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)" Storyboard.TargetName="FileBrowsGrid">
+                <SplineDoubleKeyFrame KeyTime="0" Value="0"/>
+                <SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="0.833"/>
+                <SplineDoubleKeyFrame KeyTime="0:0:0.6" Value="0.958"/>
+            </DoubleAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="FileBrowsButt">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0.6" Value="{x:Static Visibility.Hidden}"/>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="OnClick1_reverse">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="FileBrowsGrid">
+                <SplineDoubleKeyFrame KeyTime="0" Value="-236.917"/>
+                <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="-89.167"/>
+                <SplineDoubleKeyFrame KeyTime="0:0:0.6" Value="0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)" Storyboard.TargetName="FileBrowsGrid">
+                <SplineDoubleKeyFrame KeyTime="0" Value="0.958"/>
+                <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0.833"/>
+                <SplineDoubleKeyFrame KeyTime="0:0:0.6" Value="0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="FileBrowsButt">
+                <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
+                <DiscreteObjectKeyFrame KeyTime="0:0:0.6" Value="{x:Static Visibility.Visible}"/>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+        <Style x:Key="DisabledFileBrowsButtStyle" TargetType="{x:Type Button}">
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#FF272424"/>
+                    <Setter Property="BorderBrush" Value="{x:Null}"/>
+                    <Setter Property="Foreground" Value="#FF272424"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FileBrowsButt">
+            <BeginStoryboard x:Name="OnClick1_BeginStoryboard" Storyboard="{StaticResource OnClick1}"/>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FileBrowsOkButt">
+            <RemoveStoryboard BeginStoryboardName="OnClick1_BeginStoryboard"/>
+            <BeginStoryboard x:Name="OnClick1_reverse_BeginStoryboard" Storyboard="{StaticResource OnClick1_reverse}"/>
+        </EventTrigger>
+    </Window.Triggers>
+
+    <Grid Background="#FF272424" Opacity="0.85" OpacityMask="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="37*"/>
+            <RowDefinition Height="268*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="21*"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <TextBox x:Name="AgrologFilesPathTextBox" Text="C:\" HorizontalAlignment="Left" Height="23" Margin="10,43,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="220" Background="#FF110F0F" BorderBrush="#FF272424" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"  GotKeyboardFocus="FilesPathTextBox_GotKeyboardFocus" GotMouseCapture="FilesPathTextBox_GotMouseCapture" CaretBrush="#FF3399FF" Foreground="White" Grid.RowSpan="2"/>
+        <Label x:Name="AgroloFilesPathLabel" Content="ПУТЬ К ОТЧЕТАМ AGROLOG:" HorizontalAlignment="Left" Margin="10,17,0,0" VerticalAlignment="Top" Width="191" Foreground="#FFF1EBEB" FontSize="14"/>
+        <Button x:Name="AgrologButton" Content="AGROLOG" HorizontalAlignment="Left" Margin="275,150,0,0" VerticalAlignment="Top" Width="83" Click="ReportButton_Click" Height="26" Foreground="#FFF1EBEB" FontSize="14" Background="#FF272424" Grid.Row="1"/>
+        <Label x:Name="GrainbarFilesPathLabel" Content="ПУТЬ К ОТЧЕТАМ ГРЕЙНБАР:" HorizontalAlignment="Left" Margin="10,12,0,0" VerticalAlignment="Top" Width="220" Foreground="#FFF1EBEB" FontSize="14" Grid.Row="1"/>
+        <TextBox x:Name="GrainbarFilesPathTextBox" Text="C:\" HorizontalAlignment="Left" Height="23" Margin="10,38,0,0" VerticalAlignment="Top" Width="220" Background="#FF110F0F" BorderBrush="#FF272424" TextWrapping="NoWrap" VerticalContentAlignment="Center" HorizontalContentAlignment="Left" GotKeyboardFocus="FilesPathTextBox_GotKeyboardFocus" GotMouseCapture="FilesPathTextBox_GotMouseCapture" CaretBrush="#FF3399FF" Foreground="White" Grid.Row="1"/>
+        <Label x:Name="TotalFilesLabel" Content="ВСЕГО ФАЙЛОВ: " HorizontalAlignment="Left" Margin="7,150.333,0,0" VerticalAlignment="Top" Width="129" Foreground="#FFF1EBEB" FontSize="14" Grid.Row="1"/>
+        <Label x:Name="LogLabel" Content="ЛОГ:" HorizontalAlignment="Left" Margin="7,181.333,0,0" VerticalAlignment="Top" Width="129" RenderTransformOrigin="0.56,3.962" Foreground="#FFF1EBEB" FontSize="14" Grid.Row="1"/>
+        <Label Content="Считаю..." HorizontalAlignment="Left" Margin="33.197,181.333,-91.863,0" VerticalAlignment="Top" Width="81" Grid.Row="1" Grid.Column="1"/>
+        <Button x:Name="GrainbarButton" Content="ГРЕЙНБАР" HorizontalAlignment="Left" Margin="363,150,0,0" VerticalAlignment="Top" Width="88" Click="ReportButton_Click" Height="26" Foreground="#FFF1EBEB" FontSize="14" Background="#FF272424" Grid.Row="1" />
+        <Label x:Name="TotalFilesOutputLabel" Content="" HorizontalAlignment="Left" Margin="155,150.333,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" Width="75" Foreground="White" Height="29" Grid.Row="1"/>
+        <Label x:Name="TotalLinesOutputLabel" Content="" HorizontalAlignment="Left" Margin="155,181.333,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" Width="75" Foreground="White" RenderTransformOrigin="1.067,0.385" Height="29" Grid.Row="1"/>
+        <ScrollViewer  HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="464" Foreground="White" RenderTransformOrigin="1.067,0.385" Height="145" Grid.Row="1" Grid.ColumnSpan="2">
+            <TextBlock x:Name="LogTextBlock" Padding="5"  TextWrapping="Wrap"
+                           ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <Run Text='Версия 1.0.0.5 - отображаемые данные для удобства будут отображаться в МВтч, вместо 100* кВтч '/>
+                    <LineBreak />
+                    <Run Text='Версия 1.0.0.4 - исправлены баги в сетевых настройках, добавлена проверка состояния NetBios'/>
+                    <LineBreak />
+                    <Run Text='Версия 1.0.0.3 - первый релиз'/>
+                <Run Text='Версия 1.0.0.5 - отображаемые данные для удобства будут отображаться в МВтч, вместо 100* кВтч'/>
+                    <LineBreak />
+                    <Run Text='Версия 1.0.0.4 - исправлены баги в сетевых настройках, добавлена проверка состояния NetBios'/>
+                    <LineBreak />
+                    <Run Text='Версия 1.0.0.3 - первый релиз'/>
+                <Run Text='Версия 1.0.0.5 - отображаемые данные для удобства будут отображаться в МВтч, вместо 100* кВтч'/>
+                    <LineBreak />
+                    <Run Text='Версия 1.0.0.4 - исправлены баги в сетевых настройках, добавлена проверка состояния NetBios'/>
+                    <LineBreak />
+                    <Run Text='Версия 1.0.0.3 - первый релиз'/>
+                <Run Text='Версия 1.0.0.5 - отображаемые данные для удобства будут отображаться в МВтч, вместо 100* кВтч'/>
+                    <LineBreak />
+                    <Run Text='Версия 1.0.0.4 - исправлены баги в сетевых настройках, добавлена проверка состояния NetBios'/>
+                    <LineBreak />
+                    <Run Text='Версия 1.0.0.3 - первый релиз'/>
+            </TextBlock>
+        </ScrollViewer>
+        <Button x:Name="AgrologFileBrowsButt" Margin="230,36,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Height="23" RenderTransformOrigin="0.565,0.696" Background="#FF272424" Foreground="#FFF1EBEB" BorderBrush="{x:Null}" FontSize="24" FontFamily="Stencil" Style="{StaticResource DisabledFileBrowsButtStyle}" Grid.RowSpan="2" Click="FileBrowsButt_Click" HorizontalAlignment="Left" Width="23" Tag= "{Binding AgrologReportType, Mode=Default}">
+            <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
+            </Canvas>
+        </Button>
+        <Button x:Name="GrainbarFileBrowsButt"  Margin="230,54,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Height="23" RenderTransformOrigin="0.565,0.696" Background="#FF272424" Foreground="#FFF1EBEB" BorderBrush="{x:Null}" FontSize="24" FontFamily="Stencil" Style="{StaticResource DisabledFileBrowsButtStyle}" Click="FileBrowsButt_Click" HorizontalAlignment="Left" Width="23" Grid.Row="1" Tag= "{Binding GrainbarReportType, Mode=Default}">
+            <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
+            </Canvas>
+        </Button>
+        <Button x:Name="CloseButt" HorizontalAlignment="Left" Margin="451.197,6,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="23" Height="23" RenderTransformOrigin="0.565,0.696" Background="#FF272424" Foreground="#FFF1EBEB" BorderBrush="{x:Null}" FontSize="14" FontFamily="PMingLiU-ExtB" Click="CloseButt_Click" Grid.ColumnSpan="2">
+            <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="13" Y2="6" X2="6"/>
+                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="6" Y2="13" X2="6"/>
+            </Canvas>
+        </Button>
+        <Button x:Name="MinimizeButt" HorizontalAlignment="Left" Margin="428.197,6,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="23" Height="23" RenderTransformOrigin="0.565,0.696" Background="#FF272424" Foreground="#FFF1EBEB" BorderBrush="{x:Null}" FontSize="18" FontFamily="Kartika" Click="MinimizeButt_Click">
+            <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
+            </Canvas>
+        </Button>
+        <Grid x:Name="FileBrowsGrid" HorizontalAlignment="Left" Height="149" Margin="33.197,36,-214.863,0" VerticalAlignment="Top" Width="204" Grid.RowSpan="2" Grid.Column="1" RenderTransformOrigin="0.5,0.5" LostFocus="FileBrowsGrid_LostFocus" IsVisibleChanged="FileBrowsGrid_IsVisibleChanged">
+            <Grid.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Grid.RenderTransform>
+            <TreeView x:Name="FileBrowsTreeView" HorizontalAlignment="Left" Height="149" VerticalAlignment="Top" Width="204" TreeViewItem.Expanded ="FileBrowsTreeView_Expanded" Background="#FF110F0F" Foreground="White" SelectedItemChanged="FileBrowsTreeView_SelectedItemChanged" LostFocus="FileBrowsTreeView_LostFocus" BorderBrush="{x:Null}" />
+            <Button x:Name="FileBrowsOkButt" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Top" Width="66" Click="FileBrowsOkButt_Click" Height="26" Foreground="#FFF1EBEB" FontSize="14" Background="#FF110F0F" Margin="138,123,0,0"/>
+        </Grid>
+        <!--<Label Content="+" HorizontalAlignment="Left" Margin="230,30,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="23" Height="36" Foreground="#FFF1EBEB" FontFamily="Stencil" FontSize="20"/> -->
+    </Grid>
+</Window>
