@@ -39,9 +39,9 @@ namespace tempa.Extensions
 
         public static string PathFormatter(this string str)
         {
-            if (str.Last() != '\\')
-                return str + "\\";
-            return str;
+            if (string.IsNullOrEmpty(str) || str.Last() == '\\')
+                return str;
+            return str + "\\";
         }
     }
 }

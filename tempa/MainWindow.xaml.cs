@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using NLog;
 using System.Threading;
 using tempa.Exceptions;
+using tempa.Extensions;
 
 namespace tempa
 {
@@ -50,6 +51,11 @@ namespace tempa
             LogTextBlock.Inlines.Clear();
             LogMaker.newMessage += LogMaker_newMessage;
             WatchersInit();
+            AgrologFileBrowsButt.Tag = ReportType.Agrolog;
+            GrainbarFileBrowsButt.Tag = ReportType.Grainbar;
+            AgrologFilesPathTextBox.Text = _agrologReportsPath;
+            GrainbarFilesPathTextBox.Text = _grainbarReportsPath;
+            SettingsShow += MainWindow_onSettingsShow;
         }
 
         private void WatchersInit()
@@ -169,54 +175,120 @@ namespace tempa
 
         }
 
-        private void FileBrowsButt_Click(object sender, RoutedEventArgs e)
+        private async void FileBrowsButt_Click(object sender, RoutedEventArgs e)
         {
-            if (_isFileBrowsTreeOnForm == false)
+            if (IsFileBrowsTreeOnForm == false)
             {
-                FileBrowsTreeView.Items.Clear();
-                foreach (DriveInfo drive in DriveInfo.GetDrives())
-                {
-                    TreeViewItem item = new TreeViewItem();
-                    BrushConverter bc = new BrushConverter();
-                    item.Foreground = (Brush)bc.ConvertFrom("#FFFFFFFF");
-                    item.Tag = drive;
-                    item.Header = drive.ToString();
-                    item.Items.Add("*");
-                    FileBrowsTreeView.Items.Add(item);
-                }
-                _isFileBrowsTreeOnForm = true;
-                FileBrowsTreeView.Tag = (sender as Button).Tag;
+                var button = sender as Button;
+                FileBrowsTreeView.Tag = button.Tag;
+                FillTreeViewWithRootDrives(ref FileBrowsTreeView);
+                if (FileBrowsTreeView.Items.Count == 0)
+                    return;
+
+                if ((ReportType)button.Tag == ReportType.Agrolog)
+                    await FileBrowsTreeViewDirExpandAsync(AgrologFilesPathTextBox.Text, FileBrowsTreeView.Items);
+                else
+                    await FileBrowsTreeViewDirExpandAsync(GrainbarFilesPathTextBox.Text, FileBrowsTreeView.Items);
+
+                IsFileBrowsTreeOnForm = true;
                 FileBrowsTreeView.Focus();
             }
         }
 
-        private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
+        private void FillTreeViewWithRootDrives(ref TreeView treeview)
         {
-            TreeViewItem item = (TreeViewItem)e.OriginalSource;
-            BrushConverter bc = new BrushConverter();
-            item.Foreground = (Brush)bc.ConvertFrom("#FFBFB7B7");
-            item.Items.Clear();
-            DirectoryInfo dir;
-            if (item.Tag is DriveInfo)
+            treeview.Items.Clear();
+            foreach (DriveInfo drive in DriveInfo.GetDrives())
             {
-                DriveInfo drive = (DriveInfo)item.Tag;
+                var item = new TreeViewItem();
+                var bc = new BrushConverter();
+                item.Foreground = (Brush)bc.ConvertFrom("#FFFFFFFF");
+                item.Tag = drive;
+                item.Header = drive.ToString();
+                item.Items.Add("*");
+                treeview.Items.Add(item);
+            }
+        }
+
+        private Task FileBrowsTreeViewDirExpandAsync(string path, ItemCollection itemCollection)
+        {
+            return Task.Factory.StartNew(() => FileBrowsTreeViewDirExpand(path, itemCollection));
+        }
+
+
+        private void FileBrowsTreeViewDirExpand(string path, ItemCollection itemCollection)
+        {
+            for (int i = 0; i < itemCollection.Count; i++)
+            {
+                TreeViewItem item = (TreeViewItem)itemCollection[i];
+                DirectoryInfo dir;
+
+                object tag = Dispatcher.Invoke(new Func<object>(() => item.Tag));
+                if (tag is DriveInfo)
+                {
+                    DriveInfo drive = (DriveInfo)tag;
+                    dir = drive.RootDirectory;
+                }
+                else dir = (DirectoryInfo)tag;
+
+                var splittedPath = path.Split('\\').ToList();
+                splittedPath.RemoveAll(p => string.IsNullOrEmpty(p));
+                foreach (string dirName in splittedPath)
+                {
+                    if (dir.Name.PathFormatter() == dirName.PathFormatter())
+                    {
+                        Dispatcher.Invoke(new Action(() =>
+                        {
+                            item.IsExpanded = true;
+                        }));
+                        _directoriesFilledSignal.WaitOne();
+                        _directoriesFilledSignal.Reset();
+                        FileBrowsTreeViewDirExpand(path.Replace(dirName.PathFormatter(), string.Empty), item.Items);
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void FillTreeViewItemWithDirectories(ref TreeViewItem treeViewItem)
+        {
+            var bc = new BrushConverter();
+            treeViewItem.Foreground = (Brush)bc.ConvertFrom("#FFBFB7B7");
+            treeViewItem.Items.Clear();
+            DirectoryInfo dir;
+            if (treeViewItem.Tag is DriveInfo)
+            {
+                DriveInfo drive = (DriveInfo)treeViewItem.Tag;
                 dir = drive.RootDirectory;
             }
-            else dir = (DirectoryInfo)item.Tag;
+            else dir = (DirectoryInfo)treeViewItem.Tag;
             try
             {
                 foreach (DirectoryInfo subDir in dir.GetDirectories())
                 {
-                    TreeViewItem newItem = new TreeViewItem();
+                    var newItem = new TreeViewItem();
                     newItem.Tag = subDir;
                     newItem.Header = subDir.ToString();
                     newItem.Items.Add("*");
                     newItem.Foreground = (Brush)bc.ConvertFrom("#FFFFFFFF");
-                    item.Items.Add(newItem);
+                    treeViewItem.Items.Add(newItem);
                 }
             }
             catch
             { }
+            finally { _directoriesFilledSignal.Set(); }
+        }
+
+        private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
+        {
+            var item = (TreeViewItem)e.OriginalSource;
+            FillTreeViewItemWithDirectories(ref item);
+
+            //item.IsSelected = true;
+            ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
+            scroller.ScrollToBottom();
+            item.BringIntoView();
+           
         }
 
         private void FileBrowsTreeView_LostFocus(object sender, RoutedEventArgs e)
@@ -245,6 +317,36 @@ namespace tempa
                 _grainbarReportsPath = path;
         }
 
+
+        private async void WriteReport<T>(Button button, string dataFolderPath, string dataFileName, string reportFolderPath, string reportFileName) where T : ITermometer
+        {
+            try
+            {
+                button.IsEnabled = false;
+                LogMaker.Log(string.Format("Чтение данных из файла {0}", dataFileName), false);
+                List<T> agrologData = await DataWorker.ReadBinaryAsync<T>(dataFolderPath, dataFileName);
+                LogMaker.Log(string.Format("Формирование отчета {0}", dataFileName), false);
+                await DataWorker.WriteReportAsync<T>(reportFolderPath, reportFileName, agrologData);
+                LogMaker.Log(string.Format("Отчет {0} сформирован успешно.", reportFileName), false);
+            }
+            catch (WriteReportException ex)
+            {
+                if (ex.InnerException.GetType() == typeof(ReportFileException))
+                {
+                    LogMaker.Log(string.Format("Файл отчета не существует. Необходимо создать новый.", reportFileName), true);
+                    throw new NotImplementedException("Тут планируется создание отображения анимированных кнопок 'Создать' и 'Отмена' и реализацию создание нового файла отчета. ");
+                }
+                else
+                    LogMaker.Log(string.Format("Не получилось сформировать отчет {0}, cм. Error.log.", reportFileName), true);
+                ExceptionHandler.Handle(ex, false);
+            }
+            finally
+            {
+                button.IsEnabled = true;
+            }
+        }
+
+
         private void FileBrowsOkButt_Click(object sender, RoutedEventArgs e)
         {
             if (FileBrowsTreeView.SelectedValuePath != null)
@@ -261,14 +363,16 @@ namespace tempa
                 }
 
             }
+            IsFileBrowsTreeOnForm = false;
         }
 
         private void ReportButton_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button) == AgrologButton)
-                WriteReport<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER, Constants.AGROLOG_ACTIVE_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.AGROLOG_REPORT_FILE_NAME);
-            else if ((sender as Button) == GrainbarButton)
-                WriteReport<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER, Constants.GRAINBAR_ACTIVE_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.GRAINBAR_REPORT_FILE_NAME);
+            var button = sender as Button;
+            if (button == AgrologButton)
+                WriteReport<TermometerAgrolog>(button, Constants.APPLICATION_DATA_FOLDER, Constants.AGROLOG_ACTIVE_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.AGROLOG_REPORT_FILE_NAME);
+            else if (button == GrainbarButton)
+                WriteReport<TermometerGrainbar>(button, Constants.APPLICATION_DATA_FOLDER, Constants.GRAINBAR_ACTIVE_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.GRAINBAR_REPORT_FILE_NAME);
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -278,7 +382,7 @@ namespace tempa
 
         private void MinimizeButt_Click(object sender, RoutedEventArgs e)
         {
-
+            this.WindowState = WindowState.Minimized;
         }
 
         private void FileBrowsGrid_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -301,33 +405,28 @@ namespace tempa
 
         }
 
-        private async void WriteReport<T>(string dataFolderPath, string dataFileName, string reportFolderPath, string reportFileName) where T : ITermometer
+        void MainWindow_onSettingsShow(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                LogMaker.Log(string.Format("Чтение данных из файла {0}", dataFileName), false);
-                List<T> agrologData = await DataWorker.ReadBinaryAsync<T>(dataFolderPath, dataFileName);
-                LogMaker.Log(string.Format("Формирование отчета {0}", dataFileName), false);
-                await DataWorker.WriteReportAsync<T>(reportFolderPath, reportFileName, agrologData);
-                LogMaker.Log(string.Format("Отчет {0} сформирован успешно.", reportFileName), false);
-            }
-            catch (WriteReportException ex)
-            {
-                if (ex.InnerException.GetType() == typeof(ReportFileException))
-                {
-                    LogMaker.Log(string.Format("Файл отчета не существует. Необходимо создать новый.", reportFileName), true);
-                    throw new NotImplementedException("Тут планируется создание отображения анимированных кнопок 'Создать' и 'Отмена' и реализацию создание нового файла отчета. ");
-                }
-                else
-                    LogMaker.Log(string.Format("Не получилось сформировать отчет {0}, cм. Error.log.", reportFileName), true);
-                ExceptionHandler.Handle(ex, false);
-            }
+            throw new NotImplementedException();
         }
 
-        ReportType AgrologReportType { get { return ReportType.Agrolog; } }
-        ReportType GrainbarReportType { get { return ReportType.Grainbar; } }
 
-        bool _isFileBrowsTreeOnForm = false;                 //на форме ли окно выбора файлов
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        public static readonly RoutedEvent SettingShowEvent = EventManager.RegisterRoutedEvent(
+        "SettingsShow", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(MainWindow));
+
+        public event RoutedEventHandler SettingsShow
+        {
+            add { AddHandler(SettingShowEvent, value); }
+            remove { RemoveHandler(SettingShowEvent, value); }
+        }
+
+        public bool IsFileBrowsTreeOnForm = false;                 //на форме ли окно выбора файлов
+        public bool IsSettingsGridOnForm = false;
         bool _agrologFolderWatcherState = false;
         bool _grainbarFolderWatcherState = false;
         string _agrologReportsPath;
@@ -335,15 +434,13 @@ namespace tempa
         private readonly Logger _log = LogManager.GetCurrentClassLogger();
         FileSystemWatcher _agrologFolderWatcher;
         FileSystemWatcher _grainbarFolderWatcher;
-        //List<TermometerAgrolog> agrologData;
-        //List<TermometerGrainbar> grainbarData;
-        //Timer _errorLabelTimer;
+        ManualResetEvent _directoriesFilledSignal = new ManualResetEvent(false);
+
 
         private static class TypeLock<T>
         {
             public static readonly object SyncLock = new object();
         }
-
 
     }
 }

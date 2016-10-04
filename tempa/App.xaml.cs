@@ -37,7 +37,6 @@ namespace tempa
                 _log.Info(string.Format("Attempt to start another instance of the application. {0} closing.", Constants.APPLICATION_NAME));
             }
             base.OnStartup(e);
-
             //create the notifyicon (it's a resource declared in smNotify.xaml
             notifyIcon = (TaskbarIcon)FindResource("NotifyIcon");
         }

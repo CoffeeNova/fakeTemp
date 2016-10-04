@@ -11,137 +11,139 @@ namespace tempa
     /// </summary>
     class smNotify
     {
- ///// <summary>
- //       /// Shows a window, if none is already open.
- //       /// </summary>
- //       public ICommand ShowWindowCommand
- //       {
- //           get
- //           {
- //               return new DelegateCommand
- //               {
- //                   CanExecuteFunc = () => Application.Current.MainWindow != null,
- //                   CommandAction = () =>
- //                   {
- //                       //Application.Current.MainWindow = new Magnet();
- //                       Application.Current.MainWindow.Visibility = Visibility.Visible;
- //                       Application.Current.MainWindow.WindowState = WindowState.Normal;
- //                   }
- //               };
- //           }
- //       }
- //       public ICommand ShowWindowSettings
- //       {
- //           get
- //           {
- //               return new DelegateCommand
- //               {
- //                   CanExecuteFunc = () => Application.Current.MainWindow != null,
- //                   CommandAction = () =>
- //                   {
- //                       //Application.Current.MainWindow = new Magnet();
- //                       Application.Current.MainWindow.Visibility = Visibility.Visible;
- //                       Application.Current.MainWindow.WindowState = WindowState.Normal;
- //                       Uri uri = new Uri("/Pages/SettingsPage.xaml", UriKind.Relative);
- //                       MainWindow.navigateLink = uri;
-                        
- //                   }
- //               };
- //           }
- //       }
- //       public ICommand ShowWindowHome
- //       {
- //           get
- //           {
- //               return new DelegateCommand
- //               {
- //                   CanExecuteFunc = () => Application.Current.MainWindow != null,
- //                   CommandAction = () =>
- //                   {
- //                       //Application.Current.MainWindow = new Magnet();
- //                       Application.Current.MainWindow.Visibility = Visibility.Visible;
- //                       Application.Current.MainWindow.WindowState = WindowState.Normal;
- //                       Uri uri = new Uri("/Pages/Home.xaml", UriKind.Relative);
- //                       MainWindow.navigateLink = uri;
+        private MainWindow _mainWindow = ((MainWindow)System.Windows.Application.Current.MainWindow);
 
- //                   }
- //               };
- //           }
- //       }
- //       public ICommand ShowWindowTwo
- //       {
- //           get
- //           {
- //               return new DelegateCommand
- //               {
- //                   CanExecuteFunc = () => Application.Current.MainWindow != null,
- //                   CommandAction = () =>
- //                   {
- //                       //Application.Current.MainWindow = new Magnet();
- //                       Application.Current.MainWindow.Visibility = Visibility.Visible;
- //                       Application.Current.MainWindow.WindowState = WindowState.Normal;
- //                       Uri uri = new Uri("/Pages/Two.xaml", UriKind.Relative);
- //                       MainWindow.navigateLink = uri;
+        ///// <summary>
+        //       /// Shows a window, if none is already open.
+        //       /// </summary>
+        public ICommand ShowWindowCommand
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CanExecuteFunc = () => Application.Current.MainWindow != null,
+                    CommandAction = () =>
+                    {
+                        //Application.Current.MainWindow = new Magnet();
+                        Application.Current.MainWindow.Visibility = Visibility.Visible;
+                        Application.Current.MainWindow.WindowState = WindowState.Normal;
+                    }
+                };
+            }
+        }
+        public ICommand ShowWindowSettings
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CanExecuteFunc = () => Application.Current.MainWindow != null,
+                    CommandAction = () =>
+                    {
+                        Application.Current.MainWindow.Visibility = Visibility.Visible;
+                        Application.Current.MainWindow.WindowState = WindowState.Normal;
+                        if (!_mainWindow.IsFileBrowsTreeOnForm && !_mainWindow.IsSettingsGridOnForm)
+                            _mainWindow.RaiseEvent(new RoutedEventArgs(MainWindow.SettingShowEvent, _mainWindow));
+                    }
+                };
+            }
+        }
+        //       public ICommand ShowWindowHome
+        //       {
+        //           get
+        //           {
+        //               return new DelegateCommand
+        //               {
+        //                   CanExecuteFunc = () => Application.Current.MainWindow != null,
+        //                   CommandAction = () =>
+        //                   {
+        //                       //Application.Current.MainWindow = new Magnet();
+        //                       Application.Current.MainWindow.Visibility = Visibility.Visible;
+        //                       Application.Current.MainWindow.WindowState = WindowState.Normal;
+        //                       Uri uri = new Uri("/Pages/Home.xaml", UriKind.Relative);
+        //                       MainWindow.navigateLink = uri;
 
- //                   }
- //               };
- //           }
- //       }
- //       /// <summary>
- //       /// Hides the main window. This command is only enabled if a window is open.
- //       /// </summary>
- //       //public ICommand HideWindowCommand
- //       //{
- //       //    get
- //       //    {
- //       //        return new DelegateCommand
- //       //        {
- //       //            CommandAction = () => Application.Current.MainWindow.Close(),
- //       //            CanExecuteFunc = () => Application.Current.MainWindow != null
- //       //        };
- //       //    }
- //       //}
+        //                   }
+        //               };
+        //           }
+        //       }
+        //       public ICommand ShowWindowTwo
+        //       {
+        //           get
+        //           {
+        //               return new DelegateCommand
+        //               {
+        //                   CanExecuteFunc = () => Application.Current.MainWindow != null,
+        //                   CommandAction = () =>
+        //                   {
+        //                       //Application.Current.MainWindow = new Magnet();
+        //                       Application.Current.MainWindow.Visibility = Visibility.Visible;
+        //                       Application.Current.MainWindow.WindowState = WindowState.Normal;
+        //                       Uri uri = new Uri("/Pages/Two.xaml", UriKind.Relative);
+        //                       MainWindow.navigateLink = uri;
+
+        //                   }
+        //               };
+        //           }
+        //       }
+        //       /// <summary>
+        //       /// Hides the main window. This command is only enabled if a window is open.
+        //       /// </summary>
+        //       //public ICommand HideWindowCommand
+        //       //{
+        //       //    get
+        //       //    {
+        //       //        return new DelegateCommand
+        //       //        {
+        //       //            CommandAction = () => Application.Current.MainWindow.Close(),
+        //       //            CanExecuteFunc = () => Application.Current.MainWindow != null
+        //       //        };
+        //       //    }
+        //       //}
 
 
- //       /// <summary>
- //       /// Shuts down the application.
- //       /// </summary>
- //       public ICommand ExitApplicationCommand
- //       {
- //           get
- //           {
- //               return new DelegateCommand {CommandAction = () => Application.Current.Shutdown()};
- //           }
- //       }
- //   }
- //   /// <summary>
- //   /// Simplistic delegate command for the demo.
- //   /// </summary>
- //   public class DelegateCommand : ICommand
- //   {
- //       public Action CommandAction { get; set; }
- //       public Func<bool> CanExecuteFunc { get; set; }
+        //       /// <summary>
+        //       /// Shuts down the application.
+        //       /// </summary>
+        public ICommand ExitApplicationCommand
+        {
+            get
+            {
+                return new DelegateCommand { CommandAction = () => Application.Current.Shutdown() };
+            }
+        }
 
- //       public void Execute(object parameter)
- //       {
- //           CommandAction();
- //       }
+    }
+    //   /// <summary>
+    //   /// Simplistic delegate command for the demo.
+    //   /// </summary>
+    public class DelegateCommand : ICommand
+    {
+        public Action CommandAction { get; set; }
+        public Func<bool> CanExecuteFunc { get; set; }
 
- //       public bool CanExecute(object parameter)
- //       {
- //           return CanExecuteFunc == null || CanExecuteFunc();
- //       }
+        public void Execute(object parameter)
+        {
+            CommandAction();
+        }
 
- //       public event EventHandler CanExecuteChanged
- //       {
- //           add { CommandManager.RequerySuggested += value; }
- //           remove { CommandManager.RequerySuggested -= value; }
- //       }
+        public bool CanExecute(object parameter)
+        {
+            return CanExecuteFunc == null || CanExecuteFunc();
+        }
+
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
     }
 }
 
 
 
 
- 
+
+
 
