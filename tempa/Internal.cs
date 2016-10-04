@@ -158,6 +158,37 @@ namespace tempa
             }
             return keyValue;
         }
+         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="keyValue"></param>
+        /// <param name="valueName"></param>
+        /// <param name="keyLocation"></param>
+        /// <param name="keyDefaultValue"></param>
+        internal static string CheckRegistrySettings(string valueName, string keyLocation, string keyDefaultValue)
+        {
+            string keyValue;
+            string getkey = null;
+            try
+            {
+                getkey = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
+            }
+            catch (System.IO.IOException) { }
+
+            if (getkey != null) { return getkey; }
+
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue);
+                keyValue = keyDefaultValue;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
+            return keyValue;
+        }
 
         internal static Stack<TreeViewItem> GetNodes(UIElement element)
         {

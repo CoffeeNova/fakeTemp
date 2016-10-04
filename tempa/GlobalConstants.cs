@@ -8,7 +8,7 @@ namespace tempa
 {
     internal static class Constants
     {
-        internal const string APPLICATION_NAME = "Tempa";
+        internal const string APPLICATION_NAME = "Tempafake";
         internal const string COMPANY_NAME = "ОАО БЕЛСОЛОД";
         internal const string SETTINGS_LOCATION = @"SOFTWARE\" + APPLICATION_NAME;
         internal const string AGROLOG_FOLDER_NAME = "Agrolog";

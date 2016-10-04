@@ -11,7 +11,6 @@ namespace tempa
     /// </summary>
     class smNotify
     {
-        private MainWindow _mainWindow = ((MainWindow)System.Windows.Application.Current.MainWindow);
 
         ///// <summary>
         //       /// Shows a window, if none is already open.
@@ -43,6 +42,7 @@ namespace tempa
                     {
                         Application.Current.MainWindow.Visibility = Visibility.Visible;
                         Application.Current.MainWindow.WindowState = WindowState.Normal;
+                        MainWindow _mainWindow = ((MainWindow)System.Windows.Application.Current.MainWindow);
                         if (!_mainWindow.IsFileBrowsTreeOnForm && !_mainWindow.IsSettingsGridOnForm)
                             _mainWindow.RaiseEvent(new RoutedEventArgs(MainWindow.SettingShowEvent, _mainWindow));
                     }

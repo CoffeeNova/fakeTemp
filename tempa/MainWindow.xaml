@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:extensions="clr-namespace:tempa.Extensions"
         mc:Ignorable="d" x:Class="tempa.MainWindow"
         Title="Code Line" Height="415.367" Width="484.334" Closed="Program_Closed" Opacity="0.85" Background="#FF272424" ResizeMode="NoResize" WindowStyle="None"
         xmlns:tempa="clr-namespace:tempa"   
@@ -105,16 +106,14 @@
             <RemoveStoryboard BeginStoryboardName="OnClick1_BeginStoryboard"/>
             <BeginStoryboard x:Name="OnClick1_reverse_BeginStoryboard" Storyboard="{StaticResource OnClick1_reverse}"/>
         </EventTrigger>
-        <EventTrigger RoutedEvent="tempa:MainWindow.SettingsShow" SourceName="tempa:MainWindow">
+        <EventTrigger RoutedEvent="tempa:MainWindow.SettingsShow" >
             <BeginStoryboard x:Name="ShowSettings_BeginStoryboard" Storyboard="{StaticResource ShowSettings}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="SettingsOkButt">
             <RemoveStoryboard BeginStoryboardName="ShowSettings_BeginStoryboard"/>
             <BeginStoryboard x:Name="HideSettings_BeginStoryboard" Storyboard="{StaticResource HideSettings}"/>
         </EventTrigger>
-        <!--<EventTrigger RoutedEvent="UIElement.LostFocus">
-        	<BeginStoryboard x:Name="OnClick1_reverse_BeginStoryboard1" Storyboard="{StaticResource OnClick1_reverse}"/>
-        </EventTrigger>-->
+
     </Window.Triggers>
     <Grid Background="#FF272424" Opacity="0.85" OpacityMask="White">
         <Grid.RowDefinitions>
@@ -126,18 +125,18 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <TextBox x:Name="AgrologFilesPathTextBox" Text="C:\" HorizontalAlignment="Left" Height="23" Margin="10,43,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="220" Background="#FF110F0F" BorderBrush="#FF272424" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"  GotKeyboardFocus="FilesPathTextBox_GotKeyboardFocus" GotMouseCapture="FilesPathTextBox_GotMouseCapture" CaretBrush="#FF3399FF" Foreground="White" Grid.RowSpan="2"/>
+        <TextBox x:Name="AgrologFilesPathTextBox" Text="{Binding Path=AgrologReportsPath, ElementName=FakeTemp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="23" Margin="10,43,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="220" Background="#FF110F0F" BorderBrush="#FF272424" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"  GotKeyboardFocus="FilesPathTextBox_GotKeyboardFocus" GotMouseCapture="FilesPathTextBox_GotMouseCapture" CaretBrush="#FF3399FF" Foreground="White" Grid.RowSpan="2" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
         <Label x:Name="AgroloFilesPathLabel" Content="ПУТЬ К ОТЧЕТАМ AGROLOG:" HorizontalAlignment="Left" Margin="10,17,0,0" VerticalAlignment="Top" Width="191" Foreground="#FFF1EBEB" FontSize="14"/>
         <Button x:Name="AgrologButton" Content="AGROLOG" HorizontalAlignment="Left" Margin="275,150,0,0" VerticalAlignment="Top" Width="83" Click="ReportButton_Click" Height="26" Foreground="#FFF1EBEB" FontSize="14" Background="#FF272424" Grid.Row="1"/>
         <Label x:Name="GrainbarFilesPathLabel" Content="ПУТЬ К ОТЧЕТАМ ГРЕЙНБАР:" HorizontalAlignment="Left" Margin="10,12,0,0" VerticalAlignment="Top" Width="220" Foreground="#FFF1EBEB" FontSize="14" Grid.Row="1"/>
-        <TextBox x:Name="GrainbarFilesPathTextBox" Text="C:\" HorizontalAlignment="Left" Height="23" Margin="10,38,0,0" VerticalAlignment="Top" Width="220" Background="#FF110F0F" BorderBrush="#FF272424" TextWrapping="NoWrap" VerticalContentAlignment="Center" HorizontalContentAlignment="Left" GotKeyboardFocus="FilesPathTextBox_GotKeyboardFocus" GotMouseCapture="FilesPathTextBox_GotMouseCapture" CaretBrush="#FF3399FF" Foreground="White" Grid.Row="1"/>
+        <TextBox x:Name="GrainbarFilesPathTextBox" Text="{Binding Path=GrainbarReportsPath, ElementName=FakeTemp,  Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Height="23" Margin="10,38,0,0" VerticalAlignment="Top" Width="220" Background="#FF110F0F" BorderBrush="#FF272424" TextWrapping="NoWrap" VerticalContentAlignment="Center" HorizontalContentAlignment="Left" GotKeyboardFocus="FilesPathTextBox_GotKeyboardFocus" GotMouseCapture="FilesPathTextBox_GotMouseCapture" CaretBrush="#FF3399FF" Foreground="White" Grid.Row="1" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
         <Label x:Name="TotalFilesLabel" Content="ВСЕГО ФАЙЛОВ: " HorizontalAlignment="Left" Margin="7,150.333,0,0" VerticalAlignment="Top" Width="129" Foreground="#FFF1EBEB" FontSize="14" Grid.Row="1"/>
         <Label x:Name="LogLabel" Content="ЛОГ:" HorizontalAlignment="Left" Margin="7,181.333,0,0" VerticalAlignment="Top" Width="129" RenderTransformOrigin="0.56,3.962" Foreground="#FFF1EBEB" FontSize="14" Grid.Row="1"/>
         <Label Content="Считаю..." HorizontalAlignment="Left" Margin="33.197,181.333,-91.863,0" VerticalAlignment="Top" Width="81" Grid.Row="1" Grid.Column="1"/>
         <Button x:Name="GrainbarButton" Content="ГРЕЙНБАР" HorizontalAlignment="Left" Margin="363,150,0,0" VerticalAlignment="Top" Width="88" Click="ReportButton_Click" Height="26" Foreground="#FFF1EBEB" FontSize="14" Background="#FF272424" Grid.Row="1" />
         <Label x:Name="TotalFilesOutputLabel" Content="" HorizontalAlignment="Left" Margin="155,150.333,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" Width="75" Foreground="White" Height="29" Grid.Row="1"/>
         <Label x:Name="TotalLinesOutputLabel" Content="" HorizontalAlignment="Left" Margin="155,181.333,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" Width="75" Foreground="White" RenderTransformOrigin="1.067,0.385" Height="29" Grid.Row="1"/>
-        <ScrollViewer  HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="464" Foreground="White" RenderTransformOrigin="1.067,0.385" Height="145" Grid.Row="1" Grid.ColumnSpan="2">
+        <ScrollViewer extensions:AutoScrollBehavior.AutoScroll="True" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="464" Foreground="White" RenderTransformOrigin="1.067,0.385" Height="145" Grid.Row="1" Grid.ColumnSpan="2">
             <TextBlock x:Name="LogTextBlock" Padding="5"  TextWrapping="Wrap"
                            ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <Run Text='Версия 1.0.0.5 - отображаемые данные для удобства будут отображаться в МВтч, вместо 100* кВтч '/>
@@ -194,8 +193,14 @@
             </Grid.RenderTransform>
             <Frame  Background="#FF110F0F" Foreground="White" HorizontalAlignment="Left" Height="149" VerticalAlignment="Top" Width="204"/>
             <Button x:Name="SettingsOkButt" Content="OK" HorizontalAlignment="Left" Margin="106,113,0,0" VerticalAlignment="Top" Width="88" Click="SettingsButton_Click" Height="26" Foreground="#FFF1EBEB" FontSize="14" Background="#FF272424" />
+            <CheckBox x:Name="dataChb" Content="Принимать данные" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="184" Background="#FF110F0F" Foreground="White"/>
+            <CheckBox x:Name="autostartChb" Content="Автозапуск с Windows" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="184" Background="#FF110F0F" Foreground="White"/>
+            <!--<TextBox HorizontalAlignment="Left" Height="24" Margin="10,56,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="29" Background="#FF110F0F" Foreground="White"/>-->
         </Grid>
         <Grid x:Name="FileBrowsGrid" HorizontalAlignment="Left" Height="149" Margin="33.197,36,-214.863,0" VerticalAlignment="Top" Width="204" Grid.RowSpan="2" Grid.Column="1" RenderTransformOrigin="0.5,0.5" LostFocus="FileBrowsGrid_LostFocus" IsVisibleChanged="FileBrowsGrid_IsVisibleChanged">
+            <Grid.Triggers>
+
+            </Grid.Triggers>
             <Grid.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>

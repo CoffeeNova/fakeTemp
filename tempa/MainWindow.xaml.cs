@@ -17,6 +17,7 @@ using System.IO;
 using System.Threading.Tasks;
 using NLog;
 using System.Threading;
+using System.ComponentModel;
 using tempa.Exceptions;
 using tempa.Extensions;
 
@@ -25,7 +26,7 @@ namespace tempa
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
 
         public MainWindow()
@@ -42,8 +43,8 @@ namespace tempa
             #region checked menu items
             #endregion
 
-            Internal.CheckRegistrySettings(ref _agrologReportsPath, Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.AGROLOG_REPORTS_FOLDER_PATH);
-            Internal.CheckRegistrySettings(ref _grainbarReportsPath, Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.GRAINBAR_REPORTS_FOLDER_PATH);
+            AgrologReportsPath = Internal.CheckRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.AGROLOG_REPORTS_FOLDER_PATH);
+            GrainbarReportsPath = Internal.CheckRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.GRAINBAR_REPORTS_FOLDER_PATH);
         }
 
         private void ManualInitializing()
@@ -53,8 +54,8 @@ namespace tempa
             WatchersInit();
             AgrologFileBrowsButt.Tag = ReportType.Agrolog;
             GrainbarFileBrowsButt.Tag = ReportType.Grainbar;
-            AgrologFilesPathTextBox.Text = _agrologReportsPath;
-            GrainbarFilesPathTextBox.Text = _grainbarReportsPath;
+            //AgrologFilesPathTextBox.Text = _agrologReportsPath;
+            //GrainbarFilesPathTextBox.Text = _grainbarReportsPath;
             SettingsShow += MainWindow_onSettingsShow;
         }
 
@@ -62,22 +63,22 @@ namespace tempa
         {
             try
             {
-                _agrologFolderWatcher = new FileSystemWatcher(_agrologReportsPath);
+                _agrologFolderWatcher = new FileSystemWatcher(AgrologReportsPath);
                 WatcherSettings<TermometerAgrolog>(_agrologFolderWatcher, Constants.AGROLOG_FILE_EXTENSION, _agrologFolderWatcherState);
             }
             catch (ArgumentException ex)
             {
-                LogMaker.Log(string.Format("Каталог Agrolog отчетов {0} не существует.", _agrologReportsPath), true);
+                LogMaker.Log(string.Format("Каталог Agrolog отчетов {0} не существует.", AgrologReportsPath), true);
                 ExceptionHandler.Handle(ex, false);
             }
             try
             {
-                _grainbarFolderWatcher = new FileSystemWatcher(_grainbarReportsPath);
+                _grainbarFolderWatcher = new FileSystemWatcher(GrainbarReportsPath);
                 WatcherSettings<TermometerGrainbar>(_grainbarFolderWatcher, Constants.GRAINBAR_FILE_EXTENSION, _grainbarFolderWatcherState);
             }
             catch (ArgumentException ex)
             {
-                LogMaker.Log(string.Format("Каталог Грейнбар отчетов {0} не существует.", _grainbarReportsPath), true);
+                LogMaker.Log(string.Format("Каталог Грейнбар отчетов {0} не существует.", GrainbarReportsPath), true);
                 ExceptionHandler.Handle(ex, false);
             }
         }
@@ -177,6 +178,7 @@ namespace tempa
 
         private async void FileBrowsButt_Click(object sender, RoutedEventArgs e)
         {
+            LogMaker.Log(string.Format("Парсинг данных файла чно. См. Error.log"), true);
             if (IsFileBrowsTreeOnForm == false)
             {
                 var button = sender as Button;
@@ -186,9 +188,9 @@ namespace tempa
                     return;
 
                 if ((ReportType)button.Tag == ReportType.Agrolog)
-                    await FileBrowsTreeViewDirExpandAsync(AgrologFilesPathTextBox.Text, FileBrowsTreeView.Items);
+                    await FileBrowsTreeViewDirExpandAsync(AgrologReportsPath, FileBrowsTreeView.Items);
                 else
-                    await FileBrowsTreeViewDirExpandAsync(GrainbarFilesPathTextBox.Text, FileBrowsTreeView.Items);
+                    await FileBrowsTreeViewDirExpandAsync(GrainbarReportsPath, FileBrowsTreeView.Items);
 
                 IsFileBrowsTreeOnForm = true;
                 FileBrowsTreeView.Focus();
@@ -301,20 +303,21 @@ namespace tempa
             int i = 0;
             String path = "";
             Stack<TreeViewItem> pathstack = Internal.GetNodes(e.NewValue as UIElement);
-
+            if (pathstack.Count == 0)
+                return;
             foreach (TreeViewItem item in pathstack)
             {
                 if (i > 0)
-                    path += item.Header + "\\";
+                    path += item.Header.ToString().PathFormatter();
                 else
                     path += item.Header;
                 i++;
             }
             var tag = (ReportType)(sender as TreeView).Tag;
             if (tag == ReportType.Agrolog)
-                _agrologReportsPath = path;
+                AgrologReportsPath = path;
             else
-                _grainbarReportsPath = path;
+                GrainbarReportsPath = path;
         }
 
 
@@ -353,8 +356,8 @@ namespace tempa
             {
                 try //сохраним в реестре последний выбранный путь
                 {
-                    AgrologFilesPathTextBox.Text = Internal.SaveRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, _agrologReportsPath);
-                    GrainbarFilesPathTextBox.Text = Internal.SaveRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, _grainbarReportsPath);
+                    Internal.SaveRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, AgrologReportsPath);
+                    Internal.SaveRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, GrainbarReportsPath);
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -377,7 +380,7 @@ namespace tempa
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-
+            this.DragMove();
         }
 
         private void MinimizeButt_Click(object sender, RoutedEventArgs e)
@@ -407,13 +410,13 @@ namespace tempa
 
         void MainWindow_onSettingsShow(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            IsSettingsGridOnForm = true;
         }
 
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-
+            IsSettingsGridOnForm = false;
         }
 
         public static readonly RoutedEvent SettingShowEvent = EventManager.RegisterRoutedEvent(
@@ -423,6 +426,16 @@ namespace tempa
         {
             add { AddHandler(SettingShowEvent, value); }
             remove { RemoveHandler(SettingShowEvent, value); }
+        }
+
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         public bool IsFileBrowsTreeOnForm = false;                 //на форме ли окно выбора файлов
@@ -436,6 +449,28 @@ namespace tempa
         FileSystemWatcher _grainbarFolderWatcher;
         ManualResetEvent _directoriesFilledSignal = new ManualResetEvent(false);
 
+        public string AgrologReportsPath
+        {
+            get { return _agrologReportsPath; } 
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                    _agrologReportsPath = Constants.AGROLOG_REPORTS_FOLDER_PATH;
+                else _agrologReportsPath = value;
+                NotifyPropertyChanged("AgrologReportsPath");
+            }
+        }
+
+        public string GrainbarReportsPath 
+        { get{return _grainbarReportsPath;}
+            set 
+            {
+                if (string.IsNullOrEmpty(value))
+                    _grainbarReportsPath = Constants.AGROLOG_REPORTS_FOLDER_PATH;
+                else _grainbarReportsPath = value;
+                NotifyPropertyChanged();
+            }
+          }
 
         private static class TypeLock<T>
         {

@@ -99,6 +99,7 @@
     <Compile Include="DataWorker\DataWorker.Excel.cs" />
     <Compile Include="ExceptionHandler.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Extensions\AutoScrollBehavior.cs" />
     <Compile Include="Extensions\CollectionExtension.cs" />
     <Compile Include="Extensions\NumericExtension.cs" />
     <Compile Include="Extensions\StringExtension.cs" />
