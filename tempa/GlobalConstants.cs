@@ -21,6 +21,10 @@ namespace tempa
         internal const string GRAINBAR_REPORT_FILE_NAME = "Grainbar report.xls";
         internal const string AGROLOG_REPORTS_PATH_REGKEY = "agrologReports";
         internal const string GRAINBAR_REPORTS_PATH_REGKEY = "grainbarReports";
+        internal const string IS_AGROLOG_DATA_COLLECT_REGKEY = "isAgrologDataCollect";
+        internal const string IS_GRAINBAR_DATA_COLLECT_REGKEY = "isGrainbarDataCollect";
+        internal const string IS_AUTOSTART_REGKEY = "isAutoStart";
+        internal const string IS_DATA_SUBSTITUTION_REGKEY = "isDataSubstitution";
         internal const string AGROLOG_FILE_EXTENSION = "csv";
         internal const string GRAINBAR_FILE_EXTENSION = "txt";
         internal const string AGROLOG_PROGRAM_NAME = "Agrolog";

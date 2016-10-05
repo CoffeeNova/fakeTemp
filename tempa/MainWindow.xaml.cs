@@ -45,13 +45,16 @@ namespace tempa
 
             AgrologReportsPath = Internal.CheckRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.AGROLOG_REPORTS_FOLDER_PATH);
             GrainbarReportsPath = Internal.CheckRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.GRAINBAR_REPORTS_FOLDER_PATH);
+            IsAgrologDataCollect = Internal.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            IsGrainbarDataCollect = Internal.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            IsAutostart = Internal.CheckRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, true);
+            IsDataSubstitution = Internal.CheckRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, false);
         }
 
         private void ManualInitializing()
         {
             LogTextBlock.Inlines.Clear();
             LogMaker.newMessage += LogMaker_newMessage;
-            WatchersInit();
             AgrologFileBrowsButt.Tag = ReportType.Agrolog;
             GrainbarFileBrowsButt.Tag = ReportType.Grainbar;
             //AgrologFilesPathTextBox.Text = _agrologReportsPath;
@@ -59,29 +62,23 @@ namespace tempa
             SettingsShow += MainWindow_onSettingsShow;
         }
 
-        private void WatchersInit()
+        private bool WatcherInit(FileSystemWatcher watcher, ReportType reportType, string reportsPath, string fileExtension, bool isEnable)
         {
+
             try
             {
-                _agrologFolderWatcher = new FileSystemWatcher(AgrologReportsPath);
-                WatcherSettings<TermometerAgrolog>(_agrologFolderWatcher, Constants.AGROLOG_FILE_EXTENSION, _agrologFolderWatcherState);
+                watcher = new FileSystemWatcher(reportsPath);
+                WatcherSettings<TermometerAgrolog>(watcher, fileExtension, isEnable);
             }
             catch (ArgumentException ex)
             {
-                LogMaker.Log(string.Format("Каталог Agrolog отчетов {0} не существует.", AgrologReportsPath), true);
+                string programName = reportType == ReportType.Agrolog ? "Agrolog" : "Грейнбар";
+                LogMaker.Log(string.Format("Каталог {0} отчетов {1} не существует.",programName, AgrologReportsPath), true);
                 ExceptionHandler.Handle(ex, false);
-            }
-            try
-            {
-                _grainbarFolderWatcher = new FileSystemWatcher(GrainbarReportsPath);
-                WatcherSettings<TermometerGrainbar>(_grainbarFolderWatcher, Constants.GRAINBAR_FILE_EXTENSION, _grainbarFolderWatcherState);
-            }
-            catch (ArgumentException ex)
-            {
-                LogMaker.Log(string.Format("Каталог Грейнбар отчетов {0} не существует.", GrainbarReportsPath), true);
-                ExceptionHandler.Handle(ex, false);
+                return false;
             }
         }
+
 
         private void WatcherSettings<T>(FileSystemWatcher watcher, string fileExtension, bool enable) where T : ITermometer
         {
@@ -290,7 +287,7 @@ namespace tempa
             ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
             scroller.ScrollToBottom();
             item.BringIntoView();
-           
+
         }
 
         private void FileBrowsTreeView_LostFocus(object sender, RoutedEventArgs e)
@@ -438,10 +435,24 @@ namespace tempa
             }
         }
 
+        private void dataChb_Checked(object sender, RoutedEventArgs e)
+        {
+            WatchersInit();
+        }
+
+        private void dataChb_Unchecked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
         public bool IsFileBrowsTreeOnForm = false;                 //на форме ли окно выбора файлов
         public bool IsSettingsGridOnForm = false;
         bool _agrologFolderWatcherState = false;
         bool _grainbarFolderWatcherState = false;
+        bool _isAgrologDataCollect = false;
+        bool _isGrainbarDataCollect = false;
+        bool _isAutostart = false;
+        bool _isDataSubstitution = false;
         string _agrologReportsPath;
         string _grainbarReportsPath;
         private readonly Logger _log = LogManager.GetCurrentClassLogger();
@@ -451,26 +462,51 @@ namespace tempa
 
         public string AgrologReportsPath
         {
-            get { return _agrologReportsPath; } 
+            get { return _agrologReportsPath; }
             set
             {
                 if (string.IsNullOrEmpty(value))
                     _agrologReportsPath = Constants.AGROLOG_REPORTS_FOLDER_PATH;
                 else _agrologReportsPath = value;
-                NotifyPropertyChanged("AgrologReportsPath");
+                NotifyPropertyChanged();
             }
         }
 
-        public string GrainbarReportsPath 
-        { get{return _grainbarReportsPath;}
-            set 
+        public string GrainbarReportsPath
+        {
+            get { return _grainbarReportsPath; }
+            set
             {
                 if (string.IsNullOrEmpty(value))
                     _grainbarReportsPath = Constants.AGROLOG_REPORTS_FOLDER_PATH;
                 else _grainbarReportsPath = value;
                 NotifyPropertyChanged();
             }
-          }
+        }
+
+        public bool IsAgrologDataCollect
+        {
+            get { return _isAgrologDataCollect; }
+            set { _isAgrologDataCollect = value; NotifyPropertyChanged(); }
+        }
+
+        public bool IsGrainbarDataCollect
+        {
+            get { return _isGrainbarDataCollect; }
+            set { _isGrainbarDataCollect = value; NotifyPropertyChanged(); }
+        }
+
+        public bool IsAutostart
+        {
+            get { return _isAutostart; }
+            set { _isAutostart = value; NotifyPropertyChanged(); }
+        }
+
+        public bool IsDataSubstitution
+        {
+            get { return _isDataSubstitution; }
+            set { _isDataSubstitution = value; NotifyPropertyChanged(); }
+        }
 
         private static class TypeLock<T>
         {
