@@ -64,16 +64,22 @@ namespace tempa
 
         private bool WatcherInit(FileSystemWatcher watcher, ReportType reportType, string reportsPath, string fileExtension, bool isEnable)
         {
-
+            if (!isEnable)
+            {
+                watcher.EnableRaisingEvents = false;
+                watcher.Dispose();
+                return false;
+            }
             try
             {
                 watcher = new FileSystemWatcher(reportsPath);
                 WatcherSettings<TermometerAgrolog>(watcher, fileExtension, isEnable);
+                return true;
             }
             catch (ArgumentException ex)
             {
                 string programName = reportType == ReportType.Agrolog ? "Agrolog" : "Грейнбар";
-                LogMaker.Log(string.Format("Каталог {0} отчетов {1} не существует.",programName, AgrologReportsPath), true);
+                LogMaker.Log(string.Format("Каталог {0} отчетов {1} не существует.", programName, AgrologReportsPath), true);
                 ExceptionHandler.Handle(ex, false);
                 return false;
             }
@@ -153,6 +159,8 @@ namespace tempa
         void LogMaker_newMessage(string message, bool isError)
         {
             Run run = new Run(message + Environment.NewLine);
+            InlineUIContainer inlineUIContainer = new InlineUIContainer();
+            
             if (isError)
                 run.Foreground = Brushes.Red;
             LogTextBlock.Inlines.Add(run);
@@ -175,7 +183,6 @@ namespace tempa
 
         private async void FileBrowsButt_Click(object sender, RoutedEventArgs e)
         {
-            LogMaker.Log(string.Format("Парсинг данных файла чно. См. Error.log"), true);
             if (IsFileBrowsTreeOnForm == false)
             {
                 var button = sender as Button;
@@ -437,12 +444,16 @@ namespace tempa
 
         private void dataChb_Checked(object sender, RoutedEventArgs e)
         {
-            WatchersInit();
+            if ((sender as CheckBox).Name == "agrologDataChb")
+               IsAgrologDataCollect = WatcherInit(_agrologFolderWatcher, ReportType.Agrolog, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION, true);
+            else IsGrainbarDataCollect = WatcherInit(_grainbarFolderWatcher, ReportType.Grainbar, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION, true);
         }
 
         private void dataChb_Unchecked(object sender, RoutedEventArgs e)
         {
-
+            if ((sender as CheckBox).Name == "agrologDataChb")
+                WatcherInit(_agrologFolderWatcher, ReportType.Agrolog, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION, false);
+            else WatcherInit(_grainbarFolderWatcher, ReportType.Grainbar, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION, false);
         }
 
         public bool IsFileBrowsTreeOnForm = false;                 //на форме ли окно выбора файлов
@@ -451,7 +462,7 @@ namespace tempa
         bool _grainbarFolderWatcherState = false;
         bool _isAgrologDataCollect = false;
         bool _isGrainbarDataCollect = false;
-        bool _isAutostart = false;
+        bool _isAutostart = true;
         bool _isDataSubstitution = false;
         string _agrologReportsPath;
         string _grainbarReportsPath;
@@ -511,6 +522,13 @@ namespace tempa
         private static class TypeLock<T>
         {
             public static readonly object SyncLock = new object();
+        }
+
+        private void TestButton_Click(object sender, RoutedEventArgs e)
+        {
+           for(int i =1; i <50; i++)
+               LogMaker.Log(string.Format("test"), i%2 == 0);
+
         }
 
     }
