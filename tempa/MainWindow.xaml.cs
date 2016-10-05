@@ -163,6 +163,8 @@ namespace tempa
             
             if (isError)
                 run.Foreground = Brushes.Red;
+            else
+                run.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#EFEFEF")); ;
             LogTextBlock.Inlines.Add(run);
         }
 
@@ -529,6 +531,17 @@ namespace tempa
            for(int i =1; i <50; i++)
                LogMaker.Log(string.Format("test"), i%2 == 0);
 
+        }
+
+        private void FakeTemp_Loaded(object sender, RoutedEventArgs e)
+        {
+            AgrologFilesPathTextBox.CaretIndex = AgrologFilesPathTextBox.Text.Length;
+            var rect = AgrologFilesPathTextBox.GetRectFromCharacterIndex(AgrologFilesPathTextBox.CaretIndex);
+            AgrologFilesPathTextBox.ScrollToHorizontalOffset(rect.Right);
+
+            GrainbarFilesPathTextBox.CaretIndex = GrainbarFilesPathTextBox.Text.Length;
+            var rect2 = GrainbarFilesPathTextBox.GetRectFromCharacterIndex(GrainbarFilesPathTextBox.CaretIndex);
+            GrainbarFilesPathTextBox.ScrollToHorizontalOffset(rect2.Right);
         }
 
     }

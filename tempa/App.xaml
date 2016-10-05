@@ -7,7 +7,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="smNotify.xaml" />
-                <!--<ResourceDictionary Source="Themes\Styles.xaml" />-->
+                <ResourceDictionary Source="Themes\Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <SolidColorBrush x:Key="ForegroundBrush" Color="#FF3F3F3F" />
             <SolidColorBrush x:Key="TransparentBrush" Color="#00FFFFFF" />
