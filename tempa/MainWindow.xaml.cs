@@ -62,18 +62,12 @@ namespace tempa
             SettingsShow += MainWindow_onSettingsShow;
         }
 
-        private bool WatcherInit(FileSystemWatcher watcher, ReportType reportType, string reportsPath, string fileExtension, bool isEnable)
+        private bool WatcherInit(FileSystemWatcher watcher, ReportType reportType, string reportsPath, string fileExtension)
         {
-            if (!isEnable)
-            {
-                watcher.EnableRaisingEvents = false;
-                watcher.Dispose();
-                return false;
-            }
             try
             {
                 watcher = new FileSystemWatcher(reportsPath);
-                WatcherSettings<TermometerAgrolog>(watcher, fileExtension, isEnable);
+                WatcherSettings<TermometerAgrolog>(watcher, fileExtension);
                 return true;
             }
             catch (ArgumentException ex)
@@ -85,15 +79,20 @@ namespace tempa
             }
         }
 
+        private void DisposeWatcher(FileSystemWatcher watcher)
+        {
+            if (watcher == null)
+                return;
+            watcher.EnableRaisingEvents = false;
+            watcher.Dispose();
+        }
 
-        private void WatcherSettings<T>(FileSystemWatcher watcher, string fileExtension, bool enable) where T : ITermometer
+        private void WatcherSettings<T>(FileSystemWatcher watcher, string fileExtension) where T : ITermometer
         {
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             watcher.Filter = "*." + fileExtension;
             watcher.Created += (sender, e) => FileSystemWatcher_OnCreated<T>(sender, e);
-
-            if (enable)
-                watcher.EnableRaisingEvents = true;
+            watcher.EnableRaisingEvents = true;
         }
 
         private async void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
@@ -160,7 +159,7 @@ namespace tempa
         {
             Run run = new Run(message + Environment.NewLine);
             InlineUIContainer inlineUIContainer = new InlineUIContainer();
-            
+
             if (isError)
                 run.Foreground = Brushes.Red;
             else
@@ -229,15 +228,8 @@ namespace tempa
             for (int i = 0; i < itemCollection.Count; i++)
             {
                 TreeViewItem item = (TreeViewItem)itemCollection[i];
-                DirectoryInfo dir;
+                DirectoryInfo dir = GetDirectoryInfo(item, true);
 
-                object tag = Dispatcher.Invoke(new Func<object>(() => item.Tag));
-                if (tag is DriveInfo)
-                {
-                    DriveInfo drive = (DriveInfo)tag;
-                    dir = drive.RootDirectory;
-                }
-                else dir = (DirectoryInfo)tag;
 
                 var splittedPath = path.Split('\\').ToList();
                 splittedPath.RemoveAll(p => string.IsNullOrEmpty(p));
@@ -247,11 +239,12 @@ namespace tempa
                     {
                         Dispatcher.Invoke(new Action(() =>
                         {
+                            item.IsExpanded = false;
                             item.IsExpanded = true;
                         }));
                         _directoriesFilledSignal.WaitOne();
                         _directoriesFilledSignal.Reset();
-                        FileBrowsTreeViewDirExpand(path.Replace(dirName.PathFormatter(), string.Empty), item.Items);
+                        FileBrowsTreeViewDirExpand(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), item.Items);
                         break;
                     }
                 }
@@ -261,15 +254,9 @@ namespace tempa
         private void FillTreeViewItemWithDirectories(ref TreeViewItem treeViewItem)
         {
             var bc = new BrushConverter();
-            treeViewItem.Foreground = (Brush)bc.ConvertFrom("#FFBFB7B7");
+            //treeViewItem.Foreground = (Brush)bc.ConvertFrom("#FFBFB7B7");
             treeViewItem.Items.Clear();
-            DirectoryInfo dir;
-            if (treeViewItem.Tag is DriveInfo)
-            {
-                DriveInfo drive = (DriveInfo)treeViewItem.Tag;
-                dir = drive.RootDirectory;
-            }
-            else dir = (DirectoryInfo)treeViewItem.Tag;
+            DirectoryInfo dir = GetDirectoryInfo(treeViewItem, false);
             try
             {
                 foreach (DirectoryInfo subDir in dir.GetDirectories())
@@ -278,7 +265,7 @@ namespace tempa
                     newItem.Tag = subDir;
                     newItem.Header = subDir.ToString();
                     newItem.Items.Add("*");
-                    newItem.Foreground = (Brush)bc.ConvertFrom("#FFFFFFFF");
+                    //newItem.Foreground = (Brush)bc.ConvertFrom("#FFFFFFFF");
                     treeViewItem.Items.Add(newItem);
                 }
             }
@@ -286,6 +273,45 @@ namespace tempa
             { }
             finally { _directoriesFilledSignal.Set(); }
         }
+
+
+        private DirectoryInfo GetDirectoryInfo(TreeViewItem item, bool anotherThread)
+        {
+            DirectoryInfo dir;
+            object tag = anotherThread == true ? Dispatcher.Invoke(new Func<object>(() => item.Tag)) : item.Tag;
+
+            if (tag is DriveInfo)
+            {
+                DriveInfo drive = (DriveInfo)tag;
+                dir = drive.RootDirectory;
+            }
+            else dir = (DirectoryInfo)tag;
+
+            return dir;
+        }
+
+        private DirectoryInfo CreateNewFolder(string folderName)
+        {
+            if (string.IsNullOrEmpty(folderName))
+                return null;
+            var selectedItem = (TreeViewItem)(FileBrowsTreeView.SelectedItem);
+            DirectoryInfo dir = GetDirectoryInfo(selectedItem, false);
+
+            try
+            {
+                DirectoryInfo newDir = Directory.CreateDirectory(dir.FullName.PathFormatter() + folderName);
+                LogMaker.Log(string.Format("Создана новая папка: {0}.", newDir.FullName), false);
+                return newDir;
+            }
+            catch (ArgumentException ex)
+            {
+                LogMaker.Log(string.Format("Имя папки содежит недопустимые символы, или содержит только пробелы. См. Error.log"), true);
+                ExceptionHandler.Handle(ex, false);
+            }
+            return null;
+        }
+
+
 
         private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
         {
@@ -296,7 +322,7 @@ namespace tempa
             ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
             scroller.ScrollToBottom();
             item.BringIntoView();
-
+            item.IsSelected = true;
         }
 
         private void FileBrowsTreeView_LostFocus(object sender, RoutedEventArgs e)
@@ -447,21 +473,64 @@ namespace tempa
         private void dataChb_Checked(object sender, RoutedEventArgs e)
         {
             if ((sender as CheckBox).Name == "agrologDataChb")
-               IsAgrologDataCollect = WatcherInit(_agrologFolderWatcher, ReportType.Agrolog, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION, true);
-            else IsGrainbarDataCollect = WatcherInit(_grainbarFolderWatcher, ReportType.Grainbar, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION, true);
+                IsAgrologDataCollect = WatcherInit(_agrologFolderWatcher, ReportType.Agrolog, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION);
+            else IsGrainbarDataCollect = WatcherInit(_grainbarFolderWatcher, ReportType.Grainbar, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION);
         }
 
         private void dataChb_Unchecked(object sender, RoutedEventArgs e)
         {
             if ((sender as CheckBox).Name == "agrologDataChb")
-                WatcherInit(_agrologFolderWatcher, ReportType.Agrolog, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION, false);
-            else WatcherInit(_grainbarFolderWatcher, ReportType.Grainbar, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION, false);
+                DisposeWatcher(_agrologFolderWatcher);
+            else DisposeWatcher(_grainbarFolderWatcher);
+        }
+
+
+        private void FakeTemp_Loaded(object sender, RoutedEventArgs e)
+        {
+            AgrologFilesPathTextBox.CaretIndex = AgrologFilesPathTextBox.Text.Length;
+            var rect = AgrologFilesPathTextBox.GetRectFromCharacterIndex(AgrologFilesPathTextBox.CaretIndex);
+            AgrologFilesPathTextBox.ScrollToHorizontalOffset(rect.Right);
+
+            GrainbarFilesPathTextBox.CaretIndex = GrainbarFilesPathTextBox.Text.Length;
+            var rect2 = GrainbarFilesPathTextBox.GetRectFromCharacterIndex(GrainbarFilesPathTextBox.CaretIndex);
+            GrainbarFilesPathTextBox.ScrollToHorizontalOffset(rect2.Right);
+        }
+
+        private void FileBrowsPlusButt_Click(object sender, RoutedEventArgs e)
+        {
+            NewFolderBox.Text = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
+            NewFolderBox.Focus();
+        }
+
+        private async void NewFolderTb_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter)
+            {
+                var textBox = (sender as TextBox);
+                var text = textBox.Text;
+                DirectoryInfo newDir = CreateNewFolder(text);
+                if (newDir == null)
+                {
+                    textBox.Text = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
+                    textBox.SelectAll();
+                }
+                await FileBrowsTreeViewDirExpandAsync(newDir.FullName, FileBrowsTreeView.Items);
+
+                //foreach (TreeViewItem item in (FileBrowsTreeView.SelectedItem as TreeViewItem).Items)
+                //{
+                //    DirectoryInfo dir = GetDirectoryInfo(item, false);
+                //    if (dir.FullName == newDir.FullName)
+                //    {
+                //        item.IsSelected = true;
+                //        break;
+                //    }
+                //}
+                FileBrowsTreeView.Focus();
+            }
         }
 
         public bool IsFileBrowsTreeOnForm = false;                 //на форме ли окно выбора файлов
         public bool IsSettingsGridOnForm = false;
-        bool _agrologFolderWatcherState = false;
-        bool _grainbarFolderWatcherState = false;
         bool _isAgrologDataCollect = false;
         bool _isGrainbarDataCollect = false;
         bool _isAutostart = true;
@@ -528,20 +597,9 @@ namespace tempa
 
         private void TestButton_Click(object sender, RoutedEventArgs e)
         {
-           for(int i =1; i <50; i++)
-               LogMaker.Log(string.Format("test"), i%2 == 0);
+            for (int i = 1; i < 50; i++)
+                LogMaker.Log(string.Format("test"), i % 2 == 0);
 
-        }
-
-        private void FakeTemp_Loaded(object sender, RoutedEventArgs e)
-        {
-            AgrologFilesPathTextBox.CaretIndex = AgrologFilesPathTextBox.Text.Length;
-            var rect = AgrologFilesPathTextBox.GetRectFromCharacterIndex(AgrologFilesPathTextBox.CaretIndex);
-            AgrologFilesPathTextBox.ScrollToHorizontalOffset(rect.Right);
-
-            GrainbarFilesPathTextBox.CaretIndex = GrainbarFilesPathTextBox.Text.Length;
-            var rect2 = GrainbarFilesPathTextBox.GetRectFromCharacterIndex(GrainbarFilesPathTextBox.CaretIndex);
-            GrainbarFilesPathTextBox.ScrollToHorizontalOffset(rect2.Right);
         }
 
     }

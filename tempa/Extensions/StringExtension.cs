@@ -43,5 +43,19 @@ namespace tempa.Extensions
                 return str;
             return str + "\\";
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="pattern"></param>
+        /// <param name="value"></param>
+        /// <remarks>Заместить первый <paramref name="pattern"/> на <paramref name="value"/>.</remarks>
+        /// <returns></returns>
+        public static string ReplaceFirst(this string text, string pattern, string value)
+        {
+            var regex = new Regex(Regex.Escape(pattern));
+            return regex.Replace(text, value, 1);
+        }
     }
 }

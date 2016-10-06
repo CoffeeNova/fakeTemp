@@ -29,6 +29,7 @@ namespace tempa
         internal const string GRAINBAR_FILE_EXTENSION = "txt";
         internal const string AGROLOG_PROGRAM_NAME = "Agrolog";
         internal const string GRAINBAR_PROGRAM_NAME = "Грейнбар";
+        internal const string NEW_FOLDER_TEXT_BOX_INITIAL_TEXT = "Новая папка";
 
         internal static readonly string APPLICATION_DIRECTORY = System.IO.Directory.GetCurrentDirectory();
         internal static readonly string AGROLOG_REPORTS_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + AGROLOG_FOLDER_NAME;
