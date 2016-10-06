@@ -41,6 +41,25 @@ namespace tempa
         /// <param name="valueName"></param>
         /// <param name="keyLocation"></param>
         /// <param name="saveValue"></param>
+        /// <exception cref="InvalidOperationException">Ошибка записи в реестр. Подробности во внутреннем исключении.</exception>
+        internal static void SaveRegistrySettings(string valueName, string keyLocation, bool saveValue)
+        {
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, saveValue == true ? "true" : "false");
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lastValue"></param>
+        /// <param name="valueName"></param>
+        /// <param name="keyLocation"></param>
+        /// <param name="saveValue"></param>
         internal static void SaveRegistrySettings(ref string lastValue, string valueName, string keyLocation, string saveValue)
         {
             if (lastValue == saveValue)
@@ -193,14 +212,12 @@ namespace tempa
         internal static Stack<TreeViewItem> GetNodes(UIElement element)
         {
 
-            Stack<TreeViewItem> tempNodePath = new Stack<TreeViewItem>();
+            var tempNodePath = new Stack<TreeViewItem>();
             // Walk up the element tree to the nearest tree view item. 
-            TreeViewItem container = element as TreeViewItem;
 
             while ((element != null))
             {
-
-                container = element as TreeViewItem;
+               var container = element as TreeViewItem;
                 if (container != null)
                     tempNodePath.Push(container);
                 element = VisualTreeHelper.GetParent(element) as UIElement;
@@ -232,6 +249,51 @@ namespace tempa
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// создает список всех видимых заданных дочерних элементов в родительском элементе 
+        /// </summary>
+        /// <param name="parentElement"></param>
+        /// <param name="childElement"></param>
+        /// <returns></returns>
+        internal static List<FrameworkElement> GetChildElementsByType(FrameworkElement parentElement, Type childElementType)
+        {
+            List<FrameworkElement> childElemList = new List<FrameworkElement>();
+            List<FrameworkElement> allElem = new List<FrameworkElement>();
+            //создадим список всех элементов в родительском элементе
+            ChildControls(parentElement, allElem);
+            //выберем из списка только видимые и нужные по типу
+            foreach (FrameworkElement elem in allElem)
+            {
+                if (elem.GetType() == childElementType && elem.Visibility != Visibility.Hidden)
+                {
+                    childElemList.Add(elem);
+                }
+            }
+            return childElemList;
+        }
+        /// <summary>
+        /// список всех wpf элементов в заданном родительском элементе 
+        /// </summary>
+        /// <param name="parentElement"></param>
+        /// <param name="Controls"></param>
+        internal static void ChildControls(FrameworkElement parentElement, List<FrameworkElement> Controls)
+        {
+            foreach (FrameworkElement child in LogicalTreeHelper.GetChildren(parentElement))
+            {
+                try
+                {
+                    Controls.Add(child);
+                    if (child is ContentControl)
+                    {
+                        if (!((child as ContentControl).Content is string))
+                            ChildControls((FrameworkElement)(child as ContentControl).Content, Controls);
+                    }
+                    else ChildControls(child, Controls);
+                }
+                catch { }
+            }
         }
     }
 }

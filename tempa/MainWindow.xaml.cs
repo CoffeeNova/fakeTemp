@@ -32,8 +32,8 @@ namespace tempa
         public MainWindow()
         {
             InitializeComponent();
-            Settings();
             ManualInitializing();
+            Settings();
 
             _log.Info(string.Format("{0} is started successfully.", Constants.APPLICATION_NAME));
         }
@@ -62,7 +62,7 @@ namespace tempa
             SettingsShow += MainWindow_onSettingsShow;
         }
 
-        private bool WatcherInit(FileSystemWatcher watcher, ReportType reportType, string reportsPath, string fileExtension)
+        private bool WatcherInit(ref FileSystemWatcher watcher, ReportType reportType, string reportsPath, string fileExtension)
         {
             try
             {
@@ -233,6 +233,7 @@ namespace tempa
 
                 var splittedPath = path.Split('\\').ToList();
                 splittedPath.RemoveAll(p => string.IsNullOrEmpty(p));
+                var pathCount = splittedPath.Count;
                 foreach (string dirName in splittedPath)
                 {
                     if (dir.Name.PathFormatter() == dirName.PathFormatter())
@@ -241,9 +242,8 @@ namespace tempa
                         {
                             item.IsExpanded = false;
                             item.IsExpanded = true;
+                            item.IsSelected = true;
                         }));
-                        _directoriesFilledSignal.WaitOne();
-                        _directoriesFilledSignal.Reset();
                         FileBrowsTreeViewDirExpand(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), item.Items);
                         break;
                     }
@@ -271,7 +271,7 @@ namespace tempa
             }
             catch
             { }
-            finally { _directoriesFilledSignal.Set(); }
+            finally { }
         }
 
 
@@ -299,9 +299,14 @@ namespace tempa
 
             try
             {
-                DirectoryInfo newDir = Directory.CreateDirectory(dir.FullName.PathFormatter() + folderName);
-                LogMaker.Log(string.Format("Создана новая папка: {0}.", newDir.FullName), false);
-                return newDir;
+                string path = dir.FullName.PathFormatter() + folderName;
+                if (!Directory.Exists(path))
+                {
+                    DirectoryInfo newDir = Directory.CreateDirectory(path);
+                    LogMaker.Log(string.Format("Создана новая папка: {0}.", newDir.FullName), false);
+                    return newDir;
+                }
+                return new DirectoryInfo(path);
             }
             catch (ArgumentException ex)
             {
@@ -317,12 +322,9 @@ namespace tempa
         {
             var item = (TreeViewItem)e.OriginalSource;
             FillTreeViewItemWithDirectories(ref item);
-
-            //item.IsSelected = true;
             ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
             scroller.ScrollToBottom();
             item.BringIntoView();
-            item.IsSelected = true;
         }
 
         private void FileBrowsTreeView_LostFocus(object sender, RoutedEventArgs e)
@@ -342,7 +344,7 @@ namespace tempa
                 if (i > 0)
                     path += item.Header.ToString().PathFormatter();
                 else
-                    path += item.Header;
+                    path += item.Header.ToString();
                 i++;
             }
             var tag = (ReportType)(sender as TreeView).Tag;
@@ -448,6 +450,20 @@ namespace tempa
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                Internal.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsAgrologDataCollect);
+                Internal.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsGrainbarDataCollect);
+                Internal.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, IsAutostart);
+                Internal.SaveRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, IsDataSubstitution);
+            }
+            catch (InvalidOperationException ex)
+            {
+                LogMaker.Log(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true);
+                ExceptionHandler.Handle(ex, false);
+            }
+
+            LogMaker.Log(string.Format("Настройки сохранены"), false);
             IsSettingsGridOnForm = false;
         }
 
@@ -473,8 +489,8 @@ namespace tempa
         private void dataChb_Checked(object sender, RoutedEventArgs e)
         {
             if ((sender as CheckBox).Name == "agrologDataChb")
-                IsAgrologDataCollect = WatcherInit(_agrologFolderWatcher, ReportType.Agrolog, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION);
-            else IsGrainbarDataCollect = WatcherInit(_grainbarFolderWatcher, ReportType.Grainbar, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION);
+                IsAgrologDataCollect = WatcherInit(ref _agrologFolderWatcher, ReportType.Agrolog, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION);
+            else IsGrainbarDataCollect = WatcherInit(ref _grainbarFolderWatcher, ReportType.Grainbar, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION);
         }
 
         private void dataChb_Unchecked(object sender, RoutedEventArgs e)
@@ -504,7 +520,7 @@ namespace tempa
 
         private async void NewFolderTb_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Enter)
+            if (e.Key == Key.Enter)
             {
                 var textBox = (sender as TextBox);
                 var text = textBox.Text;
@@ -516,15 +532,6 @@ namespace tempa
                 }
                 await FileBrowsTreeViewDirExpandAsync(newDir.FullName, FileBrowsTreeView.Items);
 
-                //foreach (TreeViewItem item in (FileBrowsTreeView.SelectedItem as TreeViewItem).Items)
-                //{
-                //    DirectoryInfo dir = GetDirectoryInfo(item, false);
-                //    if (dir.FullName == newDir.FullName)
-                //    {
-                //        item.IsSelected = true;
-                //        break;
-                //    }
-                //}
                 FileBrowsTreeView.Focus();
             }
         }
@@ -540,7 +547,6 @@ namespace tempa
         private readonly Logger _log = LogManager.GetCurrentClassLogger();
         FileSystemWatcher _agrologFolderWatcher;
         FileSystemWatcher _grainbarFolderWatcher;
-        ManualResetEvent _directoriesFilledSignal = new ManualResetEvent(false);
 
         public string AgrologReportsPath
         {
