@@ -8,6 +8,7 @@ namespace tempa
 {
     internal static class Constants
     {
+        internal const string ROOT_APPLICATION_NAMESPACE = "tempa";
         internal const string APPLICATION_NAME = "Tempafake";
         internal const string COMPANY_NAME = "ОАО БЕЛСОЛОД";
         internal const string SETTINGS_LOCATION = @"SOFTWARE\" + APPLICATION_NAME;
@@ -15,8 +16,8 @@ namespace tempa
         internal const string GRAINBAR_FOLDER_NAME = "Grainbar";
         internal const string APPLICATION_DATA_FOLDER = "Data";
         internal const string APPLICATION_REPORTS_FOLDER = "Reports";
-        internal const string AGROLOG_ACTIVE_DATA_FILE = "Agrolog.dat";
-        internal const string GRAINBAR_ACTIVE_DATA_FILE = "Grainbar.dat";
+        internal const string AGROLOG_DATA_FILE = "Agrolog.dat";
+        internal const string GRAINBAR_DATA_FILE = "Grainbar.dat";
         internal const string AGROLOG_REPORT_FILE_NAME = "Agrolog report.xls";
         internal const string GRAINBAR_REPORT_FILE_NAME = "Grainbar report.xls";
         internal const string AGROLOG_REPORTS_PATH_REGKEY = "agrologReports";
@@ -30,6 +31,10 @@ namespace tempa
         internal const string AGROLOG_PROGRAM_NAME = "Agrolog";
         internal const string GRAINBAR_PROGRAM_NAME = "Грейнбар";
         internal const string NEW_FOLDER_TEXT_BOX_INITIAL_TEXT = "Новая папка";
+        internal const string AGROLOG_PATTERN_REPORT_NAME = "AgrologPatternReport.csv";
+        internal const string GRAINBAR_PATTERN_REPORT_NAME = "GrainbarPatternReport.txt";
+        internal const string AGROLOG_MANIFEST_RESOURSE = "AgrologPatternReport";
+        internal const string GRAINBAR_MANIFEST_RESOURSE = "GrainbarPatternReport";
 
         internal static readonly string APPLICATION_DIRECTORY = System.IO.Directory.GetCurrentDirectory();
         internal static readonly string AGROLOG_REPORTS_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + AGROLOG_FOLDER_NAME;

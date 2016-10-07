@@ -55,37 +55,57 @@ namespace tempa
         {
             LogTextBlock.Inlines.Clear();
             LogMaker.newMessage += LogMaker_newMessage;
-            AgrologFileBrowsButt.Tag = ReportType.Agrolog;
-            GrainbarFileBrowsButt.Tag = ReportType.Grainbar;
-            //AgrologFilesPathTextBox.Text = _agrologReportsPath;
-            //GrainbarFilesPathTextBox.Text = _grainbarReportsPath;
+            AgrologFileBrowsButt.Tag = ProgramType.Agrolog;
+            GrainbarFileBrowsButt.Tag = ProgramType.Grainbar;
             SettingsShow += MainWindow_onSettingsShow;
+            CheckDataFiles();
         }
 
-        private bool WatcherInit(ref FileSystemWatcher watcher, ReportType reportType, string reportsPath, string fileExtension)
+        private void CheckDataFiles()
         {
             try
             {
+                var datFile = new FileInfo(Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter() + Constants.AGROLOG_DATA_FILE);
+                if (!datFile.Exists)
+                    CreateNewDataFile(ProgramType.Agrolog);
+                datFile = new FileInfo(Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter() + Constants.AGROLOG_DATA_FILE);
+                if(!datFile.Exists)
+                    CreateNewDataFile(ProgramType.Grainbar);
+            }
+            catch (Exception ex)
+            {
+                LogMaker.Log("Критическая ошибка. Приложение закроется через 3 секунды.", true);
+                Thread.Sleep(3000);
+                ExceptionHandler.Handle(ex, true);
+            }
+        }
+
+        private void CreateNewDataFile(ProgramType programType)
+        {
+            string dataFilePath = programType == ProgramType.Agrolog ? Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter() + Constants.AGROLOG_DATA_FILE :
+                Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter() + Constants.GRAINBAR_DATA_FILE;
+
+            File.WriteAllText(dataFilePath, Properties.Resources.AgrologPatternReport);
+        }
+
+        private bool WatcherInit<T>(ref FileSystemWatcher watcher, string reportsPath, string fileExtension) where T : ITermometer
+        {
+            string programName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+            try
+            {
                 watcher = new FileSystemWatcher(reportsPath);
-                WatcherSettings<TermometerAgrolog>(watcher, fileExtension);
+                WatcherSettings<T>(watcher, fileExtension);
+                LogMaker.Log(string.Format("Запуск мониторинга данных {0} по пути \"{1}\".", programName, watcher.Path), false);
                 return true;
             }
             catch (ArgumentException ex)
             {
-                string programName = reportType == ReportType.Agrolog ? "Agrolog" : "Грейнбар";
                 LogMaker.Log(string.Format("Каталог {0} отчетов {1} не существует.", programName, AgrologReportsPath), true);
                 ExceptionHandler.Handle(ex, false);
                 return false;
             }
         }
 
-        private void DisposeWatcher(FileSystemWatcher watcher)
-        {
-            if (watcher == null)
-                return;
-            watcher.EnableRaisingEvents = false;
-            watcher.Dispose();
-        }
 
         private void WatcherSettings<T>(FileSystemWatcher watcher, string fileExtension) where T : ITermometer
         {
@@ -95,39 +115,58 @@ namespace tempa
             watcher.EnableRaisingEvents = true;
         }
 
-        private async void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
+        private void DisposeWatcher(FileSystemWatcher watcher, ProgramType programType)
+        {
+            if (watcher == null)
+                return;
+            string programName = programType == ProgramType.Agrolog ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+            LogMaker.Log(string.Format("Данные {0} из каталога \"{1}\" не принимаются.", programName, watcher.Path), false);
+            watcher.EnableRaisingEvents = false;
+            watcher.Dispose();
+
+        }
+
+
+        private async Task CheckDirectoryForNewReports<T>(string path, string fileExtension) where T : ITermometer
+        {
+            var dirInfo = new DirectoryInfo(path);
+            FileInfo[] filesInfo = dirInfo.GetFiles("*." + fileExtension);
+
+            foreach (var fileInfo in filesInfo)
+                await NewDataAdmit<T>(fileInfo.DirectoryName, fileInfo.Name);
+        }
+
+        private async Task NewDataAdmit<T>(string path, string fileName) where T : ITermometer
         {
             string programName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
-            LogMaker.Log(string.Format("Обнаружен новый файл {0} отчета {1}. Начинаем процесс парсинга.", programName, e.Name), false);
+            LogMaker.InvokedLog(string.Format("Обнаружен новый файл {0} отчета {1}. Начинаем процесс парсинга.", programName, fileName), false, this.Dispatcher);
 
-            List<T> initReportList = await ReadNewReport<T>(sender, e, programName);
+            List<T> initReportList = await ReadNewReport<T>(path, fileName, programName);
             if (initReportList == null)
                 return;
 
-            string binaryName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_ACTIVE_DATA_FILE : Constants.GRAINBAR_ACTIVE_DATA_FILE;
-            LogMaker.Log(string.Format("Данные приняты. Сохраняем их в файле {0}.", binaryName), false);
+            string binaryName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_DATA_FILE : Constants.GRAINBAR_DATA_FILE;
+            LogMaker.InvokedLog(string.Format("Данные приняты. Сохраняем их в файле {0}.", binaryName), false, this.Dispatcher);
 
             List<T> allPreviousReports = await ReadDataFile<T>(binaryName);
             if (allPreviousReports == null)
                 return;
             throw new NotImplementedException("Доделать: сравнение списков данных по дате, если даты нет, то добавить и сохранить (не забыть про многопоточность)");
-
         }
 
-        private async Task<List<T>> ReadNewReport<T>(object sender, FileSystemEventArgs e, string programName) where T : ITermometer
+        private async Task<List<T>> ReadNewReport<T>(string path, string fileName, string programName) where T : ITermometer
         {
             List<T> reportList;
             try
             {
-                string path = e.FullPath.Replace(e.Name, string.Empty);
-                reportList = await DataWorker.ReadReportAsync<T>(path, e.Name);
+                reportList = await DataWorker.ReadReportAsync<T>(path, fileName);
                 if (reportList == null || reportList.Count == 0)
-                    throw new InvalidOperationException(string.Format("Parsing file {0} operation returns empty result.", e.Name));
+                    throw new InvalidOperationException(string.Format("Parsing file {0} operation returns empty result.", fileName));
                 return reportList;
             }
             catch (Exception ex)
             {
-                LogMaker.Log(string.Format("Парсинг данных файла {0} завершился неудачно. См. Error.log", programName, e.Name), true);
+                LogMaker.Log(string.Format("Парсинг данных файла {0} завершился неудачно. См. Error.log", programName, fileName), true);
                 ExceptionHandler.Handle(ex, false);
             }
             return null;
@@ -140,7 +179,7 @@ namespace tempa
             Monitor.Enter(TypeLock<T>.SyncLock);
             try
             {
-                dataFile = await DataWorker.ReadBinaryAsync<T>(Constants.APPLICATION_DIRECTORY, dataFileName);
+                dataFile = await DataWorker.ReadBinaryAsync<T>(Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName);
                 return dataFile;
             }
             catch (Exception ex)
@@ -192,7 +231,7 @@ namespace tempa
                 if (FileBrowsTreeView.Items.Count == 0)
                     return;
 
-                if ((ReportType)button.Tag == ReportType.Agrolog)
+                if ((ProgramType)button.Tag == ProgramType.Agrolog)
                     await FileBrowsTreeViewDirExpandAsync(AgrologReportsPath, FileBrowsTreeView.Items);
                 else
                     await FileBrowsTreeViewDirExpandAsync(GrainbarReportsPath, FileBrowsTreeView.Items);
@@ -347,8 +386,8 @@ namespace tempa
                     path += item.Header.ToString();
                 i++;
             }
-            var tag = (ReportType)(sender as TreeView).Tag;
-            if (tag == ReportType.Agrolog)
+            var tag = (ProgramType)(sender as TreeView).Tag;
+            if (tag == ProgramType.Agrolog)
                 AgrologReportsPath = path;
             else
                 GrainbarReportsPath = path;
@@ -407,9 +446,9 @@ namespace tempa
         {
             var button = sender as Button;
             if (button == AgrologButton)
-                WriteReport<TermometerAgrolog>(button, Constants.APPLICATION_DATA_FOLDER, Constants.AGROLOG_ACTIVE_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.AGROLOG_REPORT_FILE_NAME);
+                WriteReport<TermometerAgrolog>(button, Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.AGROLOG_REPORT_FILE_NAME);
             else if (button == GrainbarButton)
-                WriteReport<TermometerGrainbar>(button, Constants.APPLICATION_DATA_FOLDER, Constants.GRAINBAR_ACTIVE_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.GRAINBAR_REPORT_FILE_NAME);
+                WriteReport<TermometerGrainbar>(button, Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.GRAINBAR_REPORT_FILE_NAME);
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -486,18 +525,28 @@ namespace tempa
             }
         }
 
-        private void dataChb_Checked(object sender, RoutedEventArgs e)
+        private async void dataChb_Checked(object sender, RoutedEventArgs e)
         {
-            if ((sender as CheckBox).Name == "agrologDataChb")
-                IsAgrologDataCollect = WatcherInit(ref _agrologFolderWatcher, ReportType.Agrolog, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION);
-            else IsGrainbarDataCollect = WatcherInit(ref _grainbarFolderWatcher, ReportType.Grainbar, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION);
+            var checkBox = sender as CheckBox;
+            checkBox.IsEnabled = false;
+            if (checkBox.Name == "agrologDataChb")
+            {
+                IsAgrologDataCollect = WatcherInit<TermometerAgrolog>(ref _agrologFolderWatcher, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION);
+                await CheckDirectoryForNewReports<TermometerAgrolog>(_agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION);
+            }
+            else
+            {
+                IsGrainbarDataCollect = WatcherInit<TermometerGrainbar>(ref _grainbarFolderWatcher, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION);
+                await CheckDirectoryForNewReports<TermometerGrainbar>(_grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION);
+            }
+            checkBox.IsEnabled = true;
         }
 
         private void dataChb_Unchecked(object sender, RoutedEventArgs e)
         {
             if ((sender as CheckBox).Name == "agrologDataChb")
-                DisposeWatcher(_agrologFolderWatcher);
-            else DisposeWatcher(_grainbarFolderWatcher);
+                DisposeWatcher(_agrologFolderWatcher, ProgramType.Agrolog);
+            else DisposeWatcher(_grainbarFolderWatcher, ProgramType.Grainbar);
         }
 
 
@@ -534,6 +583,42 @@ namespace tempa
 
                 FileBrowsTreeView.Focus();
             }
+        }
+
+        private void FilesPathTextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            try //сохраним в реестре последний выбранный путь
+            {
+                if ((sender as TextBox).Name == "AgrologFilesPathTextBox")
+                    Internal.SaveRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, AgrologReportsPath);
+                else
+                    Internal.SaveRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, GrainbarReportsPath);
+            }
+            catch (InvalidOperationException ex)
+            {
+                LogMaker.Log(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true);
+                ExceptionHandler.Handle(ex, false);
+            }
+            if ((sender as TextBox).Name == "AgrologFilesPathTextBox")
+            {
+                if (IsAgrologDataCollect)
+                {
+                    IsAgrologDataCollect = false;
+                    IsAgrologDataCollect = true;
+                }
+            }
+            else
+                if (IsGrainbarDataCollect)
+                {
+                    IsGrainbarDataCollect = false;
+                    IsGrainbarDataCollect = true;
+                }
+        }
+
+        private async void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
+        {
+            string path = e.FullPath.Replace(e.Name, string.Empty);
+            await NewDataAdmit<T>(path, e.Name);
         }
 
         public bool IsFileBrowsTreeOnForm = false;                 //на форме ли окно выбора файлов

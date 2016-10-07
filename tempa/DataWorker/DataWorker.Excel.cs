@@ -103,9 +103,9 @@ namespace tempa
 
         private static void GenerateReportHeader<T>(FileInfo reportFileInfo, FileInfo templateFileInfo, List<T> reportData) where T : ITermometer
         {
-            var reportType = typeof(T);
-            string thermometryName = reportType == typeof(TermometerAgrolog) ? "Agrolog" : "ГРЕЙНБАР";
-            string secondColumnCaption = reportType == typeof(TermometerAgrolog) ? "Т-подвеска" : "Ш.М.П.";
+            var programType = typeof(T);
+            string thermometryName = programType == typeof(TermometerAgrolog) ? "Agrolog" : "ГРЕЙНБАР";
+            string secondColumnCaption = programType == typeof(TermometerAgrolog) ? "Т-подвеска" : "Ш.М.П.";
             using (var pck = new ExcelPackage(reportFileInfo, templateFileInfo))
             {
                 //Generate first worksheet texts.

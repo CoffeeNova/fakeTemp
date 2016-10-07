@@ -18,7 +18,7 @@ namespace tempa
 
         public static List<T> ReadReport<T>(string path, string fileName) where T : ITermometer
         {
-            ReportType reportType = ReportFileNameChecker(fileName);
+            ProgramType programType = ReportFileNameChecker(fileName);
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("path should have not be empty or null value.");
 
@@ -37,21 +37,21 @@ namespace tempa
             return ParseGrainBarReport(lines) as List<T>;
         }
 
-        public static Task<List<string>> GetReportsFileNamesAsync(ReportType report, string path)
+        public static Task<List<string>> GetReportsFileNamesAsync(ProgramType report, string path)
         {
             return Task.Factory.StartNew(() => GetReportsFileNames(report, path));
         }
 
-        public static List<string> GetReportsFileNames(ReportType report, string path)
+        public static List<string> GetReportsFileNames(ProgramType report, string path)
         {
-            var searchPattern = report == ReportType.Agrolog ? "*.csv" : "*.txt";
+            var searchPattern = report == ProgramType.Agrolog ? "*.csv" : "*.txt";
             return Directory.GetFiles(path.PathFormatter(), searchPattern, SearchOption.TopDirectoryOnly).ToList();
         }
 
-        private static ReportType ReportFileNameChecker(string fileName)
+        private static ProgramType ReportFileNameChecker(string fileName)
         {
             string message = "";
-            ReportType rType = ReportType.Agrolog;
+            ProgramType rType = ProgramType.Agrolog;
             if (string.IsNullOrEmpty(fileName))
                 message = "fileName should have not be empty or null value.";
             else if (!fileName.Contains('.'))
@@ -60,9 +60,9 @@ namespace tempa
             {
                 string extension = fileName.Split('.').Last();
                 if (extension.Equals("csv"))
-                    rType = ReportType.Agrolog;
-                if (extension.Equals("txt"))
-                    rType = ReportType.Grainbar;
+                    rType = ProgramType.Agrolog;
+                else if (extension.Equals("txt"))
+                    rType = ProgramType.Grainbar;
                 else
                     message = "Wrong fileName extension. Should be \".csv\" or \".txt\" ";
             }
@@ -106,7 +106,7 @@ namespace tempa
                     for (int i = 0; i < sensor.Count(); i++)
                     {
                         AgrologSensor requiredSensor = termometerData.FirstOrDefault(x => x.SensorName == i.ToString());
-                        string sensorValue = requiredSensor.SensorValue;
+                        string sensorValue = requiredSensor != null ? requiredSensor.SensorValue : "";
                         if (string.IsNullOrEmpty(sensorValue))
                             sensor[i] = null;
                         else
@@ -121,7 +121,8 @@ namespace tempa
         {
             try
             {
-                string dateString = lines.Find(p => p.StartsWith("Date and time")).Split(':').Last();
+                char[] ch = new char[1] { ':' };
+                string dateString = lines.Find(p => p.StartsWith("Date and time")).Split(ch, 2).Last();
                 DateTime date;
                 bool dateParseResult = DateTime.TryParse(dateString, out date);
                 if (!dateParseResult)
@@ -137,11 +138,12 @@ namespace tempa
 
         private static void ParseAgrologTempData(ref List<string> lines)
         {
-            string initialMarker = "Silo,Cable,Sensor,Value";
+            string initialMarker = "Silo,Cable,Sensor,Value (�C)";
             try
             {
-                lines.Skip(lines.IndexOf(initialMarker) + 1);
-                lines.TakeWhile(s => !string.IsNullOrEmpty(s));
+                var markerIndex =lines.IndexOf(initialMarker);
+                lines = lines.Skip(markerIndex + 1).ToList();
+               lines = lines.TakeWhile(s => !string.IsNullOrEmpty(s)).ToList();
             }
             catch
             {
@@ -278,7 +280,7 @@ namespace tempa
 
     }
 
-    public enum ReportType
+    public enum ProgramType
     {
         Agrolog,
         Grainbar

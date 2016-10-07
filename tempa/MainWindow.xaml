@@ -177,14 +177,14 @@
         <Border x:Name="border" CornerRadius="3" Background="#333333" BorderBrush="#333333" BorderThickness="1" HorizontalAlignment="Left" Height="23" Margin="15,4,0,0" Grid.Row="1" VerticalAlignment="Top" Width="243"/>
         <TextBox x:Name="AgrologFilesPathTextBox"  Text="{Binding Path=AgrologReportsPath, ElementName=FakeTemp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                  HorizontalAlignment="Left" Height="23" Margin="15,4,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="220" 
-                 VerticalContentAlignment="Center" HorizontalContentAlignment="Left"  GotKeyboardFocus="FilesPathTextBox_GotKeyboardFocus" 
+                 VerticalContentAlignment="Center" HorizontalContentAlignment="Left"  GotKeyboardFocus="FilesPathTextBox_GotKeyboardFocus" LostKeyboardFocus="FilesPathTextBox_LostKeyboardFocus"
                  GotMouseCapture="FilesPathTextBox_GotMouseCapture" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Grid.Row="1" extensions:TextBoxAutoScrollBehavior.AutoScroll="True"/>
         <Label x:Name="AgroloFilesPathLabel" Content="ПУТЬ К ДАННЫМ AGROLOG:" HorizontalAlignment="Left" Margin="15,28.674,0,0" VerticalAlignment="Top" Width="191" FontSize="14" Grid.RowSpan="2"/>
         <Button x:Name="AgrologButton" Content="AGROLOG" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top" Width="83" Click="ReportButton_Click" Height="26"  FontSize="14" Grid.Row="1"/>
         <Label x:Name="GrainbarFilesPathLabel" Content="ПУТЬ К ДАННЫМ ГРЕЙНБАР:" HorizontalAlignment="Left" Margin="15,23.668,0,0" VerticalAlignment="Top" Width="220"  FontSize="14" Grid.Row="1"/>
         <Border x:Name="border1" CornerRadius="3" Background="#333333" BorderBrush="#333333" BorderThickness="1" HorizontalAlignment="Left" Height="23" Margin="15,50,0,0" Grid.Row="1" VerticalAlignment="Top" Width="243"/>
         <TextBox x:Name="GrainbarFilesPathTextBox" Text="{Binding Path=GrainbarReportsPath, ElementName=FakeTemp,  Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 HorizontalAlignment="Left" Height="23" Margin="15,49.674,0,0" VerticalAlignment="Top" Width="220"  TextWrapping="NoWrap" 
+                 HorizontalAlignment="Left" Height="23" Margin="15,49.674,0,0" VerticalAlignment="Top" Width="220"  TextWrapping="NoWrap" LostKeyboardFocus="FilesPathTextBox_LostKeyboardFocus"
                  VerticalContentAlignment="Center" HorizontalContentAlignment="Left" GotKeyboardFocus="FilesPathTextBox_GotKeyboardFocus" GotMouseCapture="FilesPathTextBox_GotMouseCapture" 
                  Grid.Row="1" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" extensions:TextBoxAutoScrollBehavior.AutoScroll="True"/>
         <Label x:Name="LogLabel" Content="ЛОГ:" HorizontalAlignment="Left" Margin="7,181.333,0,0" VerticalAlignment="Top" Width="129" RenderTransformOrigin="0.56,3.962" FontSize="14" Grid.Row="1"/>

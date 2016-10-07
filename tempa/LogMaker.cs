@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NLog;
+using System.Windows.Threading;
 
 namespace tempa
 {
@@ -16,6 +17,13 @@ namespace tempa
             newMessage(FormattedMessage, isError);
         }
 
+        public static void InvokedLog(string message, bool isError, Dispatcher dispatcher)
+        {
+            dispatcher.BeginInvoke(new Action(() =>
+                {
+                    Log(message, isError);
+                }));
+        }
         public static string FormattedMessage
         {
             get;
