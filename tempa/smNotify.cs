@@ -49,59 +49,6 @@ namespace tempa
                 };
             }
         }
-        //       public ICommand ShowWindowHome
-        //       {
-        //           get
-        //           {
-        //               return new DelegateCommand
-        //               {
-        //                   CanExecuteFunc = () => Application.Current.MainWindow != null,
-        //                   CommandAction = () =>
-        //                   {
-        //                       //Application.Current.MainWindow = new Magnet();
-        //                       Application.Current.MainWindow.Visibility = Visibility.Visible;
-        //                       Application.Current.MainWindow.WindowState = WindowState.Normal;
-        //                       Uri uri = new Uri("/Pages/Home.xaml", UriKind.Relative);
-        //                       MainWindow.navigateLink = uri;
-
-        //                   }
-        //               };
-        //           }
-        //       }
-        //       public ICommand ShowWindowTwo
-        //       {
-        //           get
-        //           {
-        //               return new DelegateCommand
-        //               {
-        //                   CanExecuteFunc = () => Application.Current.MainWindow != null,
-        //                   CommandAction = () =>
-        //                   {
-        //                       //Application.Current.MainWindow = new Magnet();
-        //                       Application.Current.MainWindow.Visibility = Visibility.Visible;
-        //                       Application.Current.MainWindow.WindowState = WindowState.Normal;
-        //                       Uri uri = new Uri("/Pages/Two.xaml", UriKind.Relative);
-        //                       MainWindow.navigateLink = uri;
-
-        //                   }
-        //               };
-        //           }
-        //       }
-        //       /// <summary>
-        //       /// Hides the main window. This command is only enabled if a window is open.
-        //       /// </summary>
-        //       //public ICommand HideWindowCommand
-        //       //{
-        //       //    get
-        //       //    {
-        //       //        return new DelegateCommand
-        //       //        {
-        //       //            CommandAction = () => Application.Current.MainWindow.Close(),
-        //       //            CanExecuteFunc = () => Application.Current.MainWindow != null
-        //       //        };
-        //       //    }
-        //       //}
-
 
         //       /// <summary>
         //       /// Shuts down the application.

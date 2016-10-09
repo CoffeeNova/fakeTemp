@@ -11,6 +11,22 @@ namespace tempa
 {
     public static partial class DataWorker
     {
+        public static Task<List<T>> ReadPatternReportAsync<T>(string text) where T : ITermometer
+        {
+            return Task.Factory.StartNew(() => ReadPatternReport<T>(text));
+        }
+
+        public static List<T> ReadPatternReport<T>(string text) where T : ITermometer
+        {
+            if (string.IsNullOrEmpty(text))
+                throw new ArgumentException("text should have not be empty or null value.");
+
+            List<String> lines = text.Split(new[] { "\r\n" }, StringSplitOptions.None).ToList();
+            if (typeof(T) == typeof(TermometerAgrolog))
+                return ParseAgrologReport(lines) as List<T>;
+            return ParseGrainBarReport(lines) as List<T>;         
+        }
+
         public static Task<List<T>> ReadReportAsync<T>(string path, string fileName) where T : ITermometer
         {
             return Task.Factory.StartNew(() => ReadReport<T>(path, fileName));
@@ -95,14 +111,14 @@ namespace tempa
             DateTime date = ParseAgrologDate(lines);
             ParseAgrologTempData(ref lines);
             List<List<AgrologSensor>> dataList = ParseAgrologReportByTermometers(lines);
-            var listOfClassInstances = new List<TermometerAgrolog>();
 
             return dataList.Select(termometerData =>
                 {
                     string siloName = termometerData.First().SiloName;
                     string termometerName = termometerData.First().TermometerName;
+                    termometerName = Convert.ToInt32(termometerName).ToString(); //Converting to int and back to remove strings like 001
+                    
                     var sensor = new float?[TermometerAgrolog.Sensors];
-
                     for (int i = 0; i < sensor.Count(); i++)
                     {
                         AgrologSensor requiredSensor = termometerData.FirstOrDefault(x => x.SensorName == i.ToString());
@@ -138,10 +154,11 @@ namespace tempa
 
         private static void ParseAgrologTempData(ref List<string> lines)
         {
-            string initialMarker = "Silo,Cable,Sensor,Value (�C)";
+            string initialMarker = "Silo,Cable,Sensor,Value"; 
             try
             {
-                var markerIndex =lines.IndexOf(initialMarker);
+                string markedLine = lines.Find(l => l.StartsWith(initialMarker));
+                var markerIndex = lines.IndexOf(markedLine);
                 lines = lines.Skip(markerIndex + 1).ToList();
                lines = lines.TakeWhile(s => !string.IsNullOrEmpty(s)).ToList();
             }
@@ -220,12 +237,12 @@ namespace tempa
         {
             try
             {
-                string lineWithDate = lines.Find(p => p.StartsWith("Измерение от "));
-                string dateString = lineWithDate.Split(' ')[2];
-                string timeString = lineWithDate.Split(' ')[3];
+                string lineWithDate = lines.Find(p => p.StartsWith("\rСИТ ГРЕЙНБАР\r"));
+                string dateString = lineWithDate.Split(' ')[3];
+                string timeString = lineWithDate.Split(' ')[4];
                 string dateAsString = dateString.FormatToGrainBarDate() + " " + timeString.FormatToGrainBarDate();
                 DateTime date;
-                bool dateParseResult = DateTime.TryParse(dateString, out date);
+                bool dateParseResult = DateTime.TryParse(dateAsString, out date);
                 if (!dateParseResult)
                     throw new Exception();
                 return date;
@@ -239,11 +256,13 @@ namespace tempa
 
         private static void ParseGrainbarTempData(ref List<string> lines)
         {
-            string initialMarker = "------------------------------------------------------------------------------";
+            string initialMarker = "-------------------------------------";
             try
             {
-                lines.Skip(lines.IndexOf(initialMarker) + 1);
-                lines.TakeWhile(s => !s.StartsWith("Конец")); ;
+                string markedLine = lines.Find(l => l.StartsWith(initialMarker));
+                var markerIndex = lines.IndexOf(markedLine);
+                lines = lines.Skip(markerIndex + 1).ToList();
+                lines = lines.TakeWhile(s => !s.StartsWith("Конец")).ToList(); 
             }
             catch
             {
@@ -267,7 +286,7 @@ namespace tempa
                 grainbarTermometers = lines.ConvertAll(s =>
                 {
                     string[] splitedLine = s.Split('|');
-                    return new GrainbarSensor(splitedLine[2].RemoveWhiteSpaces(), splitedLine[1], splitedLine[3].Split(' ').RemoveWhiteSpaces());
+                    return new GrainbarSensor(splitedLine[2].RemoveWhiteSpaces(), splitedLine[1], splitedLine.Last().ParseDoubleNumbersAsStrings());
                 });
             }
             catch

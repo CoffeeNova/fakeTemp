@@ -5,6 +5,8 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Reflection;
+using System.IO;
 using NWTweak;
 
 namespace tempa
@@ -273,6 +275,7 @@ namespace tempa
             }
             return childElemList;
         }
+
         /// <summary>
         /// список всех wpf элементов в заданном родительском элементе 
         /// </summary>
@@ -293,6 +296,38 @@ namespace tempa
                     else ChildControls(child, Controls);
                 }
                 catch { }
+            }
+        }
+
+        /// <summary>
+        /// создает список всех видимых заданных дочерних элементов в родительском элементе 
+        /// </summary>
+        /// <param name="parentElement"></param>
+        /// <param name="childElement"></param>
+        /// <returns></returns>
+        internal static FrameworkElement GetChildElementByName(FrameworkElement parentElement, string childElementName)
+        {
+            var allElem = new List<FrameworkElement>();
+            //создадим список всех элементов в родительском элементе
+            ChildControls(parentElement, allElem);
+            foreach (FrameworkElement elem in allElem)
+                if (elem.Name == childElementName && elem.Visibility != Visibility.Hidden)
+                    return elem;
+            return null;
+        }
+
+        internal static void CopyResource(string resourceName, string outputFileFullPath)
+        {
+            using (Stream resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+            {
+                if (resource == null)
+                {
+                    throw new ArgumentException("No such resource", "resourceName");
+                }
+                using (Stream output = File.Create(outputFileFullPath))
+                {
+                    resource.CopyTo(output);
+                }
             }
         }
     }

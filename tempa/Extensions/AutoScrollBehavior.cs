@@ -9,6 +9,8 @@ namespace tempa.Extensions
 {
     public static class AutoScrollBehavior
     {
+        private static bool _autoScroll = true;
+
         public static readonly DependencyProperty AutoScrollProperty =
             DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(AutoScrollBehavior), new PropertyMetadata(false, AutoScrollPropertyChanged));
 
@@ -16,22 +18,28 @@ namespace tempa.Extensions
         public static void AutoScrollPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
         {
             var scrollViewer = obj as ScrollViewer;
-            if (scrollViewer != null && (bool)args.NewValue)
-            {
-                scrollViewer.SizeChanged  += ScrollViewer_SizeChanged;
-                scrollViewer.ScrollToEnd();
-            }
-            else
-            {
-                scrollViewer.LayoutUpdated -= ScrollViewer_SizeChanged;
-            }
+            if (scrollViewer == null)
+                return;
+            if ((bool)args.NewValue)
+                scrollViewer.ScrollChanged += scrollViewer_ScrollChanged;
+            else 
+                scrollViewer.ScrollChanged -= scrollViewer_ScrollChanged;
         }
 
-        private static void ScrollViewer_SizeChanged(object sender, EventArgs e)
+
+
+        static void scrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             var scrollViewer = sender as ScrollViewer;
-            if (scrollViewer != null)
-                scrollViewer.ScrollToEnd();
+            if (e.ExtentHeightChange == 0)
+            {   
+                if (scrollViewer.VerticalOffset == scrollViewer.ScrollableHeight)
+                    _autoScroll = true;
+                else
+                    _autoScroll = false;
+            }
+            if (_autoScroll && e.ExtentHeightChange != 0)
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.ExtentHeight);
         }
 
         public static bool GetAutoScroll(DependencyObject obj)

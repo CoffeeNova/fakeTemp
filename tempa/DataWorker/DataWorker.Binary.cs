@@ -31,9 +31,9 @@ namespace tempa
             return termometerList;
         }
 
-        public static void WriteBinaryAsync<T>(string path, string fileName, List<T> termometerList, bool appendMode) where T : ITermometer
+        public static Task WriteBinaryAsync<T>(string path, string fileName, List<T> termometerList, bool appendMode) where T : ITermometer
         {
-            Task.Factory.StartNew(() => WriteBinary<T>(path, fileName, termometerList, appendMode));
+            return Task.Factory.StartNew(() => WriteBinary<T>(path, fileName, termometerList, appendMode));
         }
 
         public static void WriteBinary<T>(string path, string fileName, List<T> termometerList, bool appendMode) where T : ITermometer
@@ -43,7 +43,7 @@ namespace tempa
                 throw new ArgumentException("path should have not be empty or null value.");
 
             BinaryFormatter formatter = new BinaryFormatter();
-            var fileMode = appendMode == true ? FileMode.Append : FileMode.OpenOrCreate;
+            var fileMode = appendMode == true ? FileMode.Append : FileMode.Create;
             using (FileStream fs = new FileStream(path.PathFormatter() + fileName, fileMode))
             {
                 formatter.Serialize(fs, termometerList);

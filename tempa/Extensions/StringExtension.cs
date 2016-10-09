@@ -44,6 +44,14 @@ namespace tempa.Extensions
             return str + "\\";
         }
 
+        public static bool EqualsAny(this string str, string[] patterns)
+        {
+            foreach (string pattern in patterns)
+                if (str.Equals(pattern))
+                    return true;
+            return false;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -57,5 +65,39 @@ namespace tempa.Extensions
             var regex = new Regex(Regex.Escape(pattern));
             return regex.Replace(text, value, 1);
         }
+
+        public static int ParseNumber(this string str)
+        {
+            var regex = new Regex(@"-?\d+");
+            var match = regex.Match(str);
+
+            return match.Success ? Int32.Parse(match.Value) : 0;
+
+        }
+
+        public static int? TryParseNumber(this string str)
+        {
+            var regex = new Regex(@"-?\d+");
+            var match = regex.Match(str);
+            if (match.Success)
+                return Int32.Parse(match.Value);
+            return null;
+        }
+
+        public static int[] ParseNumbers(this string str)
+        {
+            return Regex.Matches(str, @"-?\d+").OfType<Match‌>().Select(m => Int32.Parse(m.Value)).ToArray();
+        }
+
+        public static string[] ParseNumbersAsStrings(this string str)
+        {
+            return Regex.Matches(str, @"-?\d+").OfType<Match‌>().Select(m => m.Value).ToArray();
+        }
+
+        public static string[] ParseDoubleNumbersAsStrings(this string str)
+        {
+            return Regex.Matches(str, @"-?\d+\.\d+").OfType<Match‌>().Select(m => m.Value).ToArray();
+        }
+
     }
 }

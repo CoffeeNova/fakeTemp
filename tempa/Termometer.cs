@@ -6,6 +6,7 @@ using tempa.Extensions;
 
 namespace tempa
 {
+    [Serializable]
     public class TermometerAgrolog : Termometer
     {
         public TermometerAgrolog(DateTime measurementDate, string silo, string cable, float?[] sensor) : base(measurementDate, silo, cable, sensor) { }
@@ -14,7 +15,7 @@ namespace tempa
         public static readonly int Sensors = 7;
     }
 
-
+    [Serializable]
     public class TermometerGrainbar : Termometer
     {
         public TermometerGrainbar(DateTime measurementDate, string silo, string cable, float?[] sensor) : base(measurementDate, silo, cable, sensor) { }
@@ -54,6 +55,5 @@ namespace tempa
         string Silo { get;  }
         string Cable { get; }
         float?[] Sensor { get;  }
-        //void EditSensorValues;
     }
 }

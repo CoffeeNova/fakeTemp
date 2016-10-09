@@ -15,11 +15,11 @@ namespace tempa
         internal const string AGROLOG_FOLDER_NAME = "Agrolog";
         internal const string GRAINBAR_FOLDER_NAME = "Grainbar";
         internal const string APPLICATION_DATA_FOLDER = "Data";
-        internal const string APPLICATION_REPORTS_FOLDER = "Reports";
+        internal const string APPLICATION_REPORT_FOLDER = "Report";
         internal const string AGROLOG_DATA_FILE = "Agrolog.dat";
         internal const string GRAINBAR_DATA_FILE = "Grainbar.dat";
-        internal const string AGROLOG_REPORT_FILE_NAME = "Agrolog report.xls";
-        internal const string GRAINBAR_REPORT_FILE_NAME = "Grainbar report.xls";
+        internal const string AGROLOG_REPORT_FILE_NAME = "Agrolog report.xlsm";
+        internal const string GRAINBAR_REPORT_FILE_NAME = "Grainbar report.xlsm";
         internal const string AGROLOG_REPORTS_PATH_REGKEY = "agrologReports";
         internal const string GRAINBAR_REPORTS_PATH_REGKEY = "grainbarReports";
         internal const string IS_AGROLOG_DATA_COLLECT_REGKEY = "isAgrologDataCollect";
@@ -35,11 +35,13 @@ namespace tempa
         internal const string GRAINBAR_PATTERN_REPORT_NAME = "GrainbarPatternReport.txt";
         internal const string AGROLOG_MANIFEST_RESOURSE = "AgrologPatternReport";
         internal const string GRAINBAR_MANIFEST_RESOURSE = "GrainbarPatternReport";
+        internal const string EXCEL_TEMPLATE_REPORT_NAME = "tempa.other_files.reportTemplate.xlsm";
+        internal const string EXCEL_TEMPLATE_REPORT_TEMP_NAME = "reportTemplate.xlsm";
 
         internal static readonly string APPLICATION_DIRECTORY = System.IO.Directory.GetCurrentDirectory();
         internal static readonly string AGROLOG_REPORTS_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + AGROLOG_FOLDER_NAME;
         internal static readonly string GRAINBAR_REPORTS_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + GRAINBAR_FOLDER_NAME;
         internal static readonly string APPLICATION_DATA_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + APPLICATION_DATA_FOLDER;
-        internal static readonly string APPLICATION_REPORT_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + APPLICATION_REPORTS_FOLDER;
+        internal static readonly string APPLICATION_REPORT_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + APPLICATION_REPORT_FOLDER;
     }
 }
