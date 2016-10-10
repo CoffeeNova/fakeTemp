@@ -6,6 +6,7 @@ using System.IO;
 using tempa.Extensions;
 using System.Globalization;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace tempa
 {
@@ -24,7 +25,7 @@ namespace tempa
             List<String> lines = text.Split(new[] { "\r\n" }, StringSplitOptions.None).ToList();
             if (typeof(T) == typeof(TermometerAgrolog))
                 return ParseAgrologReport(lines) as List<T>;
-            return ParseGrainBarReport(lines) as List<T>;         
+            return ParseGrainBarReport(lines) as List<T>;
         }
 
         public static Task<List<T>> ReadReportAsync<T>(string path, string fileName) where T : ITermometer
@@ -39,7 +40,7 @@ namespace tempa
                 throw new ArgumentException("path should have not be empty or null value.");
 
             List<String> lines = new List<String>();
-            using (StreamReader reader = new StreamReader(path.PathFormatter() + fileName))
+            using (TextReader reader = new StreamReader(path.PathFormatter() + fileName, Encoding.Default))
             {
                 String line;
                 while ((line = reader.ReadLine()) != null)
@@ -117,11 +118,11 @@ namespace tempa
                     string siloName = termometerData.First().SiloName;
                     string termometerName = termometerData.First().TermometerName;
                     termometerName = Convert.ToInt32(termometerName).ToString(); //Converting to int and back to remove strings like 001
-                    
+
                     var sensor = new float?[TermometerAgrolog.Sensors];
                     for (int i = 0; i < sensor.Count(); i++)
                     {
-                        AgrologSensor requiredSensor = termometerData.FirstOrDefault(x => x.SensorName == i.ToString());
+                        AgrologSensor requiredSensor = termometerData.FirstOrDefault(x => x.SensorName == (i + 1).ToString());
                         string sensorValue = requiredSensor != null ? requiredSensor.SensorValue : "";
                         if (string.IsNullOrEmpty(sensorValue))
                             sensor[i] = null;
@@ -154,13 +155,13 @@ namespace tempa
 
         private static void ParseAgrologTempData(ref List<string> lines)
         {
-            string initialMarker = "Silo,Cable,Sensor,Value"; 
+            string initialMarker = "Silo,Cable,Sensor,Value";
             try
             {
                 string markedLine = lines.Find(l => l.StartsWith(initialMarker));
                 var markerIndex = lines.IndexOf(markedLine);
                 lines = lines.Skip(markerIndex + 1).ToList();
-               lines = lines.TakeWhile(s => !string.IsNullOrEmpty(s)).ToList();
+                lines = lines.TakeWhile(s => !string.IsNullOrEmpty(s)).ToList();
             }
             catch
             {
@@ -214,7 +215,7 @@ namespace tempa
             List<GrainbarSensor> dataList = ParseGrainbarData(lines);
             var listOfClassInstances = new List<TermometerGrainbar>();
 
-            return dataList.Select(termometerData =>
+             return dataList.Select(termometerData =>
             {
                 string siloName = termometerData.SiloName;
                 string termometerName = termometerData.TermometerName;
@@ -237,21 +238,32 @@ namespace tempa
         {
             try
             {
-                string lineWithDate = lines.Find(p => p.StartsWith("\rСИТ ГРЕЙНБАР\r"));
-                string dateString = lineWithDate.Split(' ')[3];
-                string timeString = lineWithDate.Split(' ')[4];
+                string lineWithDate = lines.Find(p => p.StartsWith("Измерение от"));
+                string dateString = lineWithDate.Split(' ')[2];
+                string timeString = lineWithDate.Split(' ')[3];
                 string dateAsString = dateString.FormatToGrainBarDate() + " " + timeString.FormatToGrainBarDate();
-                DateTime date;
-                bool dateParseResult = DateTime.TryParse(dateAsString, out date);
-                if (!dateParseResult)
-                    throw new Exception();
-                return date;
+
+                return GetGrainbarDateFromString(dateAsString);
             }
             catch
             {
                 throw new InvalidOperationException("Can't parse Date from report.");
             }
 
+        }
+
+        private static DateTime GetGrainbarDateFromString(string dateString)
+        {
+            string date = dateString.Split(',')[0];
+            string time = dateString.Split(',')[1];
+            int year = Int32.Parse("20" + date.Split('.')[2]);
+            int month = Int32.Parse(date.Split('.')[1]);
+            int day = Int32.Parse(date.Split('.')[0]);
+            int hour = Int32.Parse(time.Split(':')[0]);
+            int minute = Int32.Parse(time.Split(':')[1]);
+            int second = Int32.Parse(time.Split(':')[2]);
+
+            return new DateTime(year, month,day, hour, minute, second);
         }
 
         private static void ParseGrainbarTempData(ref List<string> lines)
@@ -262,7 +274,7 @@ namespace tempa
                 string markedLine = lines.Find(l => l.StartsWith(initialMarker));
                 var markerIndex = lines.IndexOf(markedLine);
                 lines = lines.Skip(markerIndex + 1).ToList();
-                lines = lines.TakeWhile(s => !s.StartsWith("Конец")).ToList(); 
+                lines = lines.TakeWhile(s => !s.StartsWith("Конец")).ToList();
             }
             catch
             {
@@ -286,7 +298,7 @@ namespace tempa
                 grainbarTermometers = lines.ConvertAll(s =>
                 {
                     string[] splitedLine = s.Split('|');
-                    return new GrainbarSensor(splitedLine[2].RemoveWhiteSpaces(), splitedLine[1], splitedLine.Last().ParseDoubleNumbersAsStrings());
+                    return new GrainbarSensor(splitedLine[2].RemoveWhiteSpaces(), splitedLine[1], splitedLine.Last().GrainbarParseValues());
                 });
             }
             catch
@@ -294,6 +306,12 @@ namespace tempa
                 throw new InvalidOperationException("Can't parse temperature data. Bad report file.");
             }
             return grainbarTermometers;
+        }
+
+
+        public static string[] GrainbarParseValues(this string str)
+        {
+            return Regex.Matches(str, @"-?(\d+\.\d+)|(E\d+)").OfType<Match‌>().Select(m => m.Value).ToArray();
         }
         #endregion
 

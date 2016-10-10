@@ -15,11 +15,11 @@ namespace tempa
         internal const string AGROLOG_FOLDER_NAME = "Agrolog";
         internal const string GRAINBAR_FOLDER_NAME = "Grainbar";
         internal const string APPLICATION_DATA_FOLDER = "Data";
-        internal const string APPLICATION_REPORT_FOLDER = "Report";
+        internal const string APPLICATION_EXCEL_REPORT_FOLDER = "Report";
         internal const string AGROLOG_DATA_FILE = "Agrolog.dat";
         internal const string GRAINBAR_DATA_FILE = "Grainbar.dat";
-        internal const string AGROLOG_REPORT_FILE_NAME = "Agrolog report.xlsm";
-        internal const string GRAINBAR_REPORT_FILE_NAME = "Grainbar report.xlsm";
+        internal const string AGROLOG_EXCEL_REPORT_FILE_NAME = "Agrolog report.xlsm";
+        internal const string GRAINBAR_EXCEL_REPORT_FILE_NAME = "Grainbar report.xlsm";
         internal const string AGROLOG_REPORTS_PATH_REGKEY = "agrologReports";
         internal const string GRAINBAR_REPORTS_PATH_REGKEY = "grainbarReports";
         internal const string IS_AGROLOG_DATA_COLLECT_REGKEY = "isAgrologDataCollect";
@@ -42,6 +42,6 @@ namespace tempa
         internal static readonly string AGROLOG_REPORTS_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + AGROLOG_FOLDER_NAME;
         internal static readonly string GRAINBAR_REPORTS_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + GRAINBAR_FOLDER_NAME;
         internal static readonly string APPLICATION_DATA_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + APPLICATION_DATA_FOLDER;
-        internal static readonly string APPLICATION_REPORT_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + APPLICATION_REPORT_FOLDER;
+        internal static readonly string EXCEL_REPORT_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + APPLICATION_EXCEL_REPORT_FOLDER;
     }
 }

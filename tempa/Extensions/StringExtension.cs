@@ -94,6 +94,15 @@ namespace tempa.Extensions
             return Regex.Matches(str, @"-?\d+").OfType<Match‌>().Select(m => m.Value).ToArray();
         }
 
+        //public static string ParseGrainbarError(this string str)
+        //{
+        //    var regex = new Regex(@"-?\Ed+");
+        //    var match = regex.Match(str);
+        //    if(match.Success)
+        //        return regex.Replace(str, 
+
+        //}
+
         public static string[] ParseDoubleNumbersAsStrings(this string str)
         {
             return Regex.Matches(str, @"-?\d+\.\d+").OfType<Match‌>().Select(m => m.Value).ToArray();

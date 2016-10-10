@@ -119,6 +119,7 @@ namespace tempa
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             watcher.Filter = "*." + fileExtension;
             watcher.Created += (sender, e) => FileSystemWatcher_OnCreated<T>(sender, e);
+            watcher.InternalBufferSize = 81920;
             watcher.EnableRaisingEvents = true;
         }
 
@@ -224,7 +225,7 @@ namespace tempa
             }
             catch (Exception ex)
             {
-                LogMaker.Log(string.Format("Парсинг данных файла \"{0}\" завершился неудачно. См. Error.log", programName, fileName), true);
+                LogMaker.InvokedLog(string.Format("Парсинг данных файла \"{0}\" завершился неудачно. См. Error.log", fileName), true, this.Dispatcher);
                 ExceptionHandler.Handle(ex, false);
             }
             return null;
@@ -466,12 +467,11 @@ namespace tempa
         }
 
 
-        private async void WriteReport<T>(Button button, string dataFolderPath, string dataFileName, string reportPath, string reportFileName) where T : ITermometer
+        private async Task WriteReport<T>(string dataFolderPath, string dataFileName, string reportPath, string reportFileName) where T : ITermometer
         {
             List<T> reportData = null;
             try
             {
-                button.IsEnabled = false;
                 LogMaker.Log(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false);
                 reportData = await DataWorker.ReadBinaryAsync<T>(dataFolderPath, dataFileName);
                 LogMaker.Log(string.Format("Формирование отчета \"{0}\"", reportFileName), false);
@@ -491,10 +491,6 @@ namespace tempa
                 else
                     LogMaker.Log(string.Format("Не получилось сформировать отчет \"{0}\", cм. Error.log.", reportFileName), true);
                 ExceptionHandler.Handle(ex, false);
-            }
-            finally
-            {
-                button.IsEnabled = true;
             }
         }
 
@@ -543,13 +539,15 @@ namespace tempa
             IsFileBrowsTreeOnForm = false;
         }
 
-        private void ReportButton_Click(object sender, RoutedEventArgs e)
+        private async void ReportButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
+            button.IsEnabled = false;
             if (button == AgrologButton)
-                WriteReport<TermometerAgrolog>(button, Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.AGROLOG_REPORT_FILE_NAME);
+                await WriteReport<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE, Constants.EXCEL_REPORT_FOLDER_PATH, Constants.AGROLOG_EXCEL_REPORT_FILE_NAME);
             else if (button == GrainbarButton)
-                WriteReport<TermometerGrainbar>(button, Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE, Constants.APPLICATION_REPORT_FOLDER_PATH, Constants.GRAINBAR_REPORT_FILE_NAME);
+                await WriteReport<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE, Constants.EXCEL_REPORT_FOLDER_PATH, Constants.GRAINBAR_EXCEL_REPORT_FILE_NAME);
+            button.IsEnabled = true;
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -614,21 +612,24 @@ namespace tempa
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            try
+            Task.Factory.StartNew(() =>
             {
-                Internal.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsAgrologDataCollect);
-                Internal.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsGrainbarDataCollect);
-                Internal.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, IsAutostart);
-                Internal.SaveRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, IsDataSubstitution);
-            }
-            catch (InvalidOperationException ex)
-            {
-                LogMaker.Log(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true);
-                ExceptionHandler.Handle(ex, false);
-            }
+                try
+                {
+                    Internal.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsAgrologDataCollect);
+                    Internal.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsGrainbarDataCollect);
+                    Internal.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, IsAutostart);
+                    Internal.SaveRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, IsDataSubstitution);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    LogMaker.InvokedLog(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true, this.Dispatcher);
+                    ExceptionHandler.Handle(ex, false);
+                }
 
-            LogMaker.Log(string.Format("Настройки сохранены"), false);
-            IsSettingsGridOnForm = false;
+                LogMaker.InvokedLog(string.Format("Настройки сохранены"), false, this.Dispatcher);
+                IsSettingsGridOnForm = false;
+            });
         }
 
         private async void dataChb_Checked(object sender, RoutedEventArgs e)
@@ -728,7 +729,6 @@ namespace tempa
             string path = e.FullPath.Replace(e.Name, string.Empty);
             string dataFileName = DataFileName<T>();
             var disp = Dispatcher;
-
             DataHandlingLock<T>.SyncLock.WaitOne();
             bool dataIsNew = false;
             List<T> dataList = await ReadDataFile<T>(dataFileName);
@@ -749,6 +749,28 @@ namespace tempa
             if (PropertyChanged != null)
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        private void OpenExcelButton_Click(object sender, RoutedEventArgs e)
+        {
+            string filePath = Constants.EXCEL_REPORT_FOLDER_PATH.PathFormatter();
+            filePath += (sender as Button).Name == "AShowExcelBut" ? Constants.AGROLOG_EXCEL_REPORT_FILE_NAME : Constants.GRAINBAR_EXCEL_REPORT_FILE_NAME;
+            string programName = (sender as Button).Name == "AShowExcelBut" ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+            try
+            {
+                Process.Start(filePath);
+                LogMaker.Log(string.Format("Отчет {0} запущен.", programName), false);
+            }
+            catch (FileNotFoundException ex)
+            {
+                LogMaker.Log(string.Format("Файл отчета {0} не существует.", programName), true);
+                ExceptionHandler.Handle(ex, false);
+            }
+            catch (Exception ex)
+            {
+                LogMaker.Log(string.Format("Ошибка открытия файла отчета {0}.", programName), true);
+                ExceptionHandler.Handle(ex, false);
             }
         }
         #endregion

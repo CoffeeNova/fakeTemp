@@ -73,7 +73,7 @@ namespace tempa
                         lastColumn++;
                         DateTime date = reportData.First().MeasurementDate;
                         dataWorkSheet.Cells[DataSheet.DATE_ROW, lastColumn].Value = date;
-                        for (int i = DataSheet.CAPTION_DATA_START_ROW; i <= lastRow; i++)
+                        for (int i = DataSheet.CAPTION_DATA_START_ROW; i <= lastRow; )
                         {
                             string silo = dataWorkSheet.Cells[i, DataSheet.SILO_COL].Text; ;
                             string cable = dataWorkSheet.Cells[i, DataSheet.CABLE_COL].Text;
@@ -93,6 +93,7 @@ namespace tempa
                                 else
                                     writeValue = termometer.Sensor[j].ToString();
                                 dataWorkSheet.Cells[i, lastColumn].Value = writeValue;
+                                i++;
                             }
                         }
                         reportData.RemoveAll(t => t.MeasurementDate == date);
