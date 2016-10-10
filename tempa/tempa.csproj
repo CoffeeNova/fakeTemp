@@ -119,6 +119,7 @@
     <Compile Include="Plot.xaml.cs">
       <DependentUpon>Plot.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PlotViewModel.cs" />
     <Compile Include="smNotify.cs" />
     <Compile Include="Termometer.cs" />
     <Compile Include="Properties\VersionInfo.cs" />

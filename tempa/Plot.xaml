@@ -1,9 +1,23 @@
 ﻿<Window x:Class="tempa.Plot"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:plot="http://oxyplot.org/wpf"
-        Title="Plot" Height="300" Width="300">
+        xmlns:oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf" 
+        Title="Plot" Height="424" Width="760" WindowStyle="None">
     <Grid>
+        <Button x:Name="CloseButt" HorizontalAlignment="Left" Margin="715,10,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="23" Height="23" RenderTransformOrigin="0.565,0.696" FontSize="14" FontFamily="PMingLiU-ExtB" Click="CloseButt_Click">
+            <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="13" Y2="6" X2="6"/>
+                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="6" Y2="13" X2="6"/>
+            </Canvas>
+        </Button>
+        <Button x:Name="MinimizeButt" HorizontalAlignment="Left" Margin="692,10,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="23" Height="23" RenderTransformOrigin="0.565,0.696"  FontSize="18" FontFamily="Kartika" Click="MinimizeButt_Click">
+            <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
+            </Canvas>
+        </Button>
         
+        <oxy:PlotView x:Name="Plot" Model="{Binding Model}" Margin="0,55,0,0" />
+        <DatePicker x:Name="InitialDatePicker" DisplayDate="{Binding InitialDate, ElementName=Plot}" DisplayDateStart="{Binding FirstDate}" DisplayDateEnd="{Binding LastDate}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="39,10,0,0"/>
+        <DatePicker x:Name="FinalDatePicker" DisplayDate="{Binding FinalDate, ElementName=Plot}" DisplayDateStart="{Binding FirstDate}" DisplayDateEnd="{Binding LastDate}" HorizontalAlignment="Left" Margin="175,10,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>
