@@ -5,13 +5,15 @@ using System.Text;
 using System.Windows.Controls;
 using OxyPlot;
 using OxyPlot.Series;
+using System.ComponentModel;
 
 namespace tempa
 {
-    class PlotViewModel
+    class PlotViewModel : INotifyPropertyChanged
     {
         public PlotViewModel()
         {
+            
             var tmp = new PlotModel { Title = "Simple example", Subtitle = "using OxyPlot" };
 
             // Create two line series (markers are hidden by default)
@@ -38,14 +40,77 @@ namespace tempa
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
             this.Model = tmp;
 
+            PropertyChanged += PlotViewModel_PropertyChanged;
         }
 
-        public PlotModel Model { get; private set; }
+        private void NewDate()
+        {
+            if (TermoData.Count < 2)
+                return;
+            DisplayDateStart = TermoData[1].MeasurementDate;
+            DisplayDateEnd = TermoData.Last().MeasurementDate;
 
-        public DateTime InitialDate { get; set; }
+        }
 
-        public DateTime FinalDate { get; set; }
+        private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        void PlotViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (sender is List<Termometer>)
+                NewDate();
+        }
 
 
+
+        private PlotModel _model;
+        private DateTime _displayDateStart = DateTime.Now;
+        private DateTime _displayDateEnd = DateTime.Now;
+        private DateTime _initialDate = DateTime.Now;
+        private DateTime _finalDate = DateTime.Now;
+        private List<Termometer> _termoData;
+
+        public PlotModel Model
+        {
+            get { return _model; }
+            private set { _model = value; NotifyPropertyChanged(); }
+        }
+
+        public DateTime InitialDate
+        {
+            get { return _initialDate; }
+            set { _initialDate = value; NotifyPropertyChanged(); }
+        }
+
+        public DateTime FinalDate
+        {
+            get { return _finalDate; }
+            set { _finalDate = value; NotifyPropertyChanged(); }
+        }
+
+        public DateTime DisplayDateStart
+        {
+            get { return _displayDateStart; }
+            set { _displayDateStart = value; NotifyPropertyChanged(); }
+        }
+
+        public DateTime DisplayDateEnd
+        {
+            get { return _displayDateEnd; }
+            set { _displayDateEnd = value; NotifyPropertyChanged(); }
+        }
+
+        public List<Termometer> TermoData
+        {
+            get { return _termoData; }
+            set { _termoData = value; NotifyPropertyChanged(); }
+        }
     }
 }

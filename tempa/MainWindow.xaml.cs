@@ -61,6 +61,9 @@ namespace tempa
             CreateReportShow += MainWindow_CreateReportShow;
             CreateReportHide += MainWindow_CreateReportHide;
             CheckDataFiles();
+
+
+            var t = Internal.GetChildElementsByType(TEST, typeof(ScrollViewer));
         }
 
         private void CheckDataFiles()
@@ -97,7 +100,7 @@ namespace tempa
 
         private bool WatcherInit<T>(ref FileSystemWatcher watcher, string reportsPath, string fileExtension) where T : ITermometer
         {
-            string programName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+            string programName = GetProgramName<T>();
 
             try
             {
@@ -123,11 +126,11 @@ namespace tempa
             watcher.EnableRaisingEvents = true;
         }
 
-        private void DisposeWatcher(FileSystemWatcher watcher, ProgramType programType)
+        private void DisposeWatcher<T>(FileSystemWatcher watcher)
         {
             if (watcher == null)
                 return;
-            string programName = programType == ProgramType.Agrolog ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+            string programName = GetProgramName<T>();
             LogMaker.Log(string.Format("Данные {0} из каталога \"{1}\" не принимаются.", programName, watcher.Path), false);
             watcher.EnableRaisingEvents = false;
             watcher.Dispose();
@@ -144,7 +147,7 @@ namespace tempa
             }
 
             FileInfo[] filesInfo = dirInfo.GetFiles("*." + fileExtension);
-            string programName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+            string programName = GetProgramName<T>();
             string dataFileName = DataFileName<T>();
             DataHandlingLock<T>.SyncLock.WaitOne();
             LogMaker.InvokedLog(string.Format("Начинаю проверку каталога \"{0}\" на наличие новых данных {1}...", path, programName), false, this.Dispatcher);
@@ -168,7 +171,7 @@ namespace tempa
 
         private async Task<bool> NewDataVerification<T>(string path, string fileName, List<T> dataList) where T : ITermometer
         {
-            string programName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+            string programName = GetProgramName<T>();
             LogMaker.InvokedLog(string.Format("Обнаружен новый файл \"{0}\" отчета {1}. Начинаем процесс парсинга...", programName, fileName), false, this.Dispatcher);
 
             List<T> initReportList = await ReadNewReport<T>(path, fileName, programName);
@@ -518,6 +521,43 @@ namespace tempa
 
         }
 
+        private async Task OpenPlot<T>(string dataFolderPath, string dataFileName) where T : ITermometer
+        {
+            List<T> reportData = null;
+            string programName = GetProgramName<T>();
+
+            try
+            {
+                LogMaker.Log(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false);
+                reportData = await DataWorker.ReadBinaryAsync<T>(dataFolderPath, dataFileName);
+                LogMaker.Log(string.Format("Построение графика \"{0}\"", programName), false);
+
+                List<Termometer> data = new List<Termometer>();
+                data = reportData.Select(t => t as Termometer).ToList();
+                if (typeof(T) == typeof(TermometerAgrolog))
+                {
+                    _agrologPlot = new MainPlotWindow(data);
+                    _agrologPlot.Show();
+                }
+                else if (typeof(T) == typeof(TermometerGrainbar))
+                {
+                    _grainbarPlot = new MainPlotWindow(data);
+                    _grainbarPlot.Show();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                LogMaker.Log(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", programName), true);
+                ExceptionHandler.Handle(ex, false);
+            }
+        }
+
+        private string GetProgramName<T>()
+        {
+            return typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+        }
+
         #region Callbacks
 
         private void FileBrowsOkButt_Click(object sender, RoutedEventArgs e)
@@ -654,8 +694,8 @@ namespace tempa
         private void dataChb_Unchecked(object sender, RoutedEventArgs e)
         {
             if ((sender as CheckBox).Name == "agrologDataChb")
-                DisposeWatcher(_agrologFolderWatcher, ProgramType.Agrolog);
-            else DisposeWatcher(_grainbarFolderWatcher, ProgramType.Grainbar);
+                DisposeWatcher<TermometerAgrolog>(_agrologFolderWatcher);
+            else DisposeWatcher<TermometerGrainbar>(_grainbarFolderWatcher);
         }
 
 
@@ -773,6 +813,21 @@ namespace tempa
                 ExceptionHandler.Handle(ex, false);
             }
         }
+
+
+        private async void PlotButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            button.IsEnabled = false;
+            if (button == AgrologPlotButton)
+                await OpenPlot<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE);
+            else if (button == GrainbarButton)
+                await OpenPlot<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE);
+            button.IsEnabled = true;
+
+        }
+
+
         #endregion
         //------------------------------------------------------------------------------
 
@@ -825,6 +880,8 @@ namespace tempa
         FileSystemWatcher _grainbarFolderWatcher;
         readonly ManualResetEvent _createReportResetEvent = new ManualResetEvent(false);
         CancellationTokenSource _createReportCancellationToken;
+        MainPlotWindow _agrologPlot;
+        MainPlotWindow _grainbarPlot;
         #endregion
 
         #region properties

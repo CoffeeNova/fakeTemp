@@ -10,27 +10,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Diagnostics;
-using System.Reflection;
-using System.IO;
-using System.Threading.Tasks;
-using NLog;
-using System.Threading;
 using System.ComponentModel;
 
 namespace tempa
@@ -38,20 +17,16 @@ namespace tempa
     /// <summary>
     /// Логика взаимодействия для Plot.xaml
     /// </summary>
-    public partial class Plot : Window
+    public partial class MainPlotWindow : Window
     {
-        public Plot(List<Termometer> data)
+        public MainPlotWindow(List<Termometer> data)
         {
             InitializeComponent();
-            TermoData = data;
-            FirstDate = TermoData.First().MeasurementDate;
-            LastDate = TermoData.Last().MeasurementDate;
+            this.DataContext = new PlotViewModel();
+            ((PlotViewModel)DataContext).TermoData = data;
         }
 
-        public DateTime FirstDate { get; private set; }
+       // public List<Termometer> Data { get; set; }
 
-        public DateTime LastDate { get; private set; }
-
-        public List<Termometer> TermoData { get; set; }
     }
 }

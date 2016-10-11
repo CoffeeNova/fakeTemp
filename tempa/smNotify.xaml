@@ -10,7 +10,7 @@
     <ContextMenu x:Shared="false" x:Key="SysTrayMenu">
         <MenuItem Header="Настройки" Command="{Binding ShowWindowSettings}" />
         <Separator />
-        <!--<MenuItem Header="Hide Window" Command="{Binding HideWindowCommand}" />-->
+        <!--<MenuItem Header="График" Command="{Binding HideWindowCommand}" />-->
         <!--<MenuItem Header="Показания за день" Command="{Binding ShowWindowHome}" />
         <Separator />
         <MenuItem Header="Показания за месяц" Command="{Binding ShowWindowTwo}" />
