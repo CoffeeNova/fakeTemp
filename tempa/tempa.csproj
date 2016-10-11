@@ -106,6 +106,7 @@
     </ApplicationDefinition>
     <Compile Include="DataWorker\DataWorker.Binary.cs" />
     <Compile Include="DataWorker\DataWorker.Excel.cs" />
+    <Compile Include="DelegateCommand.cs" />
     <Compile Include="ExceptionHandler.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Extensions\AutoScrollBehavior.cs" />

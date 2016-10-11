@@ -17,16 +17,24 @@ namespace tempa
     /// <summary>
     /// Логика взаимодействия для Plot.xaml
     /// </summary>
-    public partial class MainPlotWindow : Window
+    public partial class MainPlotWindow : Window, IView
     {
         public MainPlotWindow(List<Termometer> data)
         {
             InitializeComponent();
             this.DataContext = new PlotViewModel();
-            ((PlotViewModel)DataContext).TermoData = data;
+            (DataContext as PlotViewModel).TermoData = data;
+            (DataContext as PlotViewModel).View = this as IView;
         }
 
-       // public List<Termometer> Data { get; set; }
+        private void PlotWindow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            this.Hide();
+        }
 
+    }
+    public interface IView
+    {
+        void DragMove();
     }
 }

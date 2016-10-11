@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Controls;
+using System.ComponentModel;
 using OxyPlot;
 using OxyPlot.Series;
-using System.ComponentModel;
+using OxyPlot.Axes;
+using System.Windows.Input;
 
 namespace tempa
 {
@@ -13,32 +15,31 @@ namespace tempa
     {
         public PlotViewModel()
         {
-            
-            var tmp = new PlotModel { Title = "Simple example", Subtitle = "using OxyPlot" };
 
-            // Create two line series (markers are hidden by default)
-            var series1 = new LineSeries { Title = "Series 1", MarkerType = MarkerType.Circle };
-            series1.Points.Add(new DataPoint(0, 0));
-            series1.Points.Add(new DataPoint(10, 18));
-            series1.Points.Add(new DataPoint(20, 12));
-            series1.Points.Add(new DataPoint(30, 8));
-            series1.Points.Add(new DataPoint(40, 15));
+            Model = new PlotModel();
 
-            var series2 = new LineSeries { Title = "Series 2", MarkerType = MarkerType.Square };
-            series2.Points.Add(new DataPoint(0, 4));
-            series2.Points.Add(new DataPoint(10, 12));
-            series2.Points.Add(new DataPoint(20, 16));
-            series2.Points.Add(new DataPoint(30, 25));
-            series2.Points.Add(new DataPoint(40, 5));
+            //// Create two line series (markers are hidden by default)
+            //var series1 = new LineSeries { Title = "Series 1", MarkerType = MarkerType.Circle };
+            //series1.Points.Add(new DataPoint(0, 0));
+            //series1.Points.Add(new DataPoint(10, 18));
+            //series1.Points.Add(new DataPoint(20, 12));
+            //series1.Points.Add(new DataPoint(30, 8));
+            //series1.Points.Add(new DataPoint(40, 15));
 
-            // Add the series to the plot model
-            tmp.Series.Add(series1);
-            tmp.Series.Add(series2);
+            //var series2 = new LineSeries { Title = "Series 2", MarkerType = MarkerType.Square };
+            //series2.Points.Add(new DataPoint(0, 4));
+            //series2.Points.Add(new DataPoint(10, 12));
+            //series2.Points.Add(new DataPoint(20, 16));
+            //series2.Points.Add(new DataPoint(30, 25));
+            //series2.Points.Add(new DataPoint(40, 5));
+
+            //// Add the series to the plot model
+            //tmp.Series.Add(series1);
+            //tmp.Series.Add(series2);
 
             // Axes are created automatically if they are not defined
 
             // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-            this.Model = tmp;
 
             PropertyChanged += PlotViewModel_PropertyChanged;
         }
@@ -47,16 +48,45 @@ namespace tempa
         {
             if (TermoData.Count < 2)
                 return;
+
             DisplayDateStart = TermoData[1].MeasurementDate;
             DisplayDateEnd = TermoData.Last().MeasurementDate;
-
+            SetUpModel();
+        }
+        private void SetUpModel()
+        {
+            Model.LegendTitle = "Legend";
+            Model.LegendOrientation = LegendOrientation.Horizontal;
+            Model.LegendPlacement = LegendPlacement.Outside;
+            Model.LegendPosition = LegendPosition.TopRight;
+            Model.LegendBackground = OxyColor.FromAColor(200, OxyColors.White);
+            Model.LegendBorder = OxyColors.Black;
+            //(AxisPosition.Bottom, "Date", "dd/MM/yy HH:mm") { MajorGridlineStyle = LineStyle.Solid, MinorGridlineStyle = LineStyle.Dot, IntervalLength = 80 };
+            var dateAxis = new DateTimeAxis()
+            {
+                Position = AxisPosition.Bottom,
+                StringFormat = "dd/MM/yy HH:mm",
+                Title = "Дата",
+                MinorIntervalType = DateTimeIntervalType.Days,
+                IntervalType = DateTimeIntervalType.Days,
+                MajorGridlineStyle = LineStyle.Solid,
+                MinorGridlineStyle = LineStyle.Dot
+            };
+            Model.Axes.Add(dateAxis);
+            var valueAxis = new LinearAxis()
+            {
+                Position = AxisPosition.Left,
+                MajorGridlineStyle = LineStyle.Solid,
+                MinorGridlineStyle = LineStyle.Dot,
+                Title = "Температура",
+                AbsoluteMaximum = 0.0,
+            };
+            
+            Model.Axes.Add(valueAxis);
         }
 
         private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
@@ -64,8 +94,8 @@ namespace tempa
 
         void PlotViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (sender is List<Termometer>)
-                NewDate();
+            if(e.PropertyName == nameof(TermoData))
+               NewDate();
         }
 
 
@@ -112,5 +142,24 @@ namespace tempa
             get { return _termoData; }
             set { _termoData = value; NotifyPropertyChanged(); }
         }
+
+        public IView View { get; set; }
+
+        public ICommand DragMoveWindowCommand
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CanExecuteFunc = () => true,
+                    CommandAction = () =>
+                    {
+                        View.DragMove();
+                    }
+                };
+            }
+            set { }
+        }
+
     }
 }

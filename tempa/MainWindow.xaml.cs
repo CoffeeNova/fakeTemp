@@ -431,8 +431,6 @@ namespace tempa
             return null;
         }
 
-
-
         private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
         {
             var item = (TreeViewItem)e.OriginalSource;
@@ -468,7 +466,6 @@ namespace tempa
             else
                 GrainbarReportsPath = path;
         }
-
 
         private async Task WriteReport<T>(string dataFolderPath, string dataFileName, string reportPath, string reportFileName) where T : ITermometer
         {

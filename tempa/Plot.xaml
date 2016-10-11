@@ -4,7 +4,10 @@
         xmlns:oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf"
         xmlns:tempa="clr-namespace:tempa"
         x:Name="PlotWindow"
-        Title="Plot" Height="424" Width="760" WindowStyle="None" Background="#444444">
+        Title="Plot" Height="424" Width="760" WindowStyle="None" Background="#444444" >
+    <Window.InputBindings>
+        <MouseBinding MouseAction="LeftClick" Command="{Binding DragMoveWindowCommand}"/>
+    </Window.InputBindings>
     <!--<Window.DataContext>
         <tempa:PlotViewModel/>
     </Window.DataContext>-->
