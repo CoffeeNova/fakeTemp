@@ -185,7 +185,7 @@ namespace tempa
             public const int SENSOR_COL = 4;
             public const int DATE_ROW = 5;
             public const int DATE_COL = 5;
-            public const int TABLE_CAPTIONS_ROW = 7;
+            public const int TABLE_CAPTIONS_ROW = 7; 
         }
 
         private struct DataSheet

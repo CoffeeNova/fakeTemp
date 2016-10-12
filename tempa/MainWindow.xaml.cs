@@ -518,16 +518,41 @@ namespace tempa
 
         }
 
-        private async Task OpenPlot<T>(string dataFolderPath, string dataFileName) where T : ITermometer
+        private Task OpenPlotAsync<T>(string dataFolderPath, string dataFileName) where T : ITermometer
+        {
+            var tcs = new TaskCompletionSource<object>();
+            var newWindowThread = new Thread(new ThreadStart(() =>
+            {
+                try
+                {
+                    OpenPlotCallBack<T>(dataFolderPath, dataFileName);
+                    tcs.SetResult(null);
+
+                }
+                catch (Exception ex)
+                {
+                    LogMaker.InvokedLog(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", programName), true, this.Dispatcher);
+                    ExceptionHandler.Handle(ex, false);
+                    tcs.SetException(ex);
+                }
+            }));
+
+            newWindowThread.SetApartmentState(ApartmentState.STA);
+            newWindowThread.IsBackground = true;
+            newWindowThread.Start();
+            return tcs.Task;
+        }
+
+        private void OpenPlotCallBack<T>(string dataFolderPath, string dataFileName) where T : ITermometer
         {
             List<T> reportData = null;
             string programName = GetProgramName<T>();
 
             try
             {
-                LogMaker.Log(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false);
-                reportData = await DataWorker.ReadBinaryAsync<T>(dataFolderPath, dataFileName);
-                LogMaker.Log(string.Format("Построение графика \"{0}\"", programName), false);
+                LogMaker.InvokedLog(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false, this.Dispatcher);
+                reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
+                LogMaker.InvokedLog(string.Format("Построение графика \"{0}\"", programName), false, this.Dispatcher);
 
                 List<Termometer> data = new List<Termometer>();
                 data = reportData.Select(t => t as Termometer).ToList();
@@ -535,19 +560,32 @@ namespace tempa
                 {
                     _agrologPlot = new MainPlotWindow(data);
                     _agrologPlot.Show();
+                    _agrologPlot.Closed += (sender, e) => _agrologPlot.Dispatcher.InvokeShutdown();
                 }
                 else if (typeof(T) == typeof(TermometerGrainbar))
                 {
                     _grainbarPlot = new MainPlotWindow(data);
                     _grainbarPlot.Show();
+                    _grainbarPlot.Closed += (sender, e) => _grainbarPlot.Dispatcher.InvokeShutdown();
                 }
+                System.Windows.Threading.Dispatcher.Run();
 
             }
-            catch (Exception ex)
+            catch (ThreadAbortException ex)
             {
-                LogMaker.Log(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", programName), true);
-                ExceptionHandler.Handle(ex, false);
+                if (typeof(T) == typeof(TermometerAgrolog))
+                {
+                    _agrologPlot.Close();
+                    _agrologPlot.Dispatcher.InvokeShutdown();
+                }
+                else if (typeof(T) == typeof(TermometerGrainbar))
+                {
+                    _grainbarPlot.Close();
+                    _grainbarPlot.Dispatcher.InvokeShutdown();
+                }
+                throw new Exception("Abort thread Exception", ex);
             }
+
         }
 
         private string GetProgramName<T>()
@@ -755,10 +793,10 @@ namespace tempa
             }
             else
                 if (IsGrainbarDataCollect)
-                {
-                    IsGrainbarDataCollect = false;
-                    IsGrainbarDataCollect = true;
-                }
+            {
+                IsGrainbarDataCollect = false;
+                IsGrainbarDataCollect = true;
+            }
         }
 
         private async void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
@@ -817,9 +855,9 @@ namespace tempa
             var button = sender as Button;
             button.IsEnabled = false;
             if (button == AgrologPlotButton)
-                await OpenPlot<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE);
+                await OpenPlotAsync<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE);
             else if (button == GrainbarButton)
-                await OpenPlot<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE);
+                await OpenPlotAsync<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE);
             button.IsEnabled = true;
 
         }

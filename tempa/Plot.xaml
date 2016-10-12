@@ -27,8 +27,7 @@
         <oxy:PlotView x:Name="PlotViewModel" Model="{Binding Model}" Margin="10,55,10,10"/>
         <DatePicker x:Name="InitialDatePicker" SelectedDate="{Binding InitialDate, Mode=TwoWay}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="117"/>
         <DatePicker x:Name="FinalDatePicker" SelectedDate="{Binding InitialDate, Mode=TwoWay}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" Margin="140,10,0,0" VerticalAlignment="Top" Width="120"/>
-        <ListBox x:Name="SiloListBox" HorizontalAlignment="Left" Height="23" Margin="287,11,0,0" VerticalAlignment="Top" Width="101"/>
-        <ListBox x:Name="CableListBox" HorizontalAlignment="Left" Height="23" Margin="393,11,0,0" VerticalAlignment="Top" Width="101"/>
-        <ListBox x:Name="SensorListBox" HorizontalAlignment="Left" Height="23" Margin="499,11,0,0" VerticalAlignment="Top" Width="101"/>
+        <ComboBox x:Name="SiloListBox" DisplayMemberPath="Silo" ItemsSource="{Binding Siloses}" SelectedItem="{Binding SelectedSilo}" HorizontalAlignment="Left" Height="23" Margin="285,10,0,0" VerticalAlignment="Top" Width="110"/>
+        <ComboBox x:Name="CableListBox" DisplayMemberPath="Cable" ItemsSource="{Binding Cables}" SelectedItem="{Binding SelectedCable}" HorizontalAlignment="Left" Height="23" Margin="439,10,0,0" VerticalAlignment="Top" Width="110"/>
     </Grid>
 </Window>

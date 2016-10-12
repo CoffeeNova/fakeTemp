@@ -8,6 +8,8 @@ using OxyPlot;
 using OxyPlot.Series;
 using OxyPlot.Axes;
 using System.Windows.Input;
+using System.Threading.Tasks;
+using tempa.Extensions;
 
 namespace tempa
 {
@@ -15,32 +17,6 @@ namespace tempa
     {
         public PlotViewModel()
         {
-
-            Model = new PlotModel();
-
-            //// Create two line series (markers are hidden by default)
-            //var series1 = new LineSeries { Title = "Series 1", MarkerType = MarkerType.Circle };
-            //series1.Points.Add(new DataPoint(0, 0));
-            //series1.Points.Add(new DataPoint(10, 18));
-            //series1.Points.Add(new DataPoint(20, 12));
-            //series1.Points.Add(new DataPoint(30, 8));
-            //series1.Points.Add(new DataPoint(40, 15));
-
-            //var series2 = new LineSeries { Title = "Series 2", MarkerType = MarkerType.Square };
-            //series2.Points.Add(new DataPoint(0, 4));
-            //series2.Points.Add(new DataPoint(10, 12));
-            //series2.Points.Add(new DataPoint(20, 16));
-            //series2.Points.Add(new DataPoint(30, 25));
-            //series2.Points.Add(new DataPoint(40, 5));
-
-            //// Add the series to the plot model
-            //tmp.Series.Add(series1);
-            //tmp.Series.Add(series2);
-
-            // Axes are created automatically if they are not defined
-
-            // Set the Model property, the INotifyPropertyChanged event will make the WPF Plot control update its content
-
             PropertyChanged += PlotViewModel_PropertyChanged;
         }
 
@@ -51,9 +27,10 @@ namespace tempa
 
             DisplayDateStart = TermoData[1].MeasurementDate;
             DisplayDateEnd = TermoData.Last().MeasurementDate;
-            SetUpModel();
+            //SetUpModel();
+            InitData();
         }
-        private void SetUpModel()
+        private void SetUpAxes()
         {
             Model.LegendTitle = "Legend";
             Model.LegendOrientation = LegendOrientation.Horizontal;
@@ -79,10 +56,77 @@ namespace tempa
                 MajorGridlineStyle = LineStyle.Solid,
                 MinorGridlineStyle = LineStyle.Dot,
                 Title = "Температура",
-                AbsoluteMaximum = 0.0,
+                //AbsoluteMaximum = 0.0,
+                
             };
-            
+
             Model.Axes.Add(valueAxis);
+        }
+
+        private Task SetUpSeriesAsync()
+        {
+            return Task.Factory.StartNew(() => SetUpSeries());
+        }
+
+        private void SetUpSeries()
+        {
+            for (int i = 0; i < SelectedCable.Sensor.Count(); i++)
+            {
+                var lineSerie = new LineSeries
+                {
+                    StrokeThickness = 2,
+                    MarkerSize = 3,
+                    MarkerStroke = OxyColor.FromRgb(255, 255, 255),
+                    MarkerType = MarkerType.Circle,
+                    CanTrackerInterpolatePoints = false,
+                    Title = $"Датчик №{i + 1}",
+                    Smooth = false,
+                };
+
+                List<Termometer> termometers = TermoData.FindAll(t => t.Cable == SelectedCable.Cable);
+                termometers.ForEach(t => lineSerie.Points.Add(new DataPoint(DateTimeAxis.ToDouble(t.MeasurementDate), t.Sensor[i].Value)));
+                Model.Series.Add(lineSerie);
+            }
+        }
+
+        private void InitData()
+        {
+            Siloses = TermoData.Unique(t => t.Silo).OrderBy(t => t.Silo, new SemiNumericComparer()).ToList();
+        }
+
+        private void NewSiloses()
+        {
+            SelectedSilo = Siloses.First();
+        }
+
+        private void NewCables()
+        {
+            SelectedCable = Cables.First();
+        }
+
+        private void SelectedSiloChanged()
+        {
+            Cables = TermoData.FindAll(t =>t.MeasurementDate == SelectedSilo.MeasurementDate && 
+                                           t.Silo == SelectedSilo.Silo);
+        }
+
+        private void SelectedCableChanged()
+        {
+            CreateNewLineSeries();
+        }
+
+        private async void CreateNewLineSeries()
+        {
+            Model?.InvalidatePlot(true);
+            Model = new PlotModel();
+            SetUpAxes();
+            await SetUpSeriesAsync();
+            //Model.Series?.Clear();
+            
+        }
+        private void DistributeData()
+        {
+
         }
 
         private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
@@ -94,8 +138,16 @@ namespace tempa
 
         void PlotViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(TermoData))
-               NewDate();
+            if (e.PropertyName == nameof(TermoData))
+                NewDate();
+            else if (e.PropertyName == nameof(Siloses))
+                NewSiloses();
+            else if (e.PropertyName == nameof(SelectedSilo))
+                SelectedSiloChanged();
+            else if (e.PropertyName == nameof(Cables))
+                NewCables();
+            else if (e.PropertyName == nameof(SelectedCable))
+                SelectedCableChanged();
         }
 
 
@@ -106,6 +158,10 @@ namespace tempa
         private DateTime _initialDate = DateTime.Now;
         private DateTime _finalDate = DateTime.Now;
         private List<Termometer> _termoData;
+        private List<Termometer> _siloses;
+        private List<Termometer> _cables;
+        private Termometer _selectedSilo;
+        private Termometer _selectedCable;
 
         public PlotModel Model
         {
@@ -141,6 +197,30 @@ namespace tempa
         {
             get { return _termoData; }
             set { _termoData = value; NotifyPropertyChanged(); }
+        }
+
+        public List<Termometer> Siloses
+        {
+            get { return _siloses; }
+            set { _siloses = value; NotifyPropertyChanged(); }
+        }
+
+        public List<Termometer> Cables
+        {
+            get { return _cables; }
+            set { _cables = value; NotifyPropertyChanged(); }
+        }
+
+        public Termometer SelectedSilo
+        {
+            get { return _selectedSilo; }
+            set { _selectedSilo = value; NotifyPropertyChanged(); }
+        }
+
+        public Termometer SelectedCable
+        {
+            get { return _selectedCable; }
+            set { _selectedCable = value; NotifyPropertyChanged(); }
         }
 
         public IView View { get; set; }

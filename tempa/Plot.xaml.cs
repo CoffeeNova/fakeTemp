@@ -23,8 +23,9 @@ namespace tempa
         {
             InitializeComponent();
             this.DataContext = new PlotViewModel();
-            (DataContext as PlotViewModel).TermoData = data;
             (DataContext as PlotViewModel).View = this as IView;
+            data.RemoveAll(t => t.MeasurementDate == data.First().MeasurementDate);
+            (DataContext as PlotViewModel).TermoData = data;
         }
 
         private void PlotWindow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -32,6 +33,10 @@ namespace tempa
             this.Hide();
         }
 
+        private void SiloListBox_Selected(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
     public interface IView
     {
