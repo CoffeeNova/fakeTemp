@@ -531,7 +531,7 @@ namespace tempa
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.InvokedLog(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", programName), true, this.Dispatcher);
+                    LogMaker.InvokedLog(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", GetProgramName<T>()), true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     tcs.SetException(ex);
                 }
@@ -546,28 +546,29 @@ namespace tempa
         private void OpenPlotCallBack<T>(string dataFolderPath, string dataFileName) where T : ITermometer
         {
             List<T> reportData = null;
-            string programName = GetProgramName<T>();
 
             try
             {
                 LogMaker.InvokedLog(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false, this.Dispatcher);
                 reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
-                LogMaker.InvokedLog(string.Format("Построение графика \"{0}\"", programName), false, this.Dispatcher);
+                LogMaker.InvokedLog(string.Format("Построение графика \"{0}\"", GetProgramName<T>()), false, this.Dispatcher);
 
                 List<Termometer> data = new List<Termometer>();
                 data = reportData.Select(t => t as Termometer).ToList();
+
+                var func = new Func<MainPlotWindow>(() =>
+                {
+                    var p = new MainPlotWindow(data);
+                    p.Show();
+                    p.Closed += (sender, e) => p.Dispatcher.InvokeShutdown();
+                    return p;
+                });
+
                 if (typeof(T) == typeof(TermometerAgrolog))
-                {
-                    _agrologPlot = new MainPlotWindow(data);
-                    _agrologPlot.Show();
-                    _agrologPlot.Closed += (sender, e) => _agrologPlot.Dispatcher.InvokeShutdown();
-                }
+                    _agrologPlot = _agrologPlot == null ?  func() : null;
                 else if (typeof(T) == typeof(TermometerGrainbar))
-                {
-                    _grainbarPlot = new MainPlotWindow(data);
-                    _grainbarPlot.Show();
-                    _grainbarPlot.Closed += (sender, e) => _grainbarPlot.Dispatcher.InvokeShutdown();
-                }
+                    _grainbarPlot = _grainbarPlot == null ? func() : null;
+
                 System.Windows.Threading.Dispatcher.Run();
 
             }
