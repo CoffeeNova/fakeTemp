@@ -27,12 +27,20 @@ namespace tempa
                 return;
 
             Model = new PlotModel();
-            InitDatePickers();
+            InitVisual();
             InitData();
+        }
+
+        private Task SetUpAxesAsync()
+        {
+            return Task.Factory.StartNew(() => SetUpAxes());
         }
 
         private void SetUpAxes()
         {
+            int? sensorsCount = SelectedCable?.Sensor?.Count();
+            if (!sensorsCount.HasValue)
+                return;
             Model.Axes.Clear();
             Model.LegendTitle = "Legend";
             Model.LegendOrientation = LegendOrientation.Horizontal;
@@ -48,11 +56,21 @@ namespace tempa
                 Title = "Дата",
                 Angle = 0,
                 MinorIntervalType = DateTimeIntervalType.Days,
-                IntervalType = DateTimeIntervalType.Days,
-                //IntervalLength = 1,
+                IntervalType = DateTimeIntervalType.Auto,
                 MajorGridlineStyle = LineStyle.Solid,
-                MinorGridlineStyle = LineStyle.Dot
+                MinorGridlineStyle = LineStyle.Dot,
+                AbsoluteMinimum = DisplayDateStart.ToOADate(),
+                AbsoluteMaximum = DisplayDateEnd.ToOADate(),
+                IntervalLength = 120,
+                TitlePosition = 0.1,
+
             };
+
+            //dateAxis.AxisChanged += DateAxis_AxisChanged;
+            //dateAxis.MouseUp += DateAxis_MouseUp;
+            //dateAxis.KeyDown += DateAxis_KeyDown;
+            dateAxis.Zoom(InitialDate.ToOADate(), FinalDate.ToOADate());
+            //dateAxis.IsZoomEnabled = false;
             Model.Axes.Add(dateAxis);
             var valueAxis = new LinearAxis()
             {
@@ -60,11 +78,48 @@ namespace tempa
                 MajorGridlineStyle = LineStyle.Solid,
                 MinorGridlineStyle = LineStyle.Dot,
                 Title = "Температура",
-                //AbsoluteMaximum = 0.0,
-                
+                //MinorStep = 1,
+                IntervalLength = 30
             };
-
+            List<Termometer> termometers = TermoData.FindAll(t => t.Cable == SelectedCable.Cable);
+            float? maxValue = float.MinValue;
+            float? minValue = float.MaxValue;
+            termometers.ForEach((t) =>
+            {//finding min and max sensor values
+                maxValue = maxValue < t.Sensor.Max() ? t.Sensor.Max() : maxValue;
+                minValue = minValue > t.Sensor.Min() ? t.Sensor.Min() : minValue;
+            });
+            valueAxis.AbsoluteMaximum = maxValue.Value + VERTICAL_AXE_ADDITIONAL_RANGE;
+            valueAxis.AbsoluteMinimum = 0;
             Model.Axes.Add(valueAxis);
+        }
+
+        private void DateAxis_KeyDown(object sender, OxyKeyEventArgs e)
+        {
+            //if (e.Key == OxyKey.Left) || e.Key == OxyKey.Right)
+            //{
+            //    var axis = sender as DateTimeAxis;
+            //    axis.ZoomAt()
+            //    //ChangeDateRange(axis);
+            //}
+        }
+
+        private void DateAxis_MouseUp(object sender, OxyMouseEventArgs e)
+        {
+            var axis = sender as DateTimeAxis;
+            ChangeDateRange(axis);
+        }
+
+        private void DateAxis_AxisChanged(object sender, AxisChangedEventArgs e)
+        {
+            var axis = sender as DateTimeAxis;
+            ChangeDateRange(axis);
+        }
+
+        private void ChangeDateRange(DateTimeAxis axis)
+        {
+            InitialDate = DateTime.FromOADate(axis.ActualMinimum);
+            FinalDate = DateTime.FromOADate(axis.ActualMaximum);
         }
 
         private Task SetUpSeriesAsync()
@@ -88,29 +143,33 @@ namespace tempa
                     MarkerType = MarkerType.Circle,
                     CanTrackerInterpolatePoints = false,
                     Title = $"Датчик №{i + 1}",
-                    
+
                 };
 
                 List<Termometer> termometers = TermoData.FindAll(t => t.Cable == SelectedCable.Cable);
                 termometers.ForEach(t => { if (t.Sensor[i].HasValue) lineSerie.Points.Add(new DataPoint(DateTimeAxis.ToDouble(t.MeasurementDate), t.Sensor[i].Value)); });
                 //TermometrSeries.Add(lineSerie);
-                
+
                 Model.Series.Add(lineSerie);
-                
+
             }
         }
 
-        private void InitDatePickers()
+        private void InitVisual()
         {
             DisplayDateStart = TermoData[1].MeasurementDate;
             DisplayDateEnd = TermoData.Last().MeasurementDate;
             FinalDate = DisplayDateEnd;
             InitialDate = FinalDate.AddDays(-INITITAL_DATE_RANGE_DAYS) > DisplayDateStart ? FinalDate.AddDays(-INITITAL_DATE_RANGE_DAYS) : DisplayDateStart;
+            ActualDate = FinalDate;
+            MaxZoom = (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / (FinalDate.ToOADate() - InitialDate.ToOADate());
+            Zoom = MaxZoom;
         }
 
         private void InitData()
         {
             Siloses = TermoData.Unique(t => t.Silo).OrderBy(t => t.Silo, new SemiNumericComparer()).ToList();
+
         }
 
         private void NewSiloses()
@@ -125,7 +184,7 @@ namespace tempa
 
         private void SelectedSiloChanged()
         {
-            Cables = TermoData.FindAll(t =>t.MeasurementDate == SelectedSilo.MeasurementDate && 
+            Cables = TermoData.FindAll(t => t.MeasurementDate == SelectedSilo.MeasurementDate &&
                                            t.Silo == SelectedSilo.Silo);
         }
 
@@ -136,17 +195,43 @@ namespace tempa
 
         private void FinalDateChanged()
         {
-            CreateNewLineSeries();
+            AxisZoomChange();
         }
 
         private void InitialDateChanged()
         {
-            CreateNewLineSeries();
+            AxisZoomChange();
+        }
+
+        private void ActualDateChanged()
+        {
+            AxisZoomChange();
+        }
+
+        private void ZoomChanged()
+        {
+            //var delta = DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate();
+            //var finalDate = delta / Zoom + InitialDate.ToOADate();
+            //FinalDate = DateTime.FromOADate(finalDate);
+            // var initDate = FinalDate.ToOADate() - delta / (MaxZoom - Zoom);
+            var initDate = DisplayDateEnd.ToOADate() - (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / Zoom;
+            InitialDate = DateTime.FromOADate(initDate);
+
+        }
+
+        private async void AxisZoomChange()
+        {
+            if (Model.Axes.Count == 0) return;
+            Model.Axes[0].IsZoomEnabled = true;
+            Model.Axes[0].ZoomAt(InitialDate.ToOADate(), FinalDate.ToOADate());
+            await SetUpAxesAsync();
+            Model?.InvalidatePlot(true);
+            Model.Axes[0].IsZoomEnabled = false;
         }
 
         private async void CreateNewLineSeries()
         {
-            SetUpAxes();
+            await SetUpAxesAsync();
             await SetUpSeriesAsync();
             Model?.InvalidatePlot(true);
         }
@@ -155,11 +240,6 @@ namespace tempa
         {
             SetUpAxes();
             Model?.InvalidatePlot(true);
-        }
-
-        private void DistributeData()
-        {
-
         }
 
         private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
@@ -185,14 +265,19 @@ namespace tempa
                 InitialDateChanged();
             else if (e.PropertyName == nameof(FinalDate))
                 FinalDateChanged();
+            else if (e.PropertyName == nameof(ActualDate))
+                ActualDateChanged();
+            //else if (e.PropertyName == nameof(Zoom))
+                //ZoomChanged();
         }
 
         #region private fields
 
         private PlotModel _model;
-        private DateTime _displayDateStart = DateTime.Now;
+        private DateTime _displayDateStart = DateTime.MinValue;
         private DateTime _displayDateEnd = DateTime.Now;
-        private DateTime _initialDate = DateTime.Now;
+        private DateTime _initialDate = DateTime.MinValue;
+        private DateTime _actualDate;
         private DateTime _finalDate = DateTime.Now;
         private List<Termometer> _termoData;
         private List<Termometer> _siloses;
@@ -200,6 +285,11 @@ namespace tempa
         //private List<LineSeries> _termometrSeries = new List<LineSeries>();
         private Termometer _selectedSilo;
         private Termometer _selectedCable;
+        private readonly double _oneDayinOADate = DateTime.Now.AddDays(1).ToOADate() - DateTime.Now.ToOADate();
+        private double _zoom = 1;
+        private double _maxZoom;
+        private double _minZoom =1;
+
         //private int _invalidateFlag;
 
         #endregion
@@ -215,12 +305,18 @@ namespace tempa
         {
             get { return _initialDate; }
             set { _initialDate = value; NotifyPropertyChanged(); }
-        } 
+        }
 
         public DateTime FinalDate
         {
             get { return _finalDate; }
             set { _finalDate = value; NotifyPropertyChanged(); }
+        }
+
+        public DateTime ActualDate
+        {
+            get { return _actualDate; }
+            set { _actualDate = value; NotifyPropertyChanged(); }
         }
 
         public DateTime DisplayDateStart
@@ -265,6 +361,24 @@ namespace tempa
             set { _selectedCable = value; NotifyPropertyChanged(); }
         }
 
+        public double Zoom
+        {
+            get { return _zoom; }
+            set { _zoom = value;  NotifyPropertyChanged(); }
+        }
+
+        public double MaxZoom
+        {
+            get { return _maxZoom; }
+            private set { _maxZoom = value; NotifyPropertyChanged(); }
+        }
+
+        public double MinZoom
+        {
+            get { return _minZoom; }
+            private set { _minZoom = value; NotifyPropertyChanged(); }
+        }
+
         public IView View { get; set; }
 
         public ICommand DragMoveWindowCommand
@@ -283,8 +397,24 @@ namespace tempa
             set { }
         }
 
+        public ICommand UpdateZoomCommand
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CanExecuteFunc = () => true,
+                    CommandAction = () =>
+                    {
+                        ZoomChanged();
+                    }
+                };
+            }
+            set { }
+        }
         #endregion
 
         private const int INITITAL_DATE_RANGE_DAYS = 7;
+        private const int VERTICAL_AXE_ADDITIONAL_RANGE = 5;
     }
 }

@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf"
         xmlns:tempa="clr-namespace:tempa"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         x:Name="PlotWindow"
-        Title="Plot" Height="424" Width="760" WindowStyle="None" Background="#444444" >
+        Title="Plot" MinHeight="424" MinWidth="760" WindowStyle="None" Background="#444444" Height="599" Width="1027" >
     <Window.InputBindings>
         <MouseBinding MouseAction="LeftClick" Command="{Binding DragMoveWindowCommand}"/>
     </Window.InputBindings>
@@ -12,22 +13,28 @@
         <tempa:PlotViewModel/>
     </Window.DataContext>-->
     <Grid>
-        <Button x:Name="CloseButt" HorizontalAlignment="Left" Margin="715,10,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="23" Height="23" RenderTransformOrigin="0.565,0.696" FontSize="14" FontFamily="PMingLiU-ExtB">
+        <Button x:Name="CloseButt" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="22" Height="23" RenderTransformOrigin="0.565,0.696" FontSize="14" FontFamily="PMingLiU-ExtB">
             <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
                 <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="13" Y2="6" X2="6"/>
                 <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="6" Y2="13" X2="6"/>
             </Canvas>
         </Button>
-        <Button x:Name="MinimizeButt" HorizontalAlignment="Left" Margin="692,10,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="23" Height="23" RenderTransformOrigin="0.565,0.696"  FontSize="18" FontFamily="Kartika">
+        <Button x:Name="MinimizeButt" HorizontalAlignment="Right" Margin="0,10,32,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="24" Height="23" RenderTransformOrigin="0.565,0.696"  FontSize="18" FontFamily="Kartika">
             <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
                 <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
             </Canvas>
         </Button>
 
-        <oxy:PlotView x:Name="PlotViewModel" Model="{Binding Model}" Margin="10,55,10,10"/>
-        <DatePicker x:Name="InitialDatePicker" SelectedDate="{Binding InitialDate, Mode=TwoWay}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="117"/>
-        <DatePicker x:Name="FinalDatePicker" SelectedDate="{Binding FinalDate, Mode=TwoWay}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" Margin="140,10,0,0" VerticalAlignment="Top" Width="120"/>
-        <ComboBox x:Name="SiloListBox" DisplayMemberPath="Silo" ItemsSource="{Binding Siloses}" SelectedItem="{Binding SelectedSilo}" HorizontalAlignment="Left" Height="23" Margin="285,10,0,0" VerticalAlignment="Top" Width="110"/>
-        <ComboBox x:Name="CableListBox" DisplayMemberPath="Cable" ItemsSource="{Binding Cables}" SelectedItem="{Binding SelectedCable}" HorizontalAlignment="Left" Height="23" Margin="439,10,0,0" VerticalAlignment="Top" Width="110"/>
+        <oxy:PlotView x:Name="PlotViewModel" Model="{Binding Model}" Margin="10,89,10,10"/>
+        <DatePicker x:Name="DateP" SelectedDate="{Binding ActualDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="117"/>
+        <ComboBox x:Name="SiloListBox" DisplayMemberPath="Silo" ItemsSource="{Binding Siloses}" SelectedItem="{Binding SelectedSilo}" HorizontalAlignment="Left" Height="23" Margin="132,10,0,0" VerticalAlignment="Top" Width="60"/>
+        <ComboBox x:Name="CableListBox" DisplayMemberPath="Cable" ItemsSource="{Binding Cables}" SelectedItem="{Binding SelectedCable}" HorizontalAlignment="Left" Height="23" Margin="197,10,0,0" VerticalAlignment="Top" Width="60"/>
+        <Slider x:Name="slider" Minimum="{Binding MinZoom, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Maximum="{Binding MaxZoom, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Value="{Binding Zoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Right" Margin="0,35,78,0" VerticalAlignment="Top" Width="324">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="PreviewMouseLeftButtonUp">
+                    <i:InvokeCommandAction Command="{Binding UpdateZoomCommand}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </Slider>
     </Grid>
 </Window>
