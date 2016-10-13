@@ -70,7 +70,7 @@ namespace tempa
             //dateAxis.MouseUp += DateAxis_MouseUp;
             //dateAxis.KeyDown += DateAxis_KeyDown;
             dateAxis.Zoom(InitialDate.ToOADate(), FinalDate.ToOADate());
-            //dateAxis.IsZoomEnabled = false;
+            dateAxis.IsZoomEnabled = false;
             Model.Axes.Add(dateAxis);
             var valueAxis = new LinearAxis()
             {
