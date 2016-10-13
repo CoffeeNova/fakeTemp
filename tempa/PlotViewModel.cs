@@ -63,14 +63,14 @@ namespace tempa
                 AbsoluteMaximum = DisplayDateEnd.ToOADate(),
                 IntervalLength = 120,
                 TitlePosition = 0.1,
-
+                Minimum = InitialDate.ToOADate(),
+                Maximum = FinalDate.ToOADate()
             };
-
-            //dateAxis.AxisChanged += DateAxis_AxisChanged;
+            dateAxis.AxisChanged += DateAxis_AxisChanged;
             //dateAxis.MouseUp += DateAxis_MouseUp;
             //dateAxis.KeyDown += DateAxis_KeyDown;
-            dateAxis.Zoom(InitialDate.ToOADate(), FinalDate.ToOADate());
-            dateAxis.IsZoomEnabled = false;
+            //dateAxis.Zoom(InitialDate.ToOADate(), FinalDate.ToOADate());
+            //dateAxis.IsZoomEnabled = false;
             Model.Axes.Add(dateAxis);
             var valueAxis = new LinearAxis()
             {
@@ -120,6 +120,7 @@ namespace tempa
         {
             InitialDate = DateTime.FromOADate(axis.ActualMinimum);
             FinalDate = DateTime.FromOADate(axis.ActualMaximum);
+            ZoomValue = (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / (axis.ActualMaximum - axis.ActualMinimum);
         }
 
         private Task SetUpSeriesAsync()
@@ -162,8 +163,8 @@ namespace tempa
             FinalDate = DisplayDateEnd;
             InitialDate = FinalDate.AddDays(-INITITAL_DATE_RANGE_DAYS) > DisplayDateStart ? FinalDate.AddDays(-INITITAL_DATE_RANGE_DAYS) : DisplayDateStart;
             ActualDate = FinalDate;
-            MaxZoom = (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / (FinalDate.ToOADate() - InitialDate.ToOADate());
-            Zoom = MaxZoom;
+            MaxZoomValue = (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / (FinalDate.ToOADate() - InitialDate.ToOADate());
+            ZoomValue = MaxZoomValue;
         }
 
         private void InitData()
@@ -195,50 +196,47 @@ namespace tempa
 
         private void FinalDateChanged()
         {
-            AxisZoomChange();
+            //AxisZoomChange();
         }
 
         private void InitialDateChanged()
         {
-            AxisZoomChange();
+            //AxisZoomChange();
         }
 
         private void ActualDateChanged()
         {
-            AxisZoomChange();
+            //AxisZoomChange();
         }
 
         private void ZoomChanged()
         {
-            //var delta = DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate();
-            //var finalDate = delta / Zoom + InitialDate.ToOADate();
-            //FinalDate = DateTime.FromOADate(finalDate);
-            // var initDate = FinalDate.ToOADate() - delta / (MaxZoom - Zoom);
-            var initDate = DisplayDateEnd.ToOADate() - (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / Zoom;
-            InitialDate = DateTime.FromOADate(initDate);
+            var delta = DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate();
 
+            //var initDate = (DisplayDateEnd.ToOADate() - delta / ZoomValue);
+            //var finalDate = (delta / ZoomValue + initDate);
+            //InitialDate = DateTime.FromOADate(initDate);
+            //FinalDate = DateTime.FromOADate(finalDate);
+
+
+            AxisZoomChange();
         }
 
-        private async void AxisZoomChange()
+        private void AxisZoomChange()
         {
             if (Model.Axes.Count == 0) return;
-            Model.Axes[0].IsZoomEnabled = true;
-            Model.Axes[0].ZoomAt(InitialDate.ToOADate(), FinalDate.ToOADate());
-            await SetUpAxesAsync();
+            Model.Axes[0].AxisChanged -= DateAxis_AxisChanged;
+            Model.Axes[0].Reset();
+            Model.Axes[0].Minimum = InitialDate.ToOADate();
+            Model.Axes[0].Maximum = FinalDate.ToOADate();
+            Model.Axes[0].AxisChanged += DateAxis_AxisChanged;
             Model?.InvalidatePlot(true);
-            Model.Axes[0].IsZoomEnabled = false;
         }
 
         private async void CreateNewLineSeries()
         {
             await SetUpAxesAsync();
             await SetUpSeriesAsync();
-            Model?.InvalidatePlot(true);
-        }
-
-        private void CreateNewAxes()
-        {
-            SetUpAxes();
             Model?.InvalidatePlot(true);
         }
 
@@ -361,19 +359,19 @@ namespace tempa
             set { _selectedCable = value; NotifyPropertyChanged(); }
         }
 
-        public double Zoom
+        public double ZoomValue
         {
             get { return _zoom; }
             set { _zoom = value;  NotifyPropertyChanged(); }
         }
 
-        public double MaxZoom
+        public double MaxZoomValue
         {
             get { return _maxZoom; }
             private set { _maxZoom = value; NotifyPropertyChanged(); }
         }
 
-        public double MinZoom
+        public double MinZoomValue
         {
             get { return _minZoom; }
             private set { _minZoom = value; NotifyPropertyChanged(); }

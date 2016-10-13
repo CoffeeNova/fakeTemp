@@ -33,11 +33,6 @@ namespace tempa
             this.Hide();
         }
 
-        private void SiloListBox_Selected(object sender, RoutedEventArgs e)
-        {
-
-        }
-
     }
     public interface IView
     {
