@@ -26,10 +26,16 @@
         </Button>
 
         <oxy:PlotView x:Name="PlotViewModel" Model="{Binding Model}" Margin="10,89,10,10"/>
-        <DatePicker x:Name="DateP" SelectedDate="{Binding ActualDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="117"/>
+        <DatePicker x:Name="DateP" SelectedDate="{Binding ActualDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="117">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="SelectedDateChanged">
+                    <i:InvokeCommandAction Command="{Binding DisplaySelectedDateCommand}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </DatePicker>
         <ComboBox x:Name="SiloListBox" DisplayMemberPath="Silo" ItemsSource="{Binding Siloses}" SelectedItem="{Binding SelectedSilo}" HorizontalAlignment="Left" Height="23" Margin="132,10,0,0" VerticalAlignment="Top" Width="60"/>
         <ComboBox x:Name="CableListBox" DisplayMemberPath="Cable" ItemsSource="{Binding Cables}" SelectedItem="{Binding SelectedCable}" HorizontalAlignment="Left" Height="23" Margin="197,10,0,0" VerticalAlignment="Top" Width="60"/>
-        <Slider x:Name="slider" Minimum="{Binding MinZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Maximum="{Binding MaxZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Value="{Binding ElementName=PlotWindow, Path=DataContext.ZoomValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Right" Margin="0,35,78,0" VerticalAlignment="Top" Width="324">
+        <Slider x:Name="slider"  Minimum="{Binding MinZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Maximum="{Binding MaxZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Value="{Binding ElementName=PlotWindow, Path=DataContext.ZoomValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Right" Margin="0,35,78,0" VerticalAlignment="Top" Width="324">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PreviewMouseLeftButtonUp">
                     <i:InvokeCommandAction Command="{Binding UpdateZoomCommand}"/>

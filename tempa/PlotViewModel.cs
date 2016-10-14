@@ -64,7 +64,8 @@ namespace tempa
                 IntervalLength = 120,
                 TitlePosition = 0.1,
                 Minimum = InitialDate.ToOADate(),
-                Maximum = FinalDate.ToOADate()
+                Maximum = FinalDate.ToOADate(),
+                MinimumRange = FinalDate.ToOADate() - InitialDate.ToOADate(),
             };
             dateAxis.AxisChanged += DateAxis_AxisChanged;
             //dateAxis.MouseUp += DateAxis_MouseUp;
@@ -91,6 +92,7 @@ namespace tempa
             });
             valueAxis.AbsoluteMaximum = maxValue.Value + VERTICAL_AXE_ADDITIONAL_RANGE;
             valueAxis.AbsoluteMinimum = 0;
+            valueAxis.IsZoomEnabled = false;
             Model.Axes.Add(valueAxis);
         }
 
@@ -104,12 +106,6 @@ namespace tempa
             //}
         }
 
-        private void DateAxis_MouseUp(object sender, OxyMouseEventArgs e)
-        {
-            var axis = sender as DateTimeAxis;
-            ChangeDateRange(axis);
-        }
-
         private void DateAxis_AxisChanged(object sender, AxisChangedEventArgs e)
         {
             var axis = sender as DateTimeAxis;
@@ -121,6 +117,9 @@ namespace tempa
             InitialDate = DateTime.FromOADate(axis.ActualMinimum);
             FinalDate = DateTime.FromOADate(axis.ActualMaximum);
             ZoomValue = (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / (axis.ActualMaximum - axis.ActualMinimum);
+            _prevZoomValue = ZoomValue;
+            ActualDate = FinalDate;
+
         }
 
         private Task SetUpSeriesAsync()
@@ -165,6 +164,7 @@ namespace tempa
             ActualDate = FinalDate;
             MaxZoomValue = (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / (FinalDate.ToOADate() - InitialDate.ToOADate());
             ZoomValue = MaxZoomValue;
+            _prevZoomValue = _maxZoom;
         }
 
         private void InitData()
@@ -211,12 +211,36 @@ namespace tempa
 
         private void ZoomChanged()
         {
-            var delta = DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate();
+            var I = InitialDate.ToOADate();
+            var F = FinalDate.ToOADate();
+            var A = ActualDate.ToOADate();
+            var K = ZoomValue;
+            var k = _prevZoomValue;
+            var De = DisplayDateEnd.ToOADate();
+            var Ds = DisplayDateStart.ToOADate();
+
+
+            var test = (De - Ds) / K;
+
+            var initDate = A - (De - Ds) / (2 * K);
+            var finalDate = A + (De - Ds) / (2 * K);
+
+            if(initDate < Ds)
+            {
+                finalDate += Ds - initDate;
+                initDate = Ds;
+            }
+            if(finalDate > De)
+            {
+                initDate -= finalDate - De;
+                finalDate = De;
+            }
+            //var delta = DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate();
 
             //var initDate = (DisplayDateEnd.ToOADate() - delta / ZoomValue);
             //var finalDate = (delta / ZoomValue + initDate);
-            //InitialDate = DateTime.FromOADate(initDate);
-            //FinalDate = DateTime.FromOADate(finalDate);
+            InitialDate = DateTime.FromOADate(initDate);
+            FinalDate = DateTime.FromOADate(finalDate);
 
 
             AxisZoomChange();
@@ -238,6 +262,16 @@ namespace tempa
             await SetUpAxesAsync();
             await SetUpSeriesAsync();
             Model?.InvalidatePlot(true);
+        }
+
+        private void DisplayDate()
+        {
+            if (ActualDate >= InitialDate && ActualDate <= FinalDate)
+                return;
+            var dateRange = FinalDate.ToOADate() - InitialDate.ToOADate();
+            InitialDate.AddDays(-dateRange / 2);
+            FinalDate.AddDays(dateRange / 2);
+            AxisZoomChange();
         }
 
         private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
@@ -265,8 +299,7 @@ namespace tempa
                 FinalDateChanged();
             else if (e.PropertyName == nameof(ActualDate))
                 ActualDateChanged();
-            //else if (e.PropertyName == nameof(Zoom))
-                //ZoomChanged();
+
         }
 
         #region private fields
@@ -286,8 +319,8 @@ namespace tempa
         private readonly double _oneDayinOADate = DateTime.Now.AddDays(1).ToOADate() - DateTime.Now.ToOADate();
         private double _zoom = 1;
         private double _maxZoom;
-        private double _minZoom =1;
-
+        private double _minZoom = 1;
+        private double _prevZoomValue;
         //private int _invalidateFlag;
 
         #endregion
@@ -362,7 +395,7 @@ namespace tempa
         public double ZoomValue
         {
             get { return _zoom; }
-            set { _zoom = value;  NotifyPropertyChanged(); }
+            set { _zoom = value; NotifyPropertyChanged(); }
         }
 
         public double MaxZoomValue
@@ -405,6 +438,22 @@ namespace tempa
                     CommandAction = () =>
                     {
                         ZoomChanged();
+                    }
+                };
+            }
+            set { }
+        }
+
+        public ICommand DisplaySelectedDateCommand
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CanExecuteFunc = () => true,
+                    CommandAction = () =>
+                    {
+                        DisplayDate();
                     }
                 };
             }
