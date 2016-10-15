@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     //   /// <summary>
     //   /// Simplistic delegate command for the demo.

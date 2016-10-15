@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using tempa.Extensions;
+using CoffeeJelly.tempa.Extensions;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     internal static class Constants
     {
         internal const string ROOT_APPLICATION_NAMESPACE = "tempa";
-        internal const string APPLICATION_NAME = "Tempafake";
+        internal const string APPLICATION_NAME = "TermoReporter";
         internal const string COMPANY_NAME = "ОАО БЕЛСОЛОД";
         internal const string SETTINGS_LOCATION = @"SOFTWARE\" + APPLICATION_NAME;
         internal const string AGROLOG_FOLDER_NAME = "Agrolog";
@@ -26,6 +26,7 @@ namespace tempa
         internal const string IS_GRAINBAR_DATA_COLLECT_REGKEY = "isGrainbarDataCollect";
         internal const string IS_AUTOSTART_REGKEY = "isAutoStart";
         internal const string IS_DATA_SUBSTITUTION_REGKEY = "isDataSubstitution";
+
         internal const string AGROLOG_FILE_EXTENSION = "csv";
         internal const string GRAINBAR_FILE_EXTENSION = "txt";
         internal const string AGROLOG_PROGRAM_NAME = "Agrolog";

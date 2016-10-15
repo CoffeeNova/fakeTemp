@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace tempa.Extensions
+namespace CoffeeJelly.tempa.Extensions
 {
     public static class StringExtension
     {
@@ -44,7 +44,7 @@ namespace tempa.Extensions
             return str + "\\";
         }
 
-        public static bool EqualsAny(this string str, string[] patterns)
+        public static bool EqualsAny(this string str, params string[] patterns)
         {
             foreach (string pattern in patterns)
                 if (str.Equals(pattern))

@@ -5,7 +5,7 @@ using System.Text;
 using NLog;
 using System.Windows.Threading;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     static class LogMaker
     {

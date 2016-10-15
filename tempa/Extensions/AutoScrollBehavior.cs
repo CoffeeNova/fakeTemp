@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace tempa.Extensions
+namespace CoffeeJelly.tempa.Extensions
 {
     public static class AutoScrollBehavior
     {

@@ -9,9 +9,10 @@ using OxyPlot.Series;
 using OxyPlot.Axes;
 using System.Windows.Input;
 using System.Threading.Tasks;
-using tempa.Extensions;
+using CoffeeJelly.tempa.Extensions;
+using System.Reflection;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     class PlotViewModel : INotifyPropertyChanged
     {
@@ -54,24 +55,21 @@ namespace tempa
                 Position = AxisPosition.Bottom,
                 StringFormat = "dd/MM/yy",
                 Title = "Дата",
-                Angle = 0,
+                TitleFontSize = 16,
+                Angle = 45,
                 MinorIntervalType = DateTimeIntervalType.Days,
                 IntervalType = DateTimeIntervalType.Auto,
                 MajorGridlineStyle = LineStyle.Solid,
                 MinorGridlineStyle = LineStyle.Dot,
                 AbsoluteMinimum = DisplayDateStart.ToOADate(),
                 AbsoluteMaximum = DisplayDateEnd.ToOADate(),
-                IntervalLength = 120,
+                IntervalLength = 60,
                 TitlePosition = 0.1,
                 Minimum = InitialDate.ToOADate(),
                 Maximum = FinalDate.ToOADate(),
                 MinimumRange = FinalDate.ToOADate() - InitialDate.ToOADate(),
             };
             dateAxis.AxisChanged += DateAxis_AxisChanged;
-            //dateAxis.MouseUp += DateAxis_MouseUp;
-            //dateAxis.KeyDown += DateAxis_KeyDown;
-            //dateAxis.Zoom(InitialDate.ToOADate(), FinalDate.ToOADate());
-            //dateAxis.IsZoomEnabled = false;
             Model.Axes.Add(dateAxis);
             var valueAxis = new LinearAxis()
             {
@@ -79,6 +77,7 @@ namespace tempa
                 MajorGridlineStyle = LineStyle.Solid,
                 MinorGridlineStyle = LineStyle.Dot,
                 Title = "Температура",
+                TitleFontSize = 16,
                 //MinorStep = 1,
                 IntervalLength = 30
             };
@@ -135,6 +134,9 @@ namespace tempa
             Model.Series.Clear();
             for (int i = 0; i < SelectedCable.Sensor.Count(); i++)
             {
+                if (!(bool)this.GetPropertyValue($"Line{i + 1}Enabled"))
+                    continue;
+
                 var lineSerie = new LineSeries
                 {
                     StrokeThickness = 2,
@@ -143,12 +145,25 @@ namespace tempa
                     MarkerType = MarkerType.Circle,
                     CanTrackerInterpolatePoints = false,
                     Title = $"Датчик №{i + 1}",
-
+                    FontSize = 14
                 };
 
                 List<Termometer> termometers = TermoData.FindAll(t => t.Cable == SelectedCable.Cable);
-                termometers.ForEach(t => { if (t.Sensor[i].HasValue) lineSerie.Points.Add(new DataPoint(DateTimeAxis.ToDouble(t.MeasurementDate), t.Sensor[i].Value)); });
-                //TermometrSeries.Add(lineSerie);
+
+                bool haveAnyValue = termometers.Any(t => t.Sensor[i].HasValue);
+                if(!haveAnyValue)
+                {
+                    this.SetPropertyValue($"Sensor{i}HasValue", false);
+                    continue;
+                }
+
+                termometers.ForEach(t => 
+                {
+                    if (t.Sensor[i].HasValue)
+                        lineSerie.Points.Add(new DataPoint(DateTimeAxis.ToDouble(t.MeasurementDate), t.Sensor[i].Value));
+                        
+                });
+                this.SetPropertyValue($"Sensor{i}HasValue", true);
 
                 Model.Series.Add(lineSerie);
 
@@ -219,9 +234,6 @@ namespace tempa
             var De = DisplayDateEnd.ToOADate();
             var Ds = DisplayDateStart.ToOADate();
 
-
-            var test = (De - Ds) / K;
-
             var initDate = A - (De - Ds) / (2 * K);
             var finalDate = A + (De - Ds) / (2 * K);
 
@@ -235,13 +247,9 @@ namespace tempa
                 initDate -= finalDate - De;
                 finalDate = De;
             }
-            //var delta = DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate();
 
-            //var initDate = (DisplayDateEnd.ToOADate() - delta / ZoomValue);
-            //var finalDate = (delta / ZoomValue + initDate);
             InitialDate = DateTime.FromOADate(initDate);
             FinalDate = DateTime.FromOADate(finalDate);
-
 
             AxisZoomChange();
         }
@@ -269,8 +277,10 @@ namespace tempa
             if (ActualDate >= InitialDate && ActualDate <= FinalDate)
                 return;
             var dateRange = FinalDate.ToOADate() - InitialDate.ToOADate();
-            InitialDate.AddDays(-dateRange / 2);
-            FinalDate.AddDays(dateRange / 2);
+            var actualDate = ActualDate.ToOADate();
+
+            InitialDate = DateTime.FromOADate(actualDate).AddDays(-dateRange / 2);
+            FinalDate = DateTime.FromOADate(actualDate).AddDays(dateRange / 2);
             AxisZoomChange();
         }
 
@@ -293,12 +303,16 @@ namespace tempa
                 NewCables();
             else if (e.PropertyName == nameof(SelectedCable))
                 SelectedCableChanged();
-            else if (e.PropertyName == nameof(InitialDate))
-                InitialDateChanged();
-            else if (e.PropertyName == nameof(FinalDate))
-                FinalDateChanged();
-            else if (e.PropertyName == nameof(ActualDate))
-                ActualDateChanged();
+            //else if (e.PropertyName == nameof(InitialDate))
+            //    InitialDateChanged();
+            //else if (e.PropertyName == nameof(FinalDate))
+            //    FinalDateChanged();
+            //else if (e.PropertyName == nameof(ActualDate))
+            //    ActualDateChanged();
+            else if( e.PropertyName.EqualsAny(nameof(Line1Enabled), nameof(Line2Enabled), nameof(Line3Enabled), 
+                                              nameof(Line4Enabled), nameof(Line5Enabled), nameof(Line6Enabled), nameof(Line7Enabled)))
+                CreateNewLineSeries();
+
 
         }
 
@@ -321,8 +335,20 @@ namespace tempa
         private double _maxZoom;
         private double _minZoom = 1;
         private double _prevZoomValue;
-        //private int _invalidateFlag;
-
+        private bool _line1Enabled = true;
+        private bool _line2Enabled = true;
+        private bool _line3Enabled = true;
+        private bool _line4Enabled = true;
+        private bool _line5Enabled = true;
+        private bool _line6Enabled = true;
+        private bool _line7Enabled = true;
+        private bool _sensor0HasValue = true;
+        private bool _sensor1HasValue = true;
+        private bool _sensor2HasValue = true;
+        private bool _sensor3HasValue = true;
+        private bool _sensor4HasValue = true;
+        private bool _sensor5HasValue = true;
+        private bool _sensor6HasValue = true;
         #endregion
 
         #region public properties
@@ -395,19 +421,112 @@ namespace tempa
         public double ZoomValue
         {
             get { return _zoom; }
-            set { _zoom = value; NotifyPropertyChanged(); }
+            set { _zoom = value; NotifyPropertyChanged("ZoomInPercent"); NotifyPropertyChanged(); }
         }
 
         public double MaxZoomValue
         {
             get { return _maxZoom; }
-            private set { _maxZoom = value; NotifyPropertyChanged(); }
+            private set { _maxZoom = value;  NotifyPropertyChanged(); }
         }
 
         public double MinZoomValue
         {
             get { return _minZoom; }
             private set { _minZoom = value; NotifyPropertyChanged(); }
+        }
+
+        public double ScaleInPercent
+        {
+            get
+            {
+                return (ZoomValue - MinZoomValue) / (MaxZoomValue - MinZoomValue) * 100;
+            }
+
+        }
+
+        public bool Line1Enabled
+        {
+            get { return _line1Enabled; }
+            set { _line1Enabled = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Line2Enabled
+        {
+            get { return _line2Enabled; }
+            set { _line2Enabled = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Line3Enabled
+        {
+            get { return _line3Enabled; }
+             set { _line3Enabled = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Line4Enabled
+        {
+            get { return _line4Enabled; }
+             set { _line4Enabled = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Line5Enabled
+        {
+            get { return _line5Enabled; }
+             set { _line5Enabled = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Line6Enabled
+        {
+            get { return _line6Enabled; }
+             set { _line6Enabled = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Line7Enabled
+        {
+            get { return _line7Enabled; }
+             set { _line7Enabled = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Sensor0HasValue
+        {
+            get { return _sensor0HasValue; }
+            private set { _sensor0HasValue = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Sensor1HasValue
+        {
+            get { return _sensor1HasValue; }
+            private set { _sensor1HasValue = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Sensor2HasValue
+        {
+            get { return _sensor2HasValue; }
+            private set { _sensor2HasValue = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Sensor3HasValue
+        {
+            get { return _sensor3HasValue; }
+            private set { _sensor3HasValue = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Sensor4HasValue
+        {
+            get { return _sensor4HasValue; }
+            private set { _sensor4HasValue = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Sensor5HasValue
+        {
+            get { return _sensor5HasValue; }
+            private set { _sensor5HasValue = value; NotifyPropertyChanged(); }
+        }
+
+        public bool Sensor6HasValue
+        {
+            get { return _sensor6HasValue; }
+            private set { _sensor6HasValue = value; NotifyPropertyChanged(); }
         }
 
         public IView View { get; set; }
@@ -454,6 +573,38 @@ namespace tempa
                     CommandAction = () =>
                     {
                         DisplayDate();
+                    }
+                };
+            }
+            set { }
+        }
+
+        public ICommand CloseCommand
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CanExecuteFunc = () => true,
+                    CommandAction = () =>
+                    {
+                        View.Close();
+                    }
+                };
+            }
+            set { }
+        }
+
+        public ICommand MinimizeCommand
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CanExecuteFunc = () => true,
+                    CommandAction = () =>
+                    {
+                        View.Minimize();
                     }
                 };
             }

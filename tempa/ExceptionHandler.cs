@@ -5,7 +5,7 @@ using System.Text;
 using NLog;
 using System.Windows;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     internal static class ExceptionHandler
     {

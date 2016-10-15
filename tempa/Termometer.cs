@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using tempa.Extensions;
+using CoffeeJelly.tempa.Extensions;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     [Serializable]
     public class TermometerAgrolog : Termometer
     {
         public TermometerAgrolog(DateTime measurementDate, string silo, string cable, float?[] sensor) : base(measurementDate, silo, cable, sensor) { }
 
-        protected override int _sensorCount { get { return Sensors; } }
+        public override int SensorsCount { get { return Sensors; } }
         public static readonly int Sensors = 7;
     }
 
@@ -20,7 +20,7 @@ namespace tempa
     {
         public TermometerGrainbar(DateTime measurementDate, string silo, string cable, float?[] sensor) : base(measurementDate, silo, cable, sensor) { }
 
-        protected override int _sensorCount { get { return  Sensors;} }
+        public override int SensorsCount { get { return  Sensors;} }
         public static readonly int Sensors = 6;
     }
 
@@ -31,8 +31,8 @@ namespace tempa
         {
             if (StringExtension.AnyNullOrEmpty(silo, cable))
                 throw new ArgumentException("All strings should have not be empty or null values.");
-            if (sensor.Count() != _sensorCount)
-                throw new ArgumentOutOfRangeException("sensor", string.Format("Array size must equal {0} value", _sensorCount));
+            if (sensor.Count() != SensorsCount)
+                throw new ArgumentOutOfRangeException("sensor", string.Format("Array size must equal {0} value", SensorsCount));
             MeasurementDate = measurementDate;
             Silo = silo;
             Cable = cable;
@@ -46,7 +46,7 @@ namespace tempa
         public string Cable { get; private set; }
         public float?[] Sensor { get; private set; }
 
-        protected abstract int _sensorCount { get; }
+        public abstract int SensorsCount { get; }
     }
 
     public interface ITermometer
@@ -55,5 +55,6 @@ namespace tempa
         string Silo { get;  }
         string Cable { get; }
         float?[] Sensor { get;  }
+        int SensorsCount { get; }
     }
 }

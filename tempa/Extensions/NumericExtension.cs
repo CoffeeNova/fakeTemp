@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace tempa.Extensions
+namespace CoffeeJelly.tempa.Extensions
 {
     //public static class NumericExtension
     //{

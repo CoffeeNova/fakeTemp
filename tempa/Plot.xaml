@@ -1,46 +1,64 @@
-﻿<Window x:Class="tempa.MainPlotWindow"
+﻿<Window x:Class="CoffeeJelly.tempa.MainPlotWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf"
-        xmlns:tempa="clr-namespace:tempa"
+        xmlns:tempa="clr-namespace:CoffeeJelly.tempa"
+        xmlns:conv="clr-namespace:CoffeeJelly.tempa.Converters"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         x:Name="PlotWindow"
-        Title="Plot" MinHeight="424" MinWidth="760" WindowStyle="None" Background="#444444" Height="599" Width="1027" >
+        Title="Plot" MinHeight="424" MinWidth="1027" Background="#444444" Height="600" Width="1027" WindowStyle="None" >
     <Window.InputBindings>
         <MouseBinding MouseAction="LeftClick" Command="{Binding DragMoveWindowCommand}"/>
     </Window.InputBindings>
-    <!--<Window.DataContext>
-        <tempa:PlotViewModel/>
-    </Window.DataContext>-->
+    <Window.Resources>
+        <conv:ScaleSliderTooltipConverter x:Key="scaleConverter"/>
+    </Window.Resources>
     <Grid>
         <Button x:Name="CloseButt" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="22" Height="23" RenderTransformOrigin="0.565,0.696" FontSize="14" FontFamily="PMingLiU-ExtB">
             <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
                 <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="13" Y2="6" X2="6"/>
                 <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="6" Y2="13" X2="6"/>
             </Canvas>
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Click">
+                    <i:InvokeCommandAction Command="{Binding CloseCommand}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
         </Button>
         <Button x:Name="MinimizeButt" HorizontalAlignment="Right" Margin="0,10,32,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="24" Height="23" RenderTransformOrigin="0.565,0.696"  FontSize="18" FontFamily="Kartika">
             <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
                 <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
             </Canvas>
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Click">
+                    <i:InvokeCommandAction Command="{Binding MinimizeCommand}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
         </Button>
 
-        <oxy:PlotView x:Name="PlotViewModel" Model="{Binding Model}" Margin="10,89,10,10"/>
-        <DatePicker x:Name="DateP" SelectedDate="{Binding ActualDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="117">
+        <oxy:PlotView x:Name="PlotViewModel" Model="{Binding Model}" Margin="10,63,10,10"/>
+        <DatePicker x:Name="DateP" Text="Выбор даты" ToolTip="Перейти к дате" SelectedDate="{Binding ActualDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="117">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="SelectedDateChanged">
                     <i:InvokeCommandAction Command="{Binding DisplaySelectedDateCommand}"/>
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </DatePicker>
-        <ComboBox x:Name="SiloListBox" DisplayMemberPath="Silo" ItemsSource="{Binding Siloses}" SelectedItem="{Binding SelectedSilo}" HorizontalAlignment="Left" Height="23" Margin="132,10,0,0" VerticalAlignment="Top" Width="60"/>
-        <ComboBox x:Name="CableListBox" DisplayMemberPath="Cable" ItemsSource="{Binding Cables}" SelectedItem="{Binding SelectedCable}" HorizontalAlignment="Left" Height="23" Margin="197,10,0,0" VerticalAlignment="Top" Width="60"/>
-        <Slider x:Name="slider"  Minimum="{Binding MinZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Maximum="{Binding MaxZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Value="{Binding ElementName=PlotWindow, Path=DataContext.ZoomValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Right" Margin="0,35,78,0" VerticalAlignment="Top" Width="324">
+        <ComboBox x:Name="SiloListBox" ToolTip="Силос" DisplayMemberPath="Silo" ItemsSource="{Binding Siloses}" SelectedItem="{Binding SelectedSilo}" HorizontalAlignment="Left" Height="23" Margin="132,10,0,0" VerticalAlignment="Top" Width="60"/>
+        <ComboBox x:Name="CableListBox" ToolTip="Термоподвеска"  DisplayMemberPath="Cable" ItemsSource="{Binding Cables}" SelectedItem="{Binding SelectedCable}" HorizontalAlignment="Left" Height="23" Margin="197,10,0,0" VerticalAlignment="Top" Width="60"/>
+        <Slider x:Name="slider" ToolTip="{Binding ZoomInPercent, Mode=OneWay, Converter={StaticResource scaleConverter}}" Minimum="{Binding MinZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Maximum="{Binding MaxZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Value="{Binding ElementName=PlotWindow, Path=DataContext.ZoomValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Right" Margin="0,19,101,0" VerticalAlignment="Top" Width="324">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PreviewMouseLeftButtonUp">
                     <i:InvokeCommandAction Command="{Binding UpdateZoomCommand}"/>
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </Slider>
+        <Grid x:Name="CheckBoxGrid" HorizontalAlignment="Left" Height="Auto" Margin="262,14,0,0" VerticalAlignment="Top" Width="Auto">
+            <StackPanel x:Name="CheckBoxStackPanel" Orientation="Horizontal">
+
+            </StackPanel>
+        </Grid>
+
+
     </Grid>
 </Window>

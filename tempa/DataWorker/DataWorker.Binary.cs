@@ -5,9 +5,9 @@ using System.Text;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using System.IO;
-using tempa.Extensions;
+using CoffeeJelly.tempa.Extensions;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     public static partial class DataWorker
     {

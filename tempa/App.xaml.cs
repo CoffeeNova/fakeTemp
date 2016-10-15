@@ -11,7 +11,7 @@ using System.Windows.Input;
 using Hardcodet.Wpf.TaskbarNotification;
 using NLog;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     /// <summary>
     /// Логика взаимодействия для App.xaml

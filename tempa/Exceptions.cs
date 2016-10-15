@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace tempa.Exceptions
+namespace CoffeeJelly.tempa.Exceptions
 {
     public class ReportFileException : Exception
     {

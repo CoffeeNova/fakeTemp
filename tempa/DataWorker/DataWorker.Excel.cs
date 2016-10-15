@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using OfficeOpenXml;
-using tempa.Extensions;
-using tempa.Exceptions;
+using CoffeeJelly.tempa.Extensions;
+using CoffeeJelly.tempa.Exceptions;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     public static partial class DataWorker
     {

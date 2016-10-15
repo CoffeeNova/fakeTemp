@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using tempa.Extensions;
+using CoffeeJelly.tempa.Extensions;
 using System.Globalization;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     public static partial class DataWorker
     {

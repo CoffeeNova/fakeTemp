@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace tempa.Properties {
+namespace CoffeeJelly.tempa.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace tempa.Properties {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("tempa.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CoffeeJelly.tempa.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -120,7 +120,9 @@ namespace tempa.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to         ///СИТ ГРЕЙНБАР        ///Измерение от 01.01.10, 00:00:00  Температура предупрежденя 30.0
+        ///   Looks up a localized string similar to 
+        ///СИТ ГРЕЙНБАР
+        ///Измерение от 01.01.10, 00:00:00  Температура предупрежденя 30.0
         ///  № |ш.м.п.|Сил.      |       Т1       Т2       Т3       Т4       Т5       Т6
         ///------------------------------------------------------------------------------
         ///  1 | 1 1 2|5-2       |      0.0      0.0       0.0      0.0      0.0      0.0

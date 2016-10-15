@@ -18,10 +18,10 @@ using System.Threading.Tasks;
 using NLog;
 using System.Threading;
 using System.ComponentModel;
-using tempa.Exceptions;
-using tempa.Extensions;
+using CoffeeJelly.tempa.Exceptions;
+using CoffeeJelly.tempa.Extensions;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
@@ -32,6 +32,7 @@ namespace tempa
         public MainWindow()
         {
             InitializeComponent();
+            DwmDropShadow.DropShadowToWindow(this);
             ManualInitializing();
             Settings();
 
@@ -62,8 +63,6 @@ namespace tempa
             CreateReportHide += MainWindow_CreateReportHide;
             CheckDataFiles();
 
-
-            var t = Internal.GetChildElementsByType(TEST, typeof(ScrollViewer));
         }
 
         private void CheckDataFiles()
@@ -442,7 +441,7 @@ namespace tempa
 
         private void FileBrowsTreeView_LostFocus(object sender, RoutedEventArgs e)
         {
-
+IsFileBrowsTreeOnForm = false;
         }
 
         private void FileBrowsTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -533,7 +532,8 @@ namespace tempa
                 {
                     LogMaker.InvokedLog(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", GetProgramName<T>()), true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
-                    tcs.SetException(ex);
+                    tcs.SetResult(null);
+                    //tcs.SetException(ex);
                 }
             }));
 
@@ -560,14 +560,14 @@ namespace tempa
                 {
                     var p = new MainPlotWindow(data);
                     p.Show();
-                    p.Closed += (sender, e) => p.Dispatcher.InvokeShutdown();
+                    p.Closed += (sender, e) => ClosePlotCallback(sender, e, GetProgramName<T>());
                     return p;
                 });
 
                 if (typeof(T) == typeof(TermometerAgrolog))
-                    _agrologPlot = _agrologPlot == null ?  func() : null;
+                    _agrologPlot = (_agrologPlot == null || _agrologPlot.Dispatcher.HasShutdownFinished) ?  func() : null;
                 else if (typeof(T) == typeof(TermometerGrainbar))
-                    _grainbarPlot = _grainbarPlot == null ? func() : null;
+                    _grainbarPlot = (_grainbarPlot == null || _grainbarPlot.Dispatcher.HasShutdownFinished) ? func() : null;
 
                 System.Windows.Threading.Dispatcher.Run();
 
@@ -586,9 +586,15 @@ namespace tempa
                 }
                 throw new Exception("Abort thread Exception", ex);
             }
-
+            
         }
 
+        private void ClosePlotCallback(object sender, EventArgs e, string plotName)
+        {
+            LogMaker.InvokedLog(string.Format("Закрытие окна графика \"{0}\"", plotName), false, this.Dispatcher);
+            (sender as MainPlotWindow).Dispatcher.InvokeShutdown();
+
+        }
         private string GetProgramName<T>()
         {
             return typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;

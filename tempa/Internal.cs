@@ -9,7 +9,7 @@ using System.Reflection;
 using System.IO;
 using NWTweak;
 
-namespace tempa
+namespace CoffeeJelly.tempa
 {
     class Internal
     {
