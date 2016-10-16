@@ -1,17 +1,16 @@
 ﻿using System.Reflection;
-using System.Resources;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
+using CoffeeJelly.tempa;
 
 // Управление общими сведениями о сборке осуществляется с помощью 
 // набора атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
 // связанные со сборкой.
-[assembly: AssemblyTitle("tempa")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle(Constants.APPLICATION_NAME)]
+[assembly: AssemblyDescription(Constants.APPLICATION_DESCRIPTION)]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("tempa")]
+[assembly: AssemblyCompany(Constants.COMPANY_NAME)]
+[assembly: AssemblyProduct(Constants.APPLICATION_NAME)]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

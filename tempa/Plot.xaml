@@ -5,6 +5,7 @@
         xmlns:tempa="clr-namespace:CoffeeJelly.tempa"
         xmlns:conv="clr-namespace:CoffeeJelly.tempa.Converters"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         x:Name="PlotWindow"
         Title="Plot" MinHeight="424" MinWidth="1027" Background="#444444" Height="600" Width="1027" WindowStyle="None" >
     <Window.InputBindings>
@@ -12,6 +13,17 @@
     </Window.InputBindings>
     <Window.Resources>
         <conv:ScaleSliderTooltipConverter x:Key="scaleConverter"/>
+        <Style x:Key="SliderToolTipTransparentIndefinate" TargetType="{x:Type Slider}">
+            <Style.Resources>
+                <Style x:Key="{x:Type ToolTip}" TargetType="{x:Type ToolTip}">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="HasDropShadow" Value="False"/>
+                </Style>
+            </Style.Resources>
+            <Setter Property="ToolTipService.ShowDuration"
+            Value="{x:Static Member=sys:Int32.MaxValue}"/>
+        </Style>
     </Window.Resources>
     <Grid>
         <Button x:Name="CloseButt" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Width="22" Height="23" RenderTransformOrigin="0.565,0.696" FontSize="14" FontFamily="PMingLiU-ExtB">
@@ -37,7 +49,11 @@
         </Button>
 
         <oxy:PlotView x:Name="PlotViewModel" Model="{Binding Model}" Margin="10,63,10,10"/>
-        <DatePicker x:Name="DateP" Text="Выбор даты" ToolTip="Перейти к дате" SelectedDate="{Binding ActualDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="117">
+        <DatePicker x:Name="DateP" Text="Выбор даты" ToolTip="Перейти к дате" 
+                    SelectedDate="{Binding ActualDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                    DisplayDateStart="{Binding DisplayDateStart, Mode=OneWay}" 
+                    DisplayDateEnd="{Binding DisplayDateEnd, Mode=OneWay}" 
+                    HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="117">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="SelectedDateChanged">
                     <i:InvokeCommandAction Command="{Binding DisplaySelectedDateCommand}"/>
@@ -46,7 +62,12 @@
         </DatePicker>
         <ComboBox x:Name="SiloListBox" ToolTip="Силос" DisplayMemberPath="Silo" ItemsSource="{Binding Siloses}" SelectedItem="{Binding SelectedSilo}" HorizontalAlignment="Left" Height="23" Margin="132,10,0,0" VerticalAlignment="Top" Width="60"/>
         <ComboBox x:Name="CableListBox" ToolTip="Термоподвеска"  DisplayMemberPath="Cable" ItemsSource="{Binding Cables}" SelectedItem="{Binding SelectedCable}" HorizontalAlignment="Left" Height="23" Margin="197,10,0,0" VerticalAlignment="Top" Width="60"/>
-        <Slider x:Name="slider" ToolTip="{Binding ZoomInPercent, Mode=OneWay, Converter={StaticResource scaleConverter}}" Minimum="{Binding MinZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Maximum="{Binding MaxZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Value="{Binding ElementName=PlotWindow, Path=DataContext.ZoomValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Right" Margin="0,19,101,0" VerticalAlignment="Top" Width="324">
+        <Slider x:Name="slider" ToolTip="{Binding ScaleInPercent, Mode=OneWay, Converter={StaticResource scaleConverter}}" 
+                Minimum="{Binding MinZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                Maximum="{Binding MaxZoomValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                Value="{Binding ElementName=PlotWindow, 
+                Path=DataContext.ZoomValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                HorizontalAlignment="Right" Margin="0,19,101,0" VerticalAlignment="Top" Width="324">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PreviewMouseLeftButtonUp">
                     <i:InvokeCommandAction Command="{Binding UpdateZoomCommand}"/>

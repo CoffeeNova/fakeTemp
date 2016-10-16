@@ -61,7 +61,7 @@ namespace CoffeeJelly.tempa.Converters
     {
         public object Convert(object value, System.Type targetType, object parameter, CultureInfo culture)
         {
-            return $"Масштаб {(value as string)}%";
+            return $"Масштаб: {((double)value).ToString("0.0", CultureInfo.InvariantCulture)}%";
         }
 
         public object ConvertBack(object value, System.Type targetType, object parameter, CultureInfo culture)
@@ -69,9 +69,4 @@ namespace CoffeeJelly.tempa.Converters
             return null;
         }
     }
-
-
-
-
-
 }

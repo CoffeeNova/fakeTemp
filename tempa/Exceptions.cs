@@ -18,4 +18,11 @@ namespace CoffeeJelly.tempa.Exceptions
 
         public WriteReportException(string message, Exception innerException) : base(message, innerException) { }
     }
+
+    public class PlotDataException : Exception
+    {
+        public PlotDataException(string message) : base(message) { }
+
+        public PlotDataException(string message, Exception innerException) : base(message, innerException) { }
+    }
 }

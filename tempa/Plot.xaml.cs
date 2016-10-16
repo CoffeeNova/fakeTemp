@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.ComponentModel;
-using System.Windows.Interactivity;
+using CoffeeJelly.tempa.Exceptions;
+using System.Globalization;
+using System.Threading;
 
 namespace CoffeeJelly.tempa
 {
@@ -23,10 +19,18 @@ namespace CoffeeJelly.tempa
         public MainPlotWindow(List<Termometer> data)
         {
             InitializeComponent();
+
             DwmDropShadow.DropShadowToWindow(this);
+
+            var ci = CultureInfo.CreateSpecificCulture(CultureInfo.CurrentCulture.Name);
+            ci.DateTimeFormat.ShortDatePattern = "dd-MM-yyyy";
+            Thread.CurrentThread.CurrentCulture = ci;
+
             this.DataContext = new PlotViewModel();
             (DataContext as PlotViewModel).View = this as IView;
             data.RemoveAll(t => t.MeasurementDate == data.First().MeasurementDate);
+            if (data.Count == 0)
+                throw new PlotDataException("Have no data for plotting.");
             (DataContext as PlotViewModel).TermoData = data;
             GenerateCheckBoxes(data.First().SensorsCount);
         }

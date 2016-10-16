@@ -35,7 +35,6 @@ namespace CoffeeJelly.tempa
             DwmDropShadow.DropShadowToWindow(this);
             ManualInitializing();
             Settings();
-
             _log.Info(string.Format("{0} is started successfully.", Constants.APPLICATION_NAME));
         }
 
@@ -59,6 +58,8 @@ namespace CoffeeJelly.tempa
             AgrologFileBrowsButt.Tag = ProgramType.Agrolog;
             GrainbarFileBrowsButt.Tag = ProgramType.Grainbar;
             SettingsShow += MainWindow_onSettingsShow;
+            AboutShow += MainWindow_AboutShow;
+            AboutHide += MainWindow_AboutHide;
             CreateReportShow += MainWindow_CreateReportShow;
             CreateReportHide += MainWindow_CreateReportHide;
             CheckDataFiles();
@@ -269,53 +270,6 @@ namespace CoffeeJelly.tempa
             }
         }
 
-        void LogMaker_newMessage(string message, bool isError)
-        {
-            Run run = new Run(message + Environment.NewLine);
-            InlineUIContainer inlineUIContainer = new InlineUIContainer();
-
-            if (isError)
-                run.Foreground = Brushes.Red;
-            else
-                run.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#EFEFEF")); ;
-            LogTextBlock.Inlines.Add(run);
-        }
-
-        private void ErrorLabelTimerCallback(Object state)
-        {
-
-        }
-
-        private void FilesPathTextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
-        {
-
-        }
-
-        private void FilesPathTextBox_GotMouseCapture(object sender, MouseEventArgs e)
-        {
-
-        }
-
-        private async void FileBrowsButt_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsFileBrowsTreeOnForm == false)
-            {
-                var button = sender as Button;
-                FileBrowsTreeView.Tag = button.Tag;
-                FillTreeViewWithRootDrives(ref FileBrowsTreeView);
-                if (FileBrowsTreeView.Items.Count == 0)
-                    return;
-
-                if ((ProgramType)button.Tag == ProgramType.Agrolog)
-                    await FileBrowsTreeViewDirExpandAsync(AgrologReportsPath, FileBrowsTreeView.Items);
-                else
-                    await FileBrowsTreeViewDirExpandAsync(GrainbarReportsPath, FileBrowsTreeView.Items);
-
-                IsFileBrowsTreeOnForm = true;
-                FileBrowsTreeView.Focus();
-            }
-        }
-
         private void FillTreeViewWithRootDrives(ref TreeView treeview)
         {
             treeview.Items.Clear();
@@ -430,42 +384,6 @@ namespace CoffeeJelly.tempa
             return null;
         }
 
-        private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
-        {
-            var item = (TreeViewItem)e.OriginalSource;
-            FillTreeViewItemWithDirectories(ref item);
-            ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
-            scroller.ScrollToBottom();
-            item.BringIntoView();
-        }
-
-        private void FileBrowsTreeView_LostFocus(object sender, RoutedEventArgs e)
-        {
-IsFileBrowsTreeOnForm = false;
-        }
-
-        private void FileBrowsTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            int i = 0;
-            String path = "";
-            Stack<TreeViewItem> pathstack = Internal.GetNodes(e.NewValue as UIElement);
-            if (pathstack.Count == 0)
-                return;
-            foreach (TreeViewItem item in pathstack)
-            {
-                if (i > 0)
-                    path += item.Header.ToString().PathFormatter();
-                else
-                    path += item.Header.ToString();
-                i++;
-            }
-            var tag = (ProgramType)(sender as TreeView).Tag;
-            if (tag == ProgramType.Agrolog)
-                AgrologReportsPath = path;
-            else
-                GrainbarReportsPath = path;
-        }
-
         private async Task WriteReport<T>(string dataFolderPath, string dataFileName, string reportPath, string reportFileName) where T : ITermometer
         {
             List<T> reportData = null;
@@ -528,6 +446,13 @@ IsFileBrowsTreeOnForm = false;
                     tcs.SetResult(null);
 
                 }
+                catch (PlotDataException ex)
+                {
+                    LogMaker.InvokedLog(string.Format("Нет данных для построения графика \"{0}\", cм. Error.log.", GetProgramName<T>()), true, this.Dispatcher);
+                    ExceptionHandler.Handle(ex, false);
+                    tcs.SetResult(null);
+                    //tcs.SetException(ex);
+                }
                 catch (Exception ex)
                 {
                     LogMaker.InvokedLog(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", GetProgramName<T>()), true, this.Dispatcher);
@@ -542,6 +467,48 @@ IsFileBrowsTreeOnForm = false;
             newWindowThread.Start();
             return tcs.Task;
         }
+
+
+        private string GetProgramName<T>()
+        {
+            return typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+        }
+
+        private void SaveReportsPathToRegistry(ProgramType programType)
+        {
+            string regKey = programType == ProgramType.Agrolog ? Constants.AGROLOG_REPORTS_PATH_REGKEY : Constants.GRAINBAR_REPORTS_PATH_REGKEY;
+            string savedValue = programType == ProgramType.Agrolog ? AgrologReportsPath : GrainbarReportsPath;
+            try //сохраним в реестре последний выбранный путь
+            {
+                Internal.SaveRegistrySettings(regKey, Constants.SETTINGS_LOCATION, savedValue);
+            }
+            catch (InvalidOperationException ex)
+            {
+                LogMaker.Log(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true);
+                ExceptionHandler.Handle(ex, false);
+            }
+        }
+
+        private void StartDataCollect(ProgramType programType)
+        {
+            if (programType == ProgramType.Agrolog)
+            {
+                if (IsAgrologDataCollect)
+                {
+                    IsAgrologDataCollect = false;
+                    IsAgrologDataCollect = true;
+                }
+            }
+            else if (programType == ProgramType.Grainbar)
+                if (IsGrainbarDataCollect)
+                {
+                    IsGrainbarDataCollect = false;
+                    IsGrainbarDataCollect = true;
+                }
+        }
+
+        //----------------------------------------------------------------------------------------------------------
+        #region Callbacks
 
         private void OpenPlotCallBack<T>(string dataFolderPath, string dataFileName) where T : ITermometer
         {
@@ -565,7 +532,7 @@ IsFileBrowsTreeOnForm = false;
                 });
 
                 if (typeof(T) == typeof(TermometerAgrolog))
-                    _agrologPlot = (_agrologPlot == null || _agrologPlot.Dispatcher.HasShutdownFinished) ?  func() : null;
+                    _agrologPlot = (_agrologPlot == null || _agrologPlot.Dispatcher.HasShutdownFinished) ? func() : null;
                 else if (typeof(T) == typeof(TermometerGrainbar))
                     _grainbarPlot = (_grainbarPlot == null || _grainbarPlot.Dispatcher.HasShutdownFinished) ? func() : null;
 
@@ -586,7 +553,7 @@ IsFileBrowsTreeOnForm = false;
                 }
                 throw new Exception("Abort thread Exception", ex);
             }
-            
+
         }
 
         private void ClosePlotCallback(object sender, EventArgs e, string plotName)
@@ -595,29 +562,96 @@ IsFileBrowsTreeOnForm = false;
             (sender as MainPlotWindow).Dispatcher.InvokeShutdown();
 
         }
-        private string GetProgramName<T>()
+
+        private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
         {
-            return typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+            var item = (TreeViewItem)e.OriginalSource;
+            FillTreeViewItemWithDirectories(ref item);
+            ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
+            scroller.ScrollToBottom();
+            item.BringIntoView();
         }
 
-        #region Callbacks
+        private void FileBrowsTreeView_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsFileBrowsTreeOnForm = false;
+        }
+
+        private void FileBrowsTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            int i = 0;
+            String path = "";
+            Stack<TreeViewItem> pathstack = Internal.GetNodes(e.NewValue as UIElement);
+            if (pathstack.Count == 0)
+                return;
+            foreach (TreeViewItem item in pathstack)
+            {
+                if (i > 0)
+                    path += item.Header.ToString().PathFormatter();
+                else
+                    path += item.Header.ToString();
+                i++;
+            }
+            var tag = (ProgramType)(sender as TreeView).Tag;
+            if (tag == ProgramType.Agrolog)
+                AgrologReportsPath = path;
+            else
+                GrainbarReportsPath = path;
+        }
+
+
+        void LogMaker_newMessage(string message, bool isError)
+        {
+            Run run = new Run(message + Environment.NewLine);
+            InlineUIContainer inlineUIContainer = new InlineUIContainer();
+
+            if (isError)
+                run.Foreground = Brushes.Red;
+            else
+                run.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#EFEFEF")); ;
+            LogTextBlock.Inlines.Add(run);
+        }
+
+        private async void FileBrowsButt_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsFileBrowsTreeOnForm == false)
+            {
+                var button = sender as Button;
+                FileBrowsTreeView.Tag = button.Tag;
+                FillTreeViewWithRootDrives(ref FileBrowsTreeView);
+                if (FileBrowsTreeView.Items.Count == 0)
+                    return;
+
+                if ((ProgramType)button.Tag == ProgramType.Agrolog)
+                    await FileBrowsTreeViewDirExpandAsync(AgrologReportsPath, FileBrowsTreeView.Items);
+                else
+                    await FileBrowsTreeViewDirExpandAsync(GrainbarReportsPath, FileBrowsTreeView.Items);
+
+                IsFileBrowsTreeOnForm = true;
+                FileBrowsTreeView.Focus();
+            }
+        }
+
 
         private void FileBrowsOkButt_Click(object sender, RoutedEventArgs e)
         {
-            if (FileBrowsTreeView.SelectedValuePath != null)
-            {
-                try //сохраним в реестре последний выбранный путь
-                {
-                    Internal.SaveRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, AgrologReportsPath);
-                    Internal.SaveRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, GrainbarReportsPath);
-                }
-                catch (InvalidOperationException ex)
-                {
-                    LogMaker.Log(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true);
-                    ExceptionHandler.Handle(ex, false);
-                }
+            //if (FileBrowsTreeView.SelectedValuePath != null)
+            //{
+            //    try //сохраним в реестре последний выбранный путь
+            //    {
+            //        Internal.SaveRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, AgrologReportsPath);
+            //        Internal.SaveRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, GrainbarReportsPath);
+            //    }
+            //    catch (InvalidOperationException ex)
+            //    {
+            //        LogMaker.Log(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true);
+            //        ExceptionHandler.Handle(ex, false);
+            //    }
 
-            }
+            //}
+            var programType = (ProgramType)FileBrowsTreeView.Tag;
+            SaveReportsPathToRegistry(programType);
+            StartDataCollect(programType);
             IsFileBrowsTreeOnForm = false;
         }
 
@@ -654,7 +688,7 @@ IsFileBrowsTreeOnForm = false;
 
         private void CloseButt_Click(object sender, RoutedEventArgs e)
         {
-
+            this.Hide();
         }
 
         private void Program_Closed(object sender, EventArgs e)
@@ -665,6 +699,18 @@ IsFileBrowsTreeOnForm = false;
         void MainWindow_onSettingsShow(object sender, RoutedEventArgs e)
         {
             IsSettingsGridOnForm = true;
+        }
+
+
+        private void MainWindow_AboutShow(object sender, RoutedEventArgs e)
+        {
+            IsAboutOnForm = true;
+        }
+
+
+        private void MainWindow_AboutHide(object sender, RoutedEventArgs e)
+        {
+            IsAboutOnForm = false;
         }
 
 
@@ -778,32 +824,17 @@ IsFileBrowsTreeOnForm = false;
 
         private void FilesPathTextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
-            try //сохраним в реестре последний выбранный путь
-            {
-                if ((sender as TextBox).Name == "AgrologFilesPathTextBox")
-                    Internal.SaveRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, AgrologReportsPath);
-                else
-                    Internal.SaveRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, GrainbarReportsPath);
-            }
-            catch (InvalidOperationException ex)
-            {
-                LogMaker.Log(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true);
-                ExceptionHandler.Handle(ex, false);
-            }
-            if ((sender as TextBox).Name == "AgrologFilesPathTextBox")
-            {
-                if (IsAgrologDataCollect)
-                {
-                    IsAgrologDataCollect = false;
-                    IsAgrologDataCollect = true;
-                }
-            }
+            var textBox = sender as TextBox;
+            var programType = textBox.Name == "AgrologFilesPathTextBox" ? ProgramType.Agrolog : ProgramType.Grainbar;
+            var propertyName = textBox.Name == "AgrologFilesPathTextBox" ? "AgrologReportsPath" : "GrainbarReportsPath";
+
+            if (textBox.Text == (string)this.GetPropertyValue(propertyName))
+                return;
             else
-                if (IsGrainbarDataCollect)
-            {
-                IsGrainbarDataCollect = false;
-                IsGrainbarDataCollect = true;
-            }
+                this.SetPropertyValue(propertyName, textBox.Text);
+
+            SaveReportsPathToRegistry(programType);
+            StartDataCollect(programType);
         }
 
         private async void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
@@ -828,10 +859,7 @@ IsFileBrowsTreeOnForm = false;
 
         private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private void OpenExcelButton_Click(object sender, RoutedEventArgs e)
@@ -863,12 +891,16 @@ IsFileBrowsTreeOnForm = false;
             button.IsEnabled = false;
             if (button == AgrologPlotButton)
                 await OpenPlotAsync<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE);
-            else if (button == GrainbarButton)
+            else if (button == GrainbarPlotButton)
                 await OpenPlotAsync<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE);
             button.IsEnabled = true;
 
         }
 
+        private void AboutOKButton_Click(object sender, RoutedEventArgs e)
+        {
+            RaiseEvent(new RoutedEventArgs(MainWindow.AboutHideEvent, this));
+        }
 
         #endregion
         //------------------------------------------------------------------------------
@@ -901,7 +933,25 @@ IsFileBrowsTreeOnForm = false;
             remove { RemoveHandler(CreateReportHideEvent, value); }
         }
 
+        public static readonly RoutedEvent AboutShowEvent = EventManager.RegisterRoutedEvent(
+        "AboutShow", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(MainWindow));
+
+        public event RoutedEventHandler AboutShow
+        {
+            add { AddHandler(AboutShowEvent, value); }
+            remove { RemoveHandler(AboutShowEvent, value); }
+        }
+
+        public static readonly RoutedEvent AboutHideEvent = EventManager.RegisterRoutedEvent(
+        "AboutHide", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(MainWindow));
+
+        public event RoutedEventHandler AboutHide
+        {
+            add { AddHandler(AboutHideEvent, value); }
+            remove { RemoveHandler(AboutHideEvent, value); }
+        }
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
         #endregion
 
 
@@ -910,6 +960,7 @@ IsFileBrowsTreeOnForm = false;
         public bool IsFileBrowsTreeOnForm = false;                 //на форме ли окно выбора файлов
         public bool IsSettingsGridOnForm = false;
         public bool IsCreateReportWindowShow = false;
+        public bool IsAboutOnForm = false;
 
         bool _isAgrologDataCollect = false;
         bool _isGrainbarDataCollect = false;
@@ -931,7 +982,7 @@ IsFileBrowsTreeOnForm = false;
         public string AgrologReportsPath
         {
             get { return _agrologReportsPath; }
-            set
+            private set
             {
                 if (string.IsNullOrEmpty(value))
                     _agrologReportsPath = Constants.AGROLOG_REPORTS_FOLDER_PATH;
@@ -943,7 +994,7 @@ IsFileBrowsTreeOnForm = false;
         public string GrainbarReportsPath
         {
             get { return _grainbarReportsPath; }
-            set
+            private set
             {
                 if (string.IsNullOrEmpty(value))
                     _grainbarReportsPath = Constants.AGROLOG_REPORTS_FOLDER_PATH;
@@ -983,6 +1034,31 @@ IsFileBrowsTreeOnForm = false;
 
         }
 
+        public string AssemblyVersion
+        {
+            get
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+                return fileVersionInfo.FileVersion;
+            }
+        }
+
+        public string ApplicationName
+        {
+            get
+            {
+                return Constants.APPLICATION_NAME;
+            }
+        }
+
+        public string Description
+        {
+            get
+            {
+                return Constants.APPLICATION_DESCRIPTION;
+            }
+        }
         #endregion
 
         private void TestButton_Click(object sender, RoutedEventArgs e)

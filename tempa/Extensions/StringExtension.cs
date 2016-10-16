@@ -52,6 +52,21 @@ namespace CoffeeJelly.tempa.Extensions
             return false;
         }
 
+        public static bool EqualsAny(this string str, StringComparison comparisonType, params string[] patterns)
+        {
+            foreach (string pattern in patterns)
+                if (str.Equals(pattern, comparisonType))
+                    return true;
+            return false;
+        }
+
+        public static bool EqualsAny<T>(this T subj, params T[] patterns)
+        {
+            foreach (var pattern in patterns)
+                if (subj.Equals(pattern))
+                    return true;
+            return false;
+        }
         /// <summary>
         /// 
         /// </summary>

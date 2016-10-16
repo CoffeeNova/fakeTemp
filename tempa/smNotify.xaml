@@ -8,6 +8,7 @@
         reuse the same context menu (which is a resource) again (which will have its DataContext set to the old TaskbarIcon)
   -->
     <ContextMenu x:Shared="false" x:Key="SysTrayMenu">
+        <MenuItem Header="О программе" Command="{Binding ShowAbout}" />
         <MenuItem Header="Настройки" Command="{Binding ShowWindowSettings}" />
         <Separator />
         <!--<MenuItem Header="График" Command="{Binding HideWindowCommand}" />-->
@@ -23,6 +24,7 @@
     <tb:TaskbarIcon x:Key="NotifyIcon"
                     IconSource="/Icons/belsolodLogo.ico"
                     ToolTipText="Двойной щелчок - развернуть окно, правый щелчок - меню"
+                    LeftClickCommand="{Binding ShowWindowCommand}"
                     DoubleClickCommand="{Binding ShowWindowCommand}"
                     ContextMenu="{StaticResource SysTrayMenu}">
 

@@ -67,7 +67,7 @@ namespace CoffeeJelly.tempa
                 TitlePosition = 0.1,
                 Minimum = InitialDate.ToOADate(),
                 Maximum = FinalDate.ToOADate(),
-                MinimumRange = FinalDate.ToOADate() - InitialDate.ToOADate(),
+                MinimumRange = MINIMUM_DATE_RANGE_DAYS,
             };
             dateAxis.AxisChanged += DateAxis_AxisChanged;
             Model.Axes.Add(dateAxis);
@@ -116,7 +116,6 @@ namespace CoffeeJelly.tempa
             InitialDate = DateTime.FromOADate(axis.ActualMinimum);
             FinalDate = DateTime.FromOADate(axis.ActualMaximum);
             ZoomValue = (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / (axis.ActualMaximum - axis.ActualMinimum);
-            _prevZoomValue = ZoomValue;
             ActualDate = FinalDate;
 
         }
@@ -151,17 +150,17 @@ namespace CoffeeJelly.tempa
                 List<Termometer> termometers = TermoData.FindAll(t => t.Cable == SelectedCable.Cable);
 
                 bool haveAnyValue = termometers.Any(t => t.Sensor[i].HasValue);
-                if(!haveAnyValue)
+                if (!haveAnyValue)
                 {
                     this.SetPropertyValue($"Sensor{i}HasValue", false);
                     continue;
                 }
 
-                termometers.ForEach(t => 
+                termometers.ForEach(t =>
                 {
                     if (t.Sensor[i].HasValue)
                         lineSerie.Points.Add(new DataPoint(DateTimeAxis.ToDouble(t.MeasurementDate), t.Sensor[i].Value));
-                        
+
                 });
                 this.SetPropertyValue($"Sensor{i}HasValue", true);
 
@@ -175,17 +174,18 @@ namespace CoffeeJelly.tempa
             DisplayDateStart = TermoData[1].MeasurementDate;
             DisplayDateEnd = TermoData.Last().MeasurementDate;
             FinalDate = DisplayDateEnd;
-            InitialDate = FinalDate.AddDays(-INITITAL_DATE_RANGE_DAYS) > DisplayDateStart ? FinalDate.AddDays(-INITITAL_DATE_RANGE_DAYS) : DisplayDateStart;
+            InitialDate = FinalDate.AddDays(-MINIMUM_DATE_RANGE_DAYS) > DisplayDateStart ? FinalDate.AddDays(-MINIMUM_DATE_RANGE_DAYS) : DisplayDateStart;
             ActualDate = FinalDate;
             MaxZoomValue = (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / (FinalDate.ToOADate() - InitialDate.ToOADate());
             ZoomValue = MaxZoomValue;
-            _prevZoomValue = _maxZoom;
         }
 
         private void InitData()
         {
-            Siloses = TermoData.Unique(t => t.Silo).OrderBy(t => t.Silo, new SemiNumericComparer()).ToList();
-
+            if (TermoData.First() is TermometerAgrolog)
+                Siloses = TermoData.Unique(t => t.Silo).OrderBy(t => t.Silo, new SemiNumericComparer()).ToList();
+            else if (TermoData.First() is TermometerGrainbar)
+                Siloses = TermoData.Unique(t => t.Silo).ToList();
         }
 
         private void NewSiloses()
@@ -230,19 +230,18 @@ namespace CoffeeJelly.tempa
             var F = FinalDate.ToOADate();
             var A = ActualDate.ToOADate();
             var K = ZoomValue;
-            var k = _prevZoomValue;
             var De = DisplayDateEnd.ToOADate();
             var Ds = DisplayDateStart.ToOADate();
 
             var initDate = A - (De - Ds) / (2 * K);
             var finalDate = A + (De - Ds) / (2 * K);
 
-            if(initDate < Ds)
+            if (initDate < Ds)
             {
                 finalDate += Ds - initDate;
                 initDate = Ds;
             }
-            if(finalDate > De)
+            if (finalDate > De)
             {
                 initDate -= finalDate - De;
                 finalDate = De;
@@ -309,7 +308,7 @@ namespace CoffeeJelly.tempa
             //    FinalDateChanged();
             //else if (e.PropertyName == nameof(ActualDate))
             //    ActualDateChanged();
-            else if( e.PropertyName.EqualsAny(nameof(Line1Enabled), nameof(Line2Enabled), nameof(Line3Enabled), 
+            else if (e.PropertyName.EqualsAny(nameof(Line1Enabled), nameof(Line2Enabled), nameof(Line3Enabled),
                                               nameof(Line4Enabled), nameof(Line5Enabled), nameof(Line6Enabled), nameof(Line7Enabled)))
                 CreateNewLineSeries();
 
@@ -334,7 +333,6 @@ namespace CoffeeJelly.tempa
         private double _zoom = 1;
         private double _maxZoom;
         private double _minZoom = 1;
-        private double _prevZoomValue;
         private bool _line1Enabled = true;
         private bool _line2Enabled = true;
         private bool _line3Enabled = true;
@@ -421,13 +419,13 @@ namespace CoffeeJelly.tempa
         public double ZoomValue
         {
             get { return _zoom; }
-            set { _zoom = value; NotifyPropertyChanged("ZoomInPercent"); NotifyPropertyChanged(); }
+            set { _zoom = value; NotifyPropertyChanged("ScaleInPercent"); NotifyPropertyChanged(); }
         }
 
         public double MaxZoomValue
         {
             get { return _maxZoom; }
-            private set { _maxZoom = value;  NotifyPropertyChanged(); }
+            private set { _maxZoom = value; NotifyPropertyChanged(); }
         }
 
         public double MinZoomValue
@@ -460,31 +458,31 @@ namespace CoffeeJelly.tempa
         public bool Line3Enabled
         {
             get { return _line3Enabled; }
-             set { _line3Enabled = value; NotifyPropertyChanged(); }
+            set { _line3Enabled = value; NotifyPropertyChanged(); }
         }
 
         public bool Line4Enabled
         {
             get { return _line4Enabled; }
-             set { _line4Enabled = value; NotifyPropertyChanged(); }
+            set { _line4Enabled = value; NotifyPropertyChanged(); }
         }
 
         public bool Line5Enabled
         {
             get { return _line5Enabled; }
-             set { _line5Enabled = value; NotifyPropertyChanged(); }
+            set { _line5Enabled = value; NotifyPropertyChanged(); }
         }
 
         public bool Line6Enabled
         {
             get { return _line6Enabled; }
-             set { _line6Enabled = value; NotifyPropertyChanged(); }
+            set { _line6Enabled = value; NotifyPropertyChanged(); }
         }
 
         public bool Line7Enabled
         {
             get { return _line7Enabled; }
-             set { _line7Enabled = value; NotifyPropertyChanged(); }
+            set { _line7Enabled = value; NotifyPropertyChanged(); }
         }
 
         public bool Sensor0HasValue
@@ -612,7 +610,7 @@ namespace CoffeeJelly.tempa
         }
         #endregion
 
-        private const int INITITAL_DATE_RANGE_DAYS = 7;
+        private const int MINIMUM_DATE_RANGE_DAYS = 7;
         private const int VERTICAL_AXE_ADDITIONAL_RANGE = 5;
     }
 }

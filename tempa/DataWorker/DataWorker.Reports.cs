@@ -22,7 +22,7 @@ namespace CoffeeJelly.tempa
             if (string.IsNullOrEmpty(text))
                 throw new ArgumentException("text should have not be empty or null value.");
 
-            List<String> lines = text.Split(new[] { "\r\n" }, StringSplitOptions.None).ToList();
+            List<String> lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None).ToList();
             if (typeof(T) == typeof(TermometerAgrolog))
                 return ParseAgrologReport(lines) as List<T>;
             return ParseGrainBarReport(lines) as List<T>;

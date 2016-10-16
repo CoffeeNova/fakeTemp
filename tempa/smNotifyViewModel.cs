@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 
 namespace CoffeeJelly.tempa
 {
@@ -24,9 +26,17 @@ namespace CoffeeJelly.tempa
                     CanExecuteFunc = () => Application.Current.MainWindow != null,
                     CommandAction = () =>
                     {
-                        //Application.Current.MainWindow = new Magnet();
-                        Application.Current.MainWindow.Visibility = Visibility.Visible;
-                        Application.Current.MainWindow.WindowState = WindowState.Normal;
+                        var mWindow = Application.Current.MainWindow;
+                        if (mWindow.Visibility != Visibility.Visible || mWindow.WindowState != WindowState.Normal)
+                        {
+                            mWindow.Visibility = Visibility.Visible;
+                            mWindow.WindowState = WindowState.Normal;
+                        }
+                        else if (mWindow.Visibility == Visibility.Visible || mWindow.WindowState == WindowState.Normal)
+                        {
+                            mWindow.Hide();
+
+                        }
                     }
                 };
             }
@@ -40,16 +50,36 @@ namespace CoffeeJelly.tempa
                     CanExecuteFunc = () => Application.Current.MainWindow != null,
                     CommandAction = () =>
                     {
-                        Application.Current.MainWindow.Visibility = Visibility.Visible;
-                        Application.Current.MainWindow.WindowState = WindowState.Normal;
-                        MainWindow _mainWindow = ((MainWindow)System.Windows.Application.Current.MainWindow);
-                        if (!_mainWindow.IsFileBrowsTreeOnForm && !_mainWindow.IsSettingsGridOnForm)
-                            _mainWindow.RaiseEvent(new RoutedEventArgs(MainWindow.SettingShowEvent, _mainWindow));
+                        var mWindow = Application.Current.MainWindow;
+                        mWindow.Visibility = Visibility.Visible;
+                        mWindow.WindowState = WindowState.Normal;
+                        MainWindow mainWindow = ((MainWindow)mWindow);
+                        if (!mainWindow.IsFileBrowsTreeOnForm && !mainWindow.IsSettingsGridOnForm && !mainWindow.IsAboutOnForm)
+                            mainWindow.RaiseEvent(new RoutedEventArgs(MainWindow.SettingShowEvent, mainWindow));
                     }
                 };
             }
         }
 
+        public ICommand ShowAbout
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CanExecuteFunc = () => Application.Current.MainWindow != null,
+                    CommandAction = () =>
+                    {
+                        var mWindow = Application.Current.MainWindow;
+                        mWindow.Visibility = Visibility.Visible;
+                        mWindow.WindowState = WindowState.Normal;
+                        MainWindow mainWindow = ((MainWindow)mWindow);
+                        if (!mainWindow.IsFileBrowsTreeOnForm && !mainWindow.IsSettingsGridOnForm && !mainWindow.IsAboutOnForm)
+                            mainWindow.RaiseEvent(new RoutedEventArgs(MainWindow.AboutShowEvent, mainWindow));
+                    }
+                };
+            }
+        }
         //       /// <summary>
         //       /// Shuts down the application.
         //       /// </summary>
@@ -57,7 +87,21 @@ namespace CoffeeJelly.tempa
         {
             get
             {
-                return new DelegateCommand { CommandAction = () => Application.Current.Shutdown() };
+                return new DelegateCommand
+                {
+                    CommandAction = () =>
+                    {
+                        var hwndSources = HwndSource.CurrentSources;
+
+                        foreach(PresentationSource hwnd in hwndSources)
+                        {
+                            var window = hwnd.RootVisual as Window;
+                            window?.Dispatcher.BeginInvoke(new Action(() => window.Close()));
+                        }
+
+                        Application.Current.Shutdown();
+                    }
+                };
             }
         }
 
