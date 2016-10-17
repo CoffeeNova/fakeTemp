@@ -40,15 +40,9 @@ namespace CoffeeJelly.tempa
 
         private void Settings()
         {
-            #region checked menu items
-            #endregion
-
             AgrologReportsPath = Internal.CheckRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.AGROLOG_REPORTS_FOLDER_PATH);
             GrainbarReportsPath = Internal.CheckRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.GRAINBAR_REPORTS_FOLDER_PATH);
-            IsAgrologDataCollect = Internal.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
-            IsGrainbarDataCollect = Internal.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
-            IsAutostart = Internal.CheckRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, true);
-            IsDataSubstitution = Internal.CheckRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, false);
+            
         }
 
         private void ManualInitializing()
@@ -62,212 +56,7 @@ namespace CoffeeJelly.tempa
             AboutHide += MainWindow_AboutHide;
             CreateReportShow += MainWindow_CreateReportShow;
             CreateReportHide += MainWindow_CreateReportHide;
-            CheckDataFiles();
 
-        }
-
-        private void CheckDataFiles()
-        {
-            try
-            {
-                var datFile = new FileInfo(Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter() + Constants.AGROLOG_DATA_FILE);
-                if (!datFile.Exists)
-                    CreateNewDataFile<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter(), Constants.AGROLOG_DATA_FILE);
-                datFile = new FileInfo(Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter() + Constants.GRAINBAR_DATA_FILE);
-                if (!datFile.Exists)
-                    CreateNewDataFile<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter(), Constants.GRAINBAR_DATA_FILE);
-            }
-            catch (Exception ex)
-            {
-                Task.Factory.StartNew((() =>
-                {
-                    MessageBox.Show(string.Format("Критическая ошибка. Приложение закроется через 5 сек."), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.None, MessageBoxOptions.ServiceNotification);
-                }));
-                Thread.Sleep(3000);
-                ExceptionHandler.Handle(ex, true);
-            }
-        }
-
-        private void CreateNewDataFile<T>(string dataFilePath, string dataFileName) where T : ITermometer
-        {
-            LogMaker.Log(string.Format("Файл данных {0} не обнаружен. Создаю новый.", dataFilePath.PathFormatter() + dataFileName), false);
-            string patternReportText = typeof(T) == typeof(TermometerAgrolog) ? Properties.Resources.AgrologPatternReport : Properties.Resources.GrainbarPatternReport;
-            List<T> patternReportList = DataWorker.ReadPatternReport<T>(patternReportText);
-            var task = WriteDataFile<T>(patternReportList, dataFilePath, dataFileName, false);
-            if (!task.Result)
-                throw new InvalidOperationException("Can't create .dat file. Operation of application work is impossible.");
-        }
-
-        private bool WatcherInit<T>(ref FileSystemWatcher watcher, string reportsPath, string fileExtension) where T : ITermometer
-        {
-            string programName = GetProgramName<T>();
-
-            try
-            {
-                watcher = new FileSystemWatcher(reportsPath);
-                WatcherSettings<T>(watcher, fileExtension);
-                LogMaker.Log(string.Format("Запуск мониторинга данных \"{0}\".", programName), false);
-                return true;
-            }
-            catch (ArgumentException ex)
-            {
-                LogMaker.Log(string.Format("Каталог \"{0}\" отчетов {1} не существует.", reportsPath, programName), true);
-                ExceptionHandler.Handle(ex, false);
-                return false;
-            }
-        }
-
-        private void WatcherSettings<T>(FileSystemWatcher watcher, string fileExtension) where T : ITermometer
-        {
-            watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-            watcher.Filter = "*." + fileExtension;
-            watcher.Created += (sender, e) => FileSystemWatcher_OnCreated<T>(sender, e);
-            watcher.InternalBufferSize = 81920;
-            watcher.EnableRaisingEvents = true;
-        }
-
-        private void DisposeWatcher<T>(FileSystemWatcher watcher)
-        {
-            if (watcher == null)
-                return;
-            string programName = GetProgramName<T>();
-            LogMaker.Log(string.Format("Данные {0} из каталога \"{1}\" не принимаются.", programName, watcher.Path), false);
-            watcher.EnableRaisingEvents = false;
-            watcher.Dispose();
-
-        }
-
-        private async Task CheckDirectoryForNewData<T>(string path, string fileExtension) where T : ITermometer
-        {
-            var dirInfo = new DirectoryInfo(path);
-            if (!dirInfo.Exists)
-            {
-                LogMaker.InvokedLog(string.Format("Каталог \"{0}\" не существует, или к нему нет доступа.", path), true, this.Dispatcher);
-                return;
-            }
-
-            FileInfo[] filesInfo = dirInfo.GetFiles("*." + fileExtension);
-            string programName = GetProgramName<T>();
-            string dataFileName = DataFileName<T>();
-            DataHandlingLock<T>.SyncLock.WaitOne();
-            LogMaker.InvokedLog(string.Format("Начинаю проверку каталога \"{0}\" на наличие новых данных {1}...", path, programName), false, this.Dispatcher);
-            var checkList = new List<bool>();
-            List<T> dataList = await ReadDataFile<T>(dataFileName);
-            if (dataList == null)
-                return;
-
-            foreach (var fileInfo in filesInfo)
-                checkList.Add(await NewDataVerification<T>(fileInfo.DirectoryName, fileInfo.Name, dataList));
-
-            if (checkList.Any(b => b == true))
-            {
-                LogMaker.InvokedLog(string.Format("Данные приняты. Сохраняю их в файле \"{0}\".", dataFileName), false, this.Dispatcher);
-                await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
-            }
-            else
-                LogMaker.InvokedLog(string.Format("Новых данных {0} не обнаружено.", programName), false, this.Dispatcher);
-            DataHandlingLock<T>.SyncLock.Release();
-        }
-
-        private async Task<bool> NewDataVerification<T>(string path, string fileName, List<T> dataList) where T : ITermometer
-        {
-            string programName = GetProgramName<T>();
-            LogMaker.InvokedLog(string.Format("Обнаружен новый файл \"{0}\" отчета {1}. Начинаем процесс парсинга...", programName, fileName), false, this.Dispatcher);
-
-            List<T> initReportList = await ReadNewReport<T>(path, fileName, programName);
-            if (initReportList == null)
-                return false;
-
-            bool operationValue = false;
-            DateTime initReportDate = initReportList.First().MeasurementDate;
-            bool initReportAlreadySaved = dataList.Any(t => t.MeasurementDate == initReportDate);
-            if (!initReportAlreadySaved)
-            {
-                dataList.AddRange(initReportList);
-                LogMaker.InvokedLog(string.Format("Данные из файла отчета \"{0}\" новые. Запишу в базу данных", fileName), false, this.Dispatcher);
-                operationValue = true;
-            }
-            else
-            {
-                string dataFileName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_DATA_FILE : Constants.GRAINBAR_DATA_FILE;
-                LogMaker.InvokedLog(string.Format("Данные из файла отчета \"{0}\" уже существуют в базе данных файла \"{1}\".", fileName, dataFileName), false, this.Dispatcher);
-                operationValue = false;
-            }
-            DeleteFile(path, fileName);
-            return operationValue;
-        }
-
-        private void DeleteFile(string path, string fileName)
-        {
-            LogMaker.InvokedLog(string.Format("Удаляю файл \"{0}\".", fileName), false, this.Dispatcher);
-            try
-            {
-                new FileInfo(path.PathFormatter() + fileName).Delete();
-            }
-            catch (Exception ex)
-            {
-                LogMaker.InvokedLog(string.Format("Ошибка удаления файла \"{0}\".", fileName), true, this.Dispatcher);
-                ExceptionHandler.Handle(ex, false);
-            }
-        }
-
-        private string DataFileName<T>() where T : ITermometer
-        {
-            return typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_DATA_FILE : Constants.GRAINBAR_DATA_FILE;
-        }
-
-        private async Task<List<T>> ReadNewReport<T>(string path, string fileName, string programName) where T : ITermometer
-        {
-            List<T> reportList;
-            try
-            {
-                reportList = await DataWorker.ReadReportAsync<T>(path, fileName);
-                if (reportList == null || reportList.Count == 0)
-                    throw new InvalidOperationException(string.Format("Parsing file \"{0}\" operation returns empty result.", fileName));
-                return reportList;
-            }
-            catch (Exception ex)
-            {
-                LogMaker.InvokedLog(string.Format("Парсинг данных файла \"{0}\" завершился неудачно. См. Error.log", fileName), true, this.Dispatcher);
-                ExceptionHandler.Handle(ex, false);
-            }
-            return null;
-        }
-
-        private async Task<List<T>> ReadDataFile<T>(string dataFileName) where T : ITermometer
-        {
-            List<T> dataFile;
-
-            try
-            {
-                dataFile = await DataWorker.ReadBinaryAsync<T>(Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName);
-                return dataFile;
-            }
-            catch (Exception ex)
-            {
-                LogMaker.Log(string.Format("Процесс извлечения данных из файла \"{0}\" завершился неудачно. См. Error.log", dataFileName), true);
-                ExceptionHandler.Handle(ex, false);
-            }
-
-            return null;
-        }
-
-        private async Task<bool> WriteDataFile<T>(List<T> dataList, string dataFilePath, string dataFileName, bool writeAsync) where T : ITermometer
-        {
-            try
-            {
-                var orderedDataList = dataList.OrderBy(t => t.MeasurementDate).ToList();
-                if (writeAsync)
-                    await DataWorker.WriteBinaryAsync<T>(dataFilePath, dataFileName, orderedDataList, false);
-                else DataWorker.WriteBinary<T>(dataFilePath, dataFileName, orderedDataList, false);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                LogMaker.Log(string.Format("Процесс записи данных в файл \"{0}\" завершился неудачно. См. Error.log", dataFileName), true);
-                ExceptionHandler.Handle(ex, false);
-                return false;
-            }
         }
 
         private void FillTreeViewWithRootDrives(ref TreeView treeview)
@@ -448,14 +237,14 @@ namespace CoffeeJelly.tempa
                 }
                 catch (PlotDataException ex)
                 {
-                    LogMaker.InvokedLog(string.Format("Нет данных для построения графика \"{0}\", cм. Error.log.", GetProgramName<T>()), true, this.Dispatcher);
+                    LogMaker.InvokedLog(string.Format("Нет данных для построения графика \"{0}\", cм. Error.log.", Internal.GetProgramName<T>()), true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     tcs.SetResult(null);
                     //tcs.SetException(ex);
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.InvokedLog(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", GetProgramName<T>()), true, this.Dispatcher);
+                    LogMaker.InvokedLog(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", Internal.GetProgramName<T>()), true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     tcs.SetResult(null);
                     //tcs.SetException(ex);
@@ -468,11 +257,6 @@ namespace CoffeeJelly.tempa
             return tcs.Task;
         }
 
-
-        private string GetProgramName<T>()
-        {
-            return typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
-        }
 
         private void SaveReportsPathToRegistry(ProgramType programType)
         {
@@ -493,17 +277,17 @@ namespace CoffeeJelly.tempa
         {
             if (programType == ProgramType.Agrolog)
             {
-                if (IsAgrologDataCollect)
+                if (agrologDataChb.IsChecked.Value)
                 {
-                    IsAgrologDataCollect = false;
-                    IsAgrologDataCollect = true;
+                    agrologDataChb.IsChecked = false;
+                    agrologDataChb.IsChecked = true;
                 }
             }
             else if (programType == ProgramType.Grainbar)
-                if (IsGrainbarDataCollect)
+                if (grainbarDataChb.IsChecked.Value)
                 {
-                    IsGrainbarDataCollect = false;
-                    IsGrainbarDataCollect = true;
+                    grainbarDataChb.IsChecked = false;
+                    grainbarDataChb.IsChecked = true;
                 }
         }
 
@@ -518,7 +302,7 @@ namespace CoffeeJelly.tempa
             {
                 LogMaker.InvokedLog(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false, this.Dispatcher);
                 reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
-                LogMaker.InvokedLog(string.Format("Построение графика \"{0}\"", GetProgramName<T>()), false, this.Dispatcher);
+                LogMaker.InvokedLog(string.Format("Построение графика \"{0}\"", Internal.GetProgramName<T>()), false, this.Dispatcher);
 
                 List<Termometer> data = new List<Termometer>();
                 data = reportData.Select(t => t as Termometer).ToList();
@@ -527,7 +311,7 @@ namespace CoffeeJelly.tempa
                 {
                     var p = new MainPlotWindow(data);
                     p.Show();
-                    p.Closed += (sender, e) => ClosePlotCallback(sender, e, GetProgramName<T>());
+                    p.Closed += (sender, e) => ClosePlotCallback(sender, e, Internal.GetProgramName<T>());
                     return p;
                 });
 
@@ -560,7 +344,6 @@ namespace CoffeeJelly.tempa
         {
             LogMaker.InvokedLog(string.Format("Закрытие окна графика \"{0}\"", plotName), false, this.Dispatcher);
             (sender as MainPlotWindow).Dispatcher.InvokeShutdown();
-
         }
 
         private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
@@ -635,20 +418,6 @@ namespace CoffeeJelly.tempa
 
         private void FileBrowsOkButt_Click(object sender, RoutedEventArgs e)
         {
-            //if (FileBrowsTreeView.SelectedValuePath != null)
-            //{
-            //    try //сохраним в реестре последний выбранный путь
-            //    {
-            //        Internal.SaveRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, AgrologReportsPath);
-            //        Internal.SaveRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, GrainbarReportsPath);
-            //    }
-            //    catch (InvalidOperationException ex)
-            //    {
-            //        LogMaker.Log(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true);
-            //        ExceptionHandler.Handle(ex, false);
-            //    }
-
-            //}
             var programType = (ProgramType)FileBrowsTreeView.Tag;
             SaveReportsPathToRegistry(programType);
             StartDataCollect(programType);
@@ -744,10 +513,10 @@ namespace CoffeeJelly.tempa
             {
                 try
                 {
-                    Internal.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsAgrologDataCollect);
-                    Internal.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsGrainbarDataCollect);
-                    Internal.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, IsAutostart);
-                    Internal.SaveRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, IsDataSubstitution);
+                    Internal.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, agrologDataChb.IsChecked.Value);
+                    Internal.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, grainbarDataChb.IsChecked.Value);
+                    Internal.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, autostartChb.IsChecked.Value);
+                    Internal.SaveRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, dataSubstitutionChb.IsChecked.Value);
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -760,31 +529,20 @@ namespace CoffeeJelly.tempa
             });
         }
 
-        private async void dataChb_Checked(object sender, RoutedEventArgs e)
-        {
-            var checkBox = sender as CheckBox;
-            checkBox.IsEnabled = false;
-            if (checkBox.Name == "agrologDataChb")
-            {
-                IsAgrologDataCollect = WatcherInit<TermometerAgrolog>(ref _agrologFolderWatcher, _agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION);
-                if (IsAgrologDataCollect)
-                    await CheckDirectoryForNewData<TermometerAgrolog>(_agrologReportsPath, Constants.AGROLOG_FILE_EXTENSION);
-            }
-            else
-            {
-                IsGrainbarDataCollect = WatcherInit<TermometerGrainbar>(ref _grainbarFolderWatcher, _grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION);
-                if (IsGrainbarDataCollect)
-                    await CheckDirectoryForNewData<TermometerGrainbar>(_grainbarReportsPath, Constants.GRAINBAR_FILE_EXTENSION);
-            }
-            checkBox.IsEnabled = true;
-        }
+        //private async void dataChb_Checked(object sender, RoutedEventArgs e)
+        //{
+        //    var checkBox = sender as CheckBox;
+        //    checkBox.IsEnabled = false;
+           
+        //    checkBox.IsEnabled = true;
+        //}
 
-        private void dataChb_Unchecked(object sender, RoutedEventArgs e)
-        {
-            if ((sender as CheckBox).Name == "agrologDataChb")
-                DisposeWatcher<TermometerAgrolog>(_agrologFolderWatcher);
-            else DisposeWatcher<TermometerGrainbar>(_grainbarFolderWatcher);
-        }
+        //private void dataChb_Unchecked(object sender, RoutedEventArgs e)
+        //{
+        //    if ((sender as CheckBox).Name == "agrologDataChb")
+        //        DisposeWatcher<TermometerAgrolog>(_agrologFolderWatcher);
+        //    else DisposeWatcher<TermometerGrainbar>(_grainbarFolderWatcher);
+        //}
 
 
         private void FakeTemp_Loaded(object sender, RoutedEventArgs e)
@@ -835,26 +593,6 @@ namespace CoffeeJelly.tempa
 
             SaveReportsPathToRegistry(programType);
             StartDataCollect(programType);
-        }
-
-        private async void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
-        {
-            string path = e.FullPath.Replace(e.Name, string.Empty);
-            string dataFileName = DataFileName<T>();
-            var disp = Dispatcher;
-            DataHandlingLock<T>.SyncLock.WaitOne();
-            bool dataIsNew = false;
-            List<T> dataList = await ReadDataFile<T>(dataFileName);
-            if (dataList == null)
-                return;
-
-            dataIsNew = await NewDataVerification<T>(path, e.Name, dataList);
-            if (dataIsNew)
-            {
-                LogMaker.InvokedLog(string.Format("Данные приняты. Сохраняем их в файле \"{0}\".", dataFileName), false, this.Dispatcher);
-                await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
-            }
-            DataHandlingLock<T>.SyncLock.Release();
         }
 
         private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
@@ -950,6 +688,7 @@ namespace CoffeeJelly.tempa
             add { AddHandler(AboutHideEvent, value); }
             remove { RemoveHandler(AboutHideEvent, value); }
         }
+
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 
         #endregion
@@ -962,15 +701,9 @@ namespace CoffeeJelly.tempa
         public bool IsCreateReportWindowShow = false;
         public bool IsAboutOnForm = false;
 
-        bool _isAgrologDataCollect = false;
-        bool _isGrainbarDataCollect = false;
-        bool _isAutostart = true;
-        bool _isDataSubstitution = false;
         string _agrologReportsPath;
         string _grainbarReportsPath;
         readonly Logger _log = LogManager.GetCurrentClassLogger();
-        FileSystemWatcher _agrologFolderWatcher;
-        FileSystemWatcher _grainbarFolderWatcher;
         readonly ManualResetEvent _createReportResetEvent = new ManualResetEvent(false);
         CancellationTokenSource _createReportCancellationToken;
         MainPlotWindow _agrologPlot;
@@ -1001,37 +734,6 @@ namespace CoffeeJelly.tempa
                 else _grainbarReportsPath = value;
                 NotifyPropertyChanged();
             }
-        }
-
-        public bool IsAgrologDataCollect
-        {
-            get { return _isAgrologDataCollect; }
-            set { _isAgrologDataCollect = value; NotifyPropertyChanged(); }
-        }
-
-        public bool IsGrainbarDataCollect
-        {
-            get { return _isGrainbarDataCollect; }
-            set { _isGrainbarDataCollect = value; NotifyPropertyChanged(); }
-        }
-
-        public bool IsAutostart
-        {
-            get { return _isAutostart; }
-            set { _isAutostart = value; NotifyPropertyChanged(); }
-        }
-
-        public bool IsDataSubstitution
-        {
-            get { return _isDataSubstitution; }
-            set { _isDataSubstitution = value; NotifyPropertyChanged(); }
-        }
-
-        private static class DataHandlingLock<T>
-        {
-            //public static readonly object SyncLock = new object();
-            public static Semaphore SyncLock = new Semaphore(1, 1);
-
         }
 
         public string AssemblyVersion

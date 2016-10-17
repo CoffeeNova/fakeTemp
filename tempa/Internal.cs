@@ -378,6 +378,13 @@ namespace CoffeeJelly.tempa
             return true;
         }
 
+
+        internal static string GetProgramName<T>()
+        {
+            return typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+        }
+
+
         internal delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]

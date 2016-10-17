@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CoffeeJelly.tempa.Extensions;
+using CoffeeJelly.tempa.Exceptions;
+using System.Reflection;
 
 namespace CoffeeJelly.tempa
 {
@@ -39,7 +41,29 @@ namespace CoffeeJelly.tempa
             Sensor = sensor;
         }
 
-       // public void EditSensorValues;
+        /// <summary>
+        /// Создает новый экземпляр класса типа <typeparamref name="T"/>
+        /// </summary>
+        /// <typeparam name="T">Тип создаваемого клаcса (должен наследовать интерфейс <see cref="ITermometer"/>).</typeparam>
+        /// <returns>Возвращает экземляр созданного класса типа <typeparamref name="T"/>.</returns>
+        /// <exception cref="MessengerBuildException">Исключение вызванное ошибкой создания экземпляра класса. Подробности во внутреннем исключении.</exception>
+        public static T Create<T>(DateTime measurementDate, string silo, string cable, float?[] sensor) where T : ITermometer
+        {
+            System.Threading.Monitor.Enter(_locker);
+            try
+            {
+                var newMessenger = (T)Activator.CreateInstance(typeof(T), measurementDate, silo, cable, sensor);
+                return newMessenger;
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw new TermometerBuildException("Cannot build a termometr", ex);
+            }
+            finally
+            {
+                System.Threading.Monitor.Exit(_locker);
+            }
+        }
 
         public DateTime MeasurementDate { get; private set; }
         public string Silo { get; private set; }
@@ -47,6 +71,8 @@ namespace CoffeeJelly.tempa
         public float?[] Sensor { get; private set; }
 
         public abstract int SensorsCount { get; }
+
+        private static readonly object _locker = new object();
     }
 
     public interface ITermometer

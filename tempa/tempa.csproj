@@ -141,6 +141,7 @@
     <Compile Include="GlobalConstants.cs" />
     <Compile Include="Internal.cs" />
     <Compile Include="LogMaker.cs" />
+    <Compile Include="NewDataWatcherWindow.cs" />
     <Compile Include="Plot.xaml.cs">
       <DependentUpon>Plot.xaml</DependentUpon>
     </Compile>

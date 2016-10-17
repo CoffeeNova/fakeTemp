@@ -39,6 +39,7 @@ namespace CoffeeJelly.tempa
         public const string GRAINBAR_MANIFEST_RESOURSE = "GrainbarPatternReport";
         //internal const string EXCEL_TEMPLATE_REPORT_NAME = "tempa.other_files.reportTemplate.xlsm";
         public const string EXCEL_TEMPLATE_REPORT_TEMP_NAME = "reportTemplate.xlsm";
+        public const string EXCEL_TEMPLATE_FAKE_REPORT_TEMP_NAME = "fakeReportTemplate.xlsm";
 
         public static readonly string APPLICATION_DIRECTORY = System.IO.Directory.GetCurrentDirectory();
         public static readonly string AGROLOG_REPORTS_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + AGROLOG_FOLDER_NAME;

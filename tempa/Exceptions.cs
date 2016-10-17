@@ -25,4 +25,11 @@ namespace CoffeeJelly.tempa.Exceptions
 
         public PlotDataException(string message, Exception innerException) : base(message, innerException) { }
     }
+
+    public class TermometerBuildException : Exception
+    {
+        public TermometerBuildException(string message) : base(message) { }
+
+        public TermometerBuildException(string message, Exception innerException) : base(message, innerException) { }
+    }
 }
