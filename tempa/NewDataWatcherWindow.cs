@@ -20,7 +20,6 @@ namespace CoffeeJelly.tempa
             PropertyChanged += NewDataWatcherWindow_PropertyChanged;
             Settings();
             CheckDataFiles();
-
         }
 
         private void Settings()
@@ -152,7 +151,7 @@ namespace CoffeeJelly.tempa
             var dirInfo = new DirectoryInfo(path);
             if (!dirInfo.Exists)
             {
-                LogMaker.InvokedLog(string.Format("Каталог \"{0}\" не существует, или к нему нет доступа.", path), true, this.Dispatcher);
+                LogMaker.Log(string.Format("Каталог \"{0}\" не существует, или к нему нет доступа.", path), true);
                 return;
             }
 
@@ -160,7 +159,7 @@ namespace CoffeeJelly.tempa
             string programName = Internal.GetProgramName<T>();
             string dataFileName = DataFileName<T>();
             DataHandlingLock<T>.SyncLock.WaitOne();
-            LogMaker.InvokedLog(string.Format("Начинаю проверку каталога \"{0}\" на наличие новых данных {1}...", path, programName), false, this.Dispatcher);
+            LogMaker.Log(string.Format("Начинаю проверку каталога \"{0}\" на наличие новых данных {1}...", path, programName), false);
             var checkList = new List<bool>();
             List<T> dataList = await ReadDataFile<T>(dataFileName, true);
             if (dataList == null)
@@ -171,18 +170,18 @@ namespace CoffeeJelly.tempa
 
             if (checkList.Any(b => b == true))
             {
-                LogMaker.InvokedLog(string.Format("Данные приняты. Сохраняю их в файле \"{0}\".", dataFileName), false, this.Dispatcher);
+                LogMaker.Log(string.Format("Данные приняты. Сохраняю их в файле \"{0}\".", dataFileName), false);
                 await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
             }
             else
-                LogMaker.InvokedLog(string.Format("Новых данных {0} не обнаружено.", programName), false, this.Dispatcher);
+                LogMaker.Log(string.Format("Новых данных {0} не обнаружено.", programName), false);
             DataHandlingLock<T>.SyncLock.Release();
         }
 
         private async Task<bool> NewDataVerification<T>(string path, string fileName, List<T> dataList, bool isAsync) where T : ITermometer
         {
             string programName = Internal.GetProgramName<T>();
-            LogMaker.InvokedLog(string.Format("Обнаружен новый файл \"{0}\" отчета {1}. Начинаем процесс парсинга...", programName, fileName), false, this.Dispatcher);
+            LogMaker.Log(string.Format("Обнаружен новый файл \"{0}\" отчета {1}. Начинаем процесс парсинга...", programName, fileName), false);
             List<T> initReportList;
             initReportList = await ReadNewReport<T>(path, fileName, programName, isAsync);
 
@@ -195,13 +194,13 @@ namespace CoffeeJelly.tempa
             if (!initReportAlreadySaved)
             {
                 dataList.AddRange(initReportList);
-                LogMaker.InvokedLog(string.Format("Данные из файла отчета \"{0}\" новые. Запишу в базу данных", fileName), false, this.Dispatcher);
+                LogMaker.Log(string.Format("Данные из файла отчета \"{0}\" новые. Запишу в базу данных", fileName), false);
                 operationValue = true;
             }
             else
             {
                 string dataFileName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_DATA_FILE : Constants.GRAINBAR_DATA_FILE;
-                LogMaker.InvokedLog(string.Format("Данные из файла отчета \"{0}\" уже существуют в базе данных файла \"{1}\".", fileName, dataFileName), false, this.Dispatcher);
+                LogMaker.Log(string.Format("Данные из файла отчета \"{0}\" уже существуют в базе данных файла \"{1}\".", fileName, dataFileName), false);
                 operationValue = false;
             }
             DeleteFile(path, fileName);
@@ -224,7 +223,7 @@ namespace CoffeeJelly.tempa
             }
             catch (Exception ex)
             {
-                LogMaker.InvokedLog(string.Format("Парсинг данных файла \"{0}\" завершился неудачно. См. Error.log", fileName), true, this.Dispatcher);
+                LogMaker.Log(string.Format("Парсинг данных файла \"{0}\" завершился неудачно. См. Error.log", fileName), true);
                 ExceptionHandler.Handle(ex, false);
             }
             return null;
@@ -232,14 +231,14 @@ namespace CoffeeJelly.tempa
 
         private void DeleteFile(string path, string fileName)
         {
-            LogMaker.InvokedLog(string.Format("Удаляю файл \"{0}\".", fileName), false, this.Dispatcher);
+            LogMaker.Log(string.Format("Удаляю файл \"{0}\".", fileName), false);
             try
             {
                 new FileInfo(path.PathFormatter() + fileName).Delete();
             }
             catch (Exception ex)
             {
-                LogMaker.InvokedLog(string.Format("Ошибка удаления файла \"{0}\".", fileName), true, this.Dispatcher);
+                LogMaker.Log(string.Format("Ошибка удаления файла \"{0}\".", fileName), true);
                 ExceptionHandler.Handle(ex, false);
             }
         }
@@ -298,7 +297,7 @@ namespace CoffeeJelly.tempa
 
             if (dataIsNew)
             {
-                LogMaker.InvokedLog(string.Format("Данные приняты. Сохраняем их в файле \"{0}\".", dataFileName), false, this.Dispatcher);
+                LogMaker.Log(string.Format("Данные приняты. Сохраняем их в файле \"{0}\".", dataFileName), false);
                 await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
             }
 
@@ -307,7 +306,7 @@ namespace CoffeeJelly.tempa
 
         private void Watcher_Error(object sender, ErrorEventArgs e)
         {
-            LogMaker.InvokedLog("Слишком много файлов за один раз. Буфер увеличен в 2 раза. Удалите файлы из каталога и попробуйте еще раз.", true, this.Dispatcher);
+            LogMaker.Log("Слишком много файлов за один раз. Буфер увеличен в 2 раза. Удалите файлы из каталога и попробуйте еще раз.", true);
             (sender as FileSystemWatcher).InternalBufferSize = (sender as FileSystemWatcher).InternalBufferSize * 2;
         }
 

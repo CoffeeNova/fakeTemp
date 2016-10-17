@@ -19,7 +19,6 @@ namespace CoffeeJelly.tempa
         public PlotViewModel()
         {
             PropertyChanged += PlotViewModel_PropertyChanged;
-
         }
 
         private void NewData()

@@ -35,14 +35,13 @@ namespace CoffeeJelly.tempa
             DwmDropShadow.DropShadowToWindow(this);
             ManualInitializing();
             Settings();
-            _log.Info(string.Format("{0} is started successfully.", Constants.APPLICATION_NAME));
         }
 
         private void Settings()
         {
             AgrologReportsPath = Internal.CheckRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.AGROLOG_REPORTS_FOLDER_PATH);
             GrainbarReportsPath = Internal.CheckRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.GRAINBAR_REPORTS_FOLDER_PATH);
-            
+
         }
 
         private void ManualInitializing()
@@ -227,7 +226,7 @@ namespace CoffeeJelly.tempa
         private Task OpenPlotAsync<T>(string dataFolderPath, string dataFileName) where T : ITermometer
         {
             var tcs = new TaskCompletionSource<object>();
-            var newWindowThread = new Thread(new ThreadStart(() =>
+            var plotThread = new Thread(new ThreadStart(() =>
             {
                 try
                 {
@@ -251,9 +250,11 @@ namespace CoffeeJelly.tempa
                 }
             }));
 
-            newWindowThread.SetApartmentState(ApartmentState.STA);
-            newWindowThread.IsBackground = true;
-            newWindowThread.Start();
+            plotThread.SetApartmentState(ApartmentState.STA);
+            plotThread.IsBackground = true;
+            plotThread.Name = "Plot Thread";
+            plotThread.Start();
+            //Thread.Sleep(30000);
             return tcs.Task;
         }
 
@@ -301,7 +302,7 @@ namespace CoffeeJelly.tempa
             try
             {
                 LogMaker.InvokedLog(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false, this.Dispatcher);
-                reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
+                 reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
                 LogMaker.InvokedLog(string.Format("Построение графика \"{0}\"", Internal.GetProgramName<T>()), false, this.Dispatcher);
 
                 List<Termometer> data = new List<Termometer>();
@@ -311,7 +312,7 @@ namespace CoffeeJelly.tempa
                 {
                     var p = new MainPlotWindow(data);
                     p.Show();
-                    p.Closed += (sender, e) => ClosePlotCallback(sender, e, Internal.GetProgramName<T>());
+                    p.Closed += (sender, e) => ClosePlotCallback(sender, e, Internal.GetProgramName<T>(), ref p);
                     return p;
                 });
 
@@ -340,10 +341,11 @@ namespace CoffeeJelly.tempa
 
         }
 
-        private void ClosePlotCallback(object sender, EventArgs e, string plotName)
+        private void ClosePlotCallback(object sender, EventArgs e, string plotName, ref MainPlotWindow plotWindow)
         {
             LogMaker.InvokedLog(string.Format("Закрытие окна графика \"{0}\"", plotName), false, this.Dispatcher);
-            (sender as MainPlotWindow).Dispatcher.InvokeShutdown();
+            plotWindow.Dispatcher.InvokeShutdown();
+            plotWindow = null;
         }
 
         private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
@@ -385,14 +387,17 @@ namespace CoffeeJelly.tempa
 
         void LogMaker_newMessage(string message, bool isError)
         {
-            Run run = new Run(message + Environment.NewLine);
-            InlineUIContainer inlineUIContainer = new InlineUIContainer();
-
-            if (isError)
-                run.Foreground = Brushes.Red;
-            else
-                run.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#EFEFEF")); ;
-            LogTextBlock.Inlines.Add(run);
+            //InlineUIContainer inlineUIContainer = new InlineUIContainer();
+            this.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Run run = new Run(message + Environment.NewLine);
+                if (isError)
+                    run.Foreground = Brushes.Red;
+                else
+                    run.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#EFEFEF"));
+                LogTextBlock.Inlines.Add(run);
+            }));
+            
         }
 
         private async void FileBrowsButt_Click(object sender, RoutedEventArgs e)
@@ -457,7 +462,7 @@ namespace CoffeeJelly.tempa
 
         private void CloseButt_Click(object sender, RoutedEventArgs e)
         {
-            this.Hide();
+            this.Close();
         }
 
         private void Program_Closed(object sender, EventArgs e)
@@ -533,7 +538,7 @@ namespace CoffeeJelly.tempa
         //{
         //    var checkBox = sender as CheckBox;
         //    checkBox.IsEnabled = false;
-           
+
         //    checkBox.IsEnabled = true;
         //}
 
@@ -627,17 +632,23 @@ namespace CoffeeJelly.tempa
         {
             var button = sender as Button;
             button.IsEnabled = false;
+
             if (button == AgrologPlotButton)
                 await OpenPlotAsync<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE);
             else if (button == GrainbarPlotButton)
                 await OpenPlotAsync<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE);
             button.IsEnabled = true;
-
         }
 
         private void AboutOKButton_Click(object sender, RoutedEventArgs e)
         {
             RaiseEvent(new RoutedEventArgs(MainWindow.AboutHideEvent, this));
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            LogMaker.newMessage -= LogMaker_newMessage;
+            base.OnClosing(e);
         }
 
         #endregion

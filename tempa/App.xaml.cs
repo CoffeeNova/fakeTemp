@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Hardcodet.Wpf.TaskbarNotification;
 using NLog;
+using CoffeeJelly.tempa.Extensions;
 
 namespace CoffeeJelly.tempa
 {
@@ -25,10 +26,7 @@ namespace CoffeeJelly.tempa
         private void Application_startup(object sender, StartupEventArgs e)
         {
             startupArguments = e.Args;
-        }
 
-        protected override void OnStartup(StartupEventArgs e)
-        {
 #if DEBUG
             _log.Debug("START DEBUGGING!");
 #endif
@@ -49,8 +47,25 @@ namespace CoffeeJelly.tempa
                 new RoutedEventHandler(SelectAllText));
             EventManager.RegisterClassHandler(typeof(TextBox), TextBox.MouseDoubleClickEvent,
                 new RoutedEventHandler(SelectAllText));
-            base.OnStartup(e); 
+
+            try
+            {
+                var win = new NewDataWatcherWindow();
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, true);
+            }
+
+            _log.Info(string.Format("{0} is started successfully.", Constants.APPLICATION_NAME));
         }
+
+        //protected override void OnStartup(StartupEventArgs e)
+        //{
+
+
+        //    //base.OnStartup(e); 
+        //}
 
         void SelectivelyIgnoreMouseButton(object sender, MouseButtonEventArgs e)
         {

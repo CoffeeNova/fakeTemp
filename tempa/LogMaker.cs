@@ -14,7 +14,7 @@ namespace CoffeeJelly.tempa
             DateTime currentDate = DateTime.Now;
             FormattedMessage = string.Format("{0}   {1}", currentDate.ToShortTimeString(), message);
             _log.Info(message);
-            newMessage(FormattedMessage, isError);
+            newMessage?.Invoke(FormattedMessage, isError);
         }
 
         public static void InvokedLog(string message, bool isError, Dispatcher dispatcher)
