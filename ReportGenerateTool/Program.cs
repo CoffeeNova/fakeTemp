@@ -69,45 +69,59 @@ namespace CoffeeJelly.ReportGenerateTool
                 return DateTime.FromOADate(randomOADate);
             });
 
-            string resourceName = reportType == ProgramType.Agrolog ? AGROLOG_EXAMPLE_RESOURCE_NAME : GRAINBAR_EXAMPLE_RESOURCE_NAME;
             string outputFileExtension = reportType == ProgramType.Agrolog ? AGROLOG_FAKE_REPORT_EXTENSION_NAME : GRAINBAR_FAKE_REPORT_EXTENSION_NAME;
             string datePattern = reportType == ProgramType.Agrolog ? AGROLOG_DATE_PATTERN : GRAINBAR_DATE_PATTERN;
+
+
+            string content = RetrieveContentFromResource(reportType);
+
+            
+        }
+
+        private static 
+
+        private static void GenerateReports(ushort reportsCount, string defaultContent, string outputPath)
+        {
+            for (int i = 1; i <= reportsCount; i++)
+            {
+                DateTime reportDate;
+                string outputFullPath = outputPath.PathFormatter();
+                string newContent = string.Empty;
+
+                reportDate = !startDate.HasValue ? dateFunc1(i) : dateFunc2(i);
+                newContent = content.ReplaceFirst(REPLACE_DATE_PATTERN, reportDate.ToString(datePattern));
+                outputFullPath += $"{reportDate.ToString("dd-MM-yyyy")}_report.{outputFileExtension}";
+                var fInfo = new FileInfo(outputFullPath);
+
+                if (fInfo.Exists)
+                {
+                    i--;
+                    continue;
+                }
+
+                using (Stream output = File.Create(outputFullPath))
+                {
+                    using (var outputWriter = new StreamWriter(output))
+                    {
+                        outputWriter.Write(newContent);
+                    }
+                }
+            }
+        }
+
+        private static string RetrieveContentFromResource(ProgramType reportType)
+        {
+            string resourceName = reportType == ProgramType.Agrolog ? AGROLOG_EXAMPLE_RESOURCE_NAME : GRAINBAR_EXAMPLE_RESOURCE_NAME;
+            string content = string.Empty;
 
             using (Stream resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
             {
                 using (var resourceReader = new StreamReader(resourceStream))
                 {
-                    string content = resourceReader.ReadToEnd();
-
-                    for (int i = 1; i <= reportsCount; i++)
-                    {
-                        DateTime reportDate;
-                        string outputFullPath = outputPath.PathFormatter();
-                        string newContent = string.Empty;
-
-                        reportDate = !startDate.HasValue ? dateFunc1(i) : dateFunc2(i);
-                        newContent = content.ReplaceFirst(REPLACE_DATE_PATTERN, reportDate.ToString(datePattern));
-                        outputFullPath += $"{reportDate.ToString("dd-MM-yyyy")}_report.{outputFileExtension}";
-                        var fInfo = new FileInfo(outputFullPath);
-
-                        if (fInfo.Exists)
-                        {
-                            i--;
-                            continue;
-                        }
-
-                        using (Stream output = File.Create(outputFullPath))
-                        {
-                            using (var outputWriter = new StreamWriter(output))
-                            {
-                                outputWriter.Write(newContent);
-                            }
-                        }
-
-                    }
+                    content = resourceReader.ReadToEnd();
                 }
-
             }
+            return content;
         }
 
         private static void CopyResource(string resourceName, string outputFileFullPath)

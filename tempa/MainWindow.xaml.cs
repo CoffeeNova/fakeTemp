@@ -20,6 +20,7 @@ using System.Threading;
 using System.ComponentModel;
 using CoffeeJelly.tempa.Exceptions;
 using CoffeeJelly.tempa.Extensions;
+using System.Collections.ObjectModel;
 
 namespace CoffeeJelly.tempa
 {
@@ -35,18 +36,24 @@ namespace CoffeeJelly.tempa
             DwmDropShadow.DropShadowToWindow(this);
             ManualInitializing();
             Settings();
+
+            LogMaker.Log("Графичейский интерфейс запущен!", false);
+            LogMaker.Log($"Мониторинг данных Agrolog {(IsAgrologDataCollect == true ? "активен" : "не активен")}", false);
+            LogMaker.Log($"Мониторинг данных Грейнбар {(IsGrainbarDataCollect == true ? "активен" : "не активен")}", false);
         }
 
         private void Settings()
         {
             AgrologReportsPath = Internal.CheckRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.AGROLOG_REPORTS_FOLDER_PATH);
             GrainbarReportsPath = Internal.CheckRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.GRAINBAR_REPORTS_FOLDER_PATH);
-
+            IsAgrologDataCollect = Internal.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            IsGrainbarDataCollect = Internal.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            IsAutostart = Internal.CheckRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, true);
+            IsDataSubstitution = Internal.CheckRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, false);
         }
 
         private void ManualInitializing()
         {
-            LogTextBlock.Inlines.Clear();
             LogMaker.newMessage += LogMaker_newMessage;
             AgrologFileBrowsButt.Tag = ProgramType.Agrolog;
             GrainbarFileBrowsButt.Tag = ProgramType.Grainbar;
@@ -55,7 +62,7 @@ namespace CoffeeJelly.tempa
             AboutHide += MainWindow_AboutHide;
             CreateReportShow += MainWindow_CreateReportShow;
             CreateReportHide += MainWindow_CreateReportHide;
-
+            PropertyChanged += MainWindow_PropertyChanged;
         }
 
         private void FillTreeViewWithRootDrives(ref TreeView treeview)
@@ -302,7 +309,7 @@ namespace CoffeeJelly.tempa
             try
             {
                 LogMaker.InvokedLog(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false, this.Dispatcher);
-                 reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
+                reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
                 LogMaker.InvokedLog(string.Format("Построение графика \"{0}\"", Internal.GetProgramName<T>()), false, this.Dispatcher);
 
                 List<Termometer> data = new List<Termometer>();
@@ -387,7 +394,6 @@ namespace CoffeeJelly.tempa
 
         void LogMaker_newMessage(string message, bool isError)
         {
-            //InlineUIContainer inlineUIContainer = new InlineUIContainer();
             this.Dispatcher.BeginInvoke(new Action(() =>
             {
                 Run run = new Run(message + Environment.NewLine);
@@ -395,9 +401,10 @@ namespace CoffeeJelly.tempa
                     run.Foreground = Brushes.Red;
                 else
                     run.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#EFEFEF"));
+
                 LogTextBlock.Inlines.Add(run);
             }));
-            
+
         }
 
         private async void FileBrowsButt_Click(object sender, RoutedEventArgs e)
@@ -419,7 +426,6 @@ namespace CoffeeJelly.tempa
                 FileBrowsTreeView.Focus();
             }
         }
-
 
         private void FileBrowsOkButt_Click(object sender, RoutedEventArgs e)
         {
@@ -518,10 +524,16 @@ namespace CoffeeJelly.tempa
             {
                 try
                 {
-                    Internal.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, agrologDataChb.IsChecked.Value);
-                    Internal.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, grainbarDataChb.IsChecked.Value);
-                    Internal.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, autostartChb.IsChecked.Value);
-                    Internal.SaveRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, dataSubstitutionChb.IsChecked.Value);
+                    //var func = new Func<CheckBox, bool>(ch =>
+                    //{
+                    //    return (bool)this.Dispatcher.Invoke(new Func<bool>(() => (ch as CheckBox).IsChecked.Value));
+                    //}
+                    //);
+
+                    Internal.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsAgrologDataCollect);
+                    Internal.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsGrainbarDataCollect);
+                    Internal.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, IsAutostart);
+                    Internal.SaveRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, IsDataSubstitution);
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -533,22 +545,6 @@ namespace CoffeeJelly.tempa
                 IsSettingsGridOnForm = false;
             });
         }
-
-        //private async void dataChb_Checked(object sender, RoutedEventArgs e)
-        //{
-        //    var checkBox = sender as CheckBox;
-        //    checkBox.IsEnabled = false;
-
-        //    checkBox.IsEnabled = true;
-        //}
-
-        //private void dataChb_Unchecked(object sender, RoutedEventArgs e)
-        //{
-        //    if ((sender as CheckBox).Name == "agrologDataChb")
-        //        DisposeWatcher<TermometerAgrolog>(_agrologFolderWatcher);
-        //    else DisposeWatcher<TermometerGrainbar>(_grainbarFolderWatcher);
-        //}
-
 
         private void FakeTemp_Loaded(object sender, RoutedEventArgs e)
         {
@@ -627,7 +623,6 @@ namespace CoffeeJelly.tempa
             }
         }
 
-
         private async void PlotButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
@@ -650,6 +645,19 @@ namespace CoffeeJelly.tempa
             LogMaker.newMessage -= LogMaker_newMessage;
             base.OnClosing(e);
         }
+
+        private void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName.EqualsAny(nameof(IsAgrologDataCollect), nameof(IsGrainbarDataCollect)))
+            {
+                string propertyName = e.PropertyName;
+                bool value = (bool)sender.GetPropertyValue(e.PropertyName);
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                (Application.Current.MainWindow as NewDataWatcherWindow).WatcherInitChange(propertyName, value)));
+            }
+
+        }
+
 
         #endregion
         //------------------------------------------------------------------------------
@@ -719,6 +727,13 @@ namespace CoffeeJelly.tempa
         CancellationTokenSource _createReportCancellationToken;
         MainPlotWindow _agrologPlot;
         MainPlotWindow _grainbarPlot;
+
+        bool _isAgrologDataCollect;
+        bool _isGrainbarDataCollect;
+        bool _isAutostart = true;
+        bool _isDataSubstitution = false;
+
+
         #endregion
 
         #region properties
@@ -744,6 +759,59 @@ namespace CoffeeJelly.tempa
                     _grainbarReportsPath = Constants.AGROLOG_REPORTS_FOLDER_PATH;
                 else _grainbarReportsPath = value;
                 NotifyPropertyChanged();
+            }
+        }
+
+        public bool IsAgrologDataCollect
+        {
+            get { return _isAgrologDataCollect; }
+            set
+            {
+                if (_isAgrologDataCollect != value)
+                {
+                    _isAgrologDataCollect = value;
+                    NotifyPropertyChanged();
+                }
+            }
+
+        }
+
+        public bool IsGrainbarDataCollect
+        {
+            get { return _isGrainbarDataCollect; }
+            set
+            {
+                if (_isGrainbarDataCollect != value)
+                {
+                    _isGrainbarDataCollect = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public bool IsAutostart
+        {
+            get { return _isAutostart; }
+            set
+            {
+                if (_isAutostart != value)
+                {
+                    _isAutostart = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public bool IsDataSubstitution
+        {
+            get { return _isDataSubstitution; }
+            set
+            {
+                if (_isDataSubstitution != value)
+                {
+                    _isDataSubstitution = value;
+                    NotifyPropertyChanged();
+                }
             }
         }
 

@@ -7,6 +7,7 @@ using CoffeeJelly.tempa.Extensions;
 using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace CoffeeJelly.tempa
 {
@@ -15,7 +16,7 @@ namespace CoffeeJelly.tempa
     /// view model is assigned to the NotifyIcon in XAML. Alternatively, the startup routing
     /// in App.xaml.cs could have created this view model, and assigned it to the NotifyIcon.
     /// </summary>
-    class smNotifyViewModel
+    class smNotifyViewModel : INotifyPropertyChanged
     {
 
         ///// <summary>
@@ -30,24 +31,26 @@ namespace CoffeeJelly.tempa
                     CanExecuteFunc = () => Application.Current.MainWindow != null,
                     CommandAction = () =>
                     {
-
-                        if (_uiWindow == null || _uiWindow.Dispatcher.HasShutdownFinished)
+                        lock (_locker)
                         {
-                            var hwndSources = HwndSource.CurrentSources;
-                            foreach (PresentationSource hwnd in hwndSources)
+                            if (_uiWindow == null || _uiWindow.Dispatcher.HasShutdownFinished)
                             {
-                                var window = hwnd.RootVisual as Window;
-                                if (window.GetType() == typeof(MainPlotWindow))
-                                    return;
+                                var hwndSources = HwndSource.CurrentSources;
+                                foreach (PresentationSource hwnd in hwndSources)
+                                {
+                                    var window = hwnd.RootVisual as Window;
+                                    if (window.GetType() == typeof(MainPlotWindow))
+                                        return;
+                                }
+                                OpenUIAsync();
+
                             }
-                            OpenUIAsync();
+                            else if ((bool)_uiWindow.Dispatcher.Invoke(new Func<bool>(() => _uiWindow.WindowState == WindowState.Minimized)))
+                                _uiWindow.Dispatcher.Invoke(new Action(() => _uiWindow.WindowState = WindowState.Normal));
+                            else
+                                _uiWindow.Dispatcher.BeginInvoke(new Action(() => _uiWindow.Close()));
 
                         }
-                        else if ((bool)_uiWindow.Dispatcher.Invoke(new Func<bool>(() => _uiWindow.WindowState == WindowState.Minimized)))
-                            _uiWindow.Dispatcher.Invoke(new Action(() =>  _uiWindow.WindowState = WindowState.Normal));
-                        else
-                            _uiWindow.Dispatcher.BeginInvoke(new Action(() => _uiWindow.Close()));
-
                         //var mWindow = Application.Current.MainWindow;
                         //if (mWindow.Visibility != Visibility.Visible || mWindow.WindowState != WindowState.Normal)
                         //{
@@ -69,14 +72,16 @@ namespace CoffeeJelly.tempa
             {
                 return new DelegateCommand
                 {
+                    CanExecuteFunc = () => _uiWindow != null,
                     CommandAction = () =>
                     {
-                        var mWindow = Application.Current.MainWindow;
-                        mWindow.Visibility = Visibility.Visible;
-                        mWindow.WindowState = WindowState.Normal;
-                        MainWindow mainWindow = ((MainWindow)mWindow);
-                        if (!mainWindow.IsFileBrowsTreeOnForm && !mainWindow.IsSettingsGridOnForm && !mainWindow.IsAboutOnForm)
-                            mainWindow.RaiseEvent(new RoutedEventArgs(MainWindow.SettingShowEvent, mainWindow));
+                        _uiWindow.Dispatcher.Invoke(new Action(() =>
+                        {
+                            _uiWindow.Visibility = Visibility.Visible;
+                            _uiWindow.WindowState = WindowState.Normal;
+                            if (!_uiWindow.IsFileBrowsTreeOnForm && !_uiWindow.IsSettingsGridOnForm && !_uiWindow.IsAboutOnForm)
+                                _uiWindow.RaiseEvent(new RoutedEventArgs(MainWindow.SettingShowEvent, _uiWindow));
+                        }));
                     }
                 };
             }
@@ -88,15 +93,16 @@ namespace CoffeeJelly.tempa
             {
                 return new DelegateCommand
                 {
-                    CanExecuteFunc = () => Application.Current.MainWindow != null,
+                    CanExecuteFunc = () => _uiWindow != null,
                     CommandAction = () =>
                     {
-                        var mWindow = Application.Current.MainWindow;
-                        mWindow.Visibility = Visibility.Visible;
-                        mWindow.WindowState = WindowState.Normal;
-                        MainWindow mainWindow = ((MainWindow)mWindow);
-                        if (!mainWindow.IsFileBrowsTreeOnForm && !mainWindow.IsSettingsGridOnForm && !mainWindow.IsAboutOnForm)
-                            mainWindow.RaiseEvent(new RoutedEventArgs(MainWindow.AboutShowEvent, mainWindow));
+                        _uiWindow.Dispatcher.Invoke(new Action(() =>
+                        {
+                            _uiWindow.Visibility = Visibility.Visible;
+                        _uiWindow.WindowState = WindowState.Normal;
+                        if (!_uiWindow.IsFileBrowsTreeOnForm && !_uiWindow.IsSettingsGridOnForm && !_uiWindow.IsAboutOnForm)
+                            _uiWindow.RaiseEvent(new RoutedEventArgs(MainWindow.AboutShowEvent, _uiWindow));
+                        }));
                     }
                 };
             }
@@ -142,6 +148,7 @@ namespace CoffeeJelly.tempa
                     LogMaker.InvokedLog(($"Не удалось создать {nameof(MainWindow)}."), true, _uiWindow.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     _uiWindow = null;
+                    IsUIWindowExist = false;
                     tcs.SetResult(null);
                 }
             }));
@@ -161,14 +168,15 @@ namespace CoffeeJelly.tempa
             {
                 _uiWindow.Show();
                 _uiWindow.Closed += (sender, e) => CloseUICallback(sender, e);
+                IsUIWindowExist = true;
                 System.Windows.Threading.Dispatcher.Run();
-
             }
             catch (ThreadAbortException ex)
             {
                 _uiWindow.Close();
                 _uiWindow.Dispatcher.InvokeShutdown();
                 _uiWindow = null;
+                IsUIWindowExist = false;
                 throw new Exception("Abort thread Exception", ex);
             }
 
@@ -179,9 +187,30 @@ namespace CoffeeJelly.tempa
             LogMaker.InvokedLog(($"Закрытие графического окна."), false, _uiWindow.Dispatcher);
             _uiWindow.Dispatcher.InvokeShutdown();
             _uiWindow = null;
+            IsUIWindowExist = false;
+        }
+
+
+        private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public bool IsUIWindowExist
+        {
+            get { return _isUIWindowExist; }
+            set
+            {
+                _isUIWindowExist = value;
+                NotifyPropertyChanged();
+            }
         }
 
         public static MainWindow _uiWindow = null;
+        private static readonly object _locker = new object();
+        private bool _isUIWindowExist = false;
     }
 
 }

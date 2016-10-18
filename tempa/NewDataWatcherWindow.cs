@@ -13,21 +13,28 @@ using System.ComponentModel;
 
 namespace CoffeeJelly.tempa
 {
-    public class NewDataWatcherWindow : Window, INotifyPropertyChanged
+    public class NewDataWatcherWindow : Window
     {
         public NewDataWatcherWindow()
         {
-            PropertyChanged += NewDataWatcherWindow_PropertyChanged;
             Settings();
             CheckDataFiles();
         }
 
-        private void Settings()
+        private async void Settings()
         {
-            IsAgrologDataCollect = Internal.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
-            IsGrainbarDataCollect = Internal.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
-            IsAutostart = Internal.CheckRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, true);
-            IsDataSubstitution = Internal.CheckRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, false);
+            bool checkAgrolog = Internal.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            bool checkGrainbar = Internal.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            if(checkAgrolog)
+            {
+                WatcherInitChange("IsAgrologDataCollect", true);
+                await CheckDirectoryForNewData<TermometerAgrolog>(GetReportsPathFromReg(ProgramType.Agrolog), Constants.AGROLOG_FILE_EXTENSION);
+            }
+            if(checkGrainbar)
+            {
+                WatcherInitChange("IsGrainbarDataCollect", true);
+                await CheckDirectoryForNewData<TermometerGrainbar>(GetReportsPathFromReg(ProgramType.Grainbar), Constants.GRAINBAR_FILE_EXTENSION);
+            }
         }
 
         private void CheckDataFiles()
@@ -91,7 +98,7 @@ namespace CoffeeJelly.tempa
             watcher.Error += Watcher_Error;
         }
 
-        private void DisposeWatcher<T>(FileSystemWatcher watcher)
+        private void DisposeWatcher<T>(ref FileSystemWatcher watcher)
         {
             if (watcher == null)
                 return;
@@ -99,7 +106,7 @@ namespace CoffeeJelly.tempa
             LogMaker.Log(string.Format("Данные {0} из каталога \"{1}\" не принимаются.", programName, watcher.Path), false);
             watcher.EnableRaisingEvents = false;
             watcher.Dispose();
-
+            watcher = null;
         }
 
         private string DataFileName<T>() where T : ITermometer
@@ -243,32 +250,31 @@ namespace CoffeeJelly.tempa
             }
         }
 
-        private async void WatcherInitChange(string match)
+        public void WatcherInitChange(string propertyName, bool state)
         {
-            if (match == nameof(IsAgrologDataCollect))
+            if(propertyName == "IsAgrologDataCollect")
             {
-                if (IsAgrologDataCollect)
+                if (state && _agrologDataWatcher ==null)
                 {
+
                     bool result = WatcherInit<TermometerAgrolog>(ref _agrologDataWatcher, GetReportsPathFromReg(ProgramType.Agrolog), Constants.AGROLOG_FILE_EXTENSION);
                     if (!result)
                         return;
-                    await CheckDirectoryForNewData<TermometerAgrolog>(GetReportsPathFromReg(ProgramType.Agrolog), Constants.AGROLOG_FILE_EXTENSION);
                 }
-                else
-                    DisposeWatcher<TermometerAgrolog>(_agrologDataWatcher);
+                else if(!state && _agrologDataWatcher != null)
+                    DisposeWatcher<TermometerAgrolog>(ref _agrologDataWatcher);
 
             }
-            else if (match == nameof(IsGrainbarDataCollect))
+            else if(propertyName == "IsGrainbarDataCollect")
             {
-                if (IsGrainbarDataCollect)
+                if (state && _grainbarDataWatcher == null)
                 {
                     bool result = WatcherInit<TermometerGrainbar>(ref _grainbarDataWatcher, GetReportsPathFromReg(ProgramType.Grainbar), Constants.GRAINBAR_FILE_EXTENSION);
                     if (!result)
                         return;
-                    await CheckDirectoryForNewData<TermometerGrainbar>(GetReportsPathFromReg(ProgramType.Grainbar), Constants.GRAINBAR_FILE_EXTENSION);
                 }
-                else
-                    DisposeWatcher<TermometerGrainbar>(_grainbarDataWatcher);
+                else if(!state && _grainbarDataWatcher != null)
+                    DisposeWatcher<TermometerGrainbar>(ref _grainbarDataWatcher);
             }
         }
 
@@ -298,7 +304,7 @@ namespace CoffeeJelly.tempa
             if (dataIsNew)
             {
                 LogMaker.Log(string.Format("Данные приняты. Сохраняем их в файле \"{0}\".", dataFileName), false);
-                await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
+                var result = await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
             }
 
             DataHandlingLock<T>.SyncLock.Release();
@@ -310,52 +316,9 @@ namespace CoffeeJelly.tempa
             (sender as FileSystemWatcher).InternalBufferSize = (sender as FileSystemWatcher).InternalBufferSize * 2;
         }
 
-        private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-
-        private void NewDataWatcherWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName.EqualsAny(nameof(IsAgrologDataCollect), nameof(IsGrainbarDataCollect)))
-                WatcherInitChange(e.PropertyName);
-        }
-
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-
         FileSystemWatcher _agrologDataWatcher;
         FileSystemWatcher _grainbarDataWatcher;
-        bool _isAgrologDataCollect = false;
-        bool _isGrainbarDataCollect = false;
-        bool _isAutostart = true;
-        bool _isDataSubstitution = false;
 
-        public bool IsAgrologDataCollect
-        {
-            get { return _isAgrologDataCollect; }
-            set { _isAgrologDataCollect = value; NotifyPropertyChanged(); }
-        }
-
-        public bool IsGrainbarDataCollect
-        {
-            get { return _isGrainbarDataCollect; }
-            set { _isGrainbarDataCollect = value; NotifyPropertyChanged(); }
-        }
-
-        public bool IsAutostart
-        {
-            get { return _isAutostart; }
-            set { _isAutostart = value; NotifyPropertyChanged(); }
-        }
-
-        public bool IsDataSubstitution
-        {
-            get { return _isDataSubstitution; }
-            set { _isDataSubstitution = value; NotifyPropertyChanged(); }
-        }
 
         private static class DataHandlingLock<T>
         {

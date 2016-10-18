@@ -8,8 +8,8 @@
         reuse the same context menu (which is a resource) again (which will have its DataContext set to the old TaskbarIcon)
   -->
     <ContextMenu x:Shared="false" x:Key="SysTrayMenu">
-        <MenuItem Header="О программе" Command="{Binding ShowAbout}" />
-        <MenuItem Header="Настройки" Command="{Binding ShowWindowSettings}" />
+        <MenuItem Header="О программе" Command="{Binding ShowAbout}" IsEnabled="{Binding IsUIWindowExist}"/>
+        <MenuItem Header="Настройки" Command="{Binding ShowWindowSettings}" IsEnabled="{Binding IsUIWindowExist}"/>
         <Separator />
         <!--<MenuItem Header="График" Command="{Binding HideWindowCommand}" />-->
         <!--<MenuItem Header="Показания за день" Command="{Binding ShowWindowHome}" />
@@ -23,7 +23,7 @@
     <!-- the application's NotifyIcon - started from App.xaml.cs. Declares its own view model. -->
     <tb:TaskbarIcon x:Key="NotifyIcon"
                     IconSource="/Icons/belsolodLogo.ico"
-                    ToolTipText="Двойной щелчок - развернуть окно, правый щелчок - меню"
+                    ToolTipText="Один щелчок - открыть окно, правый щелчок - меню"
                     LeftClickCommand="{Binding ShowWindowCommand}"
                     DoubleClickCommand="{Binding ShowWindowCommand}"
                     ContextMenu="{StaticResource SysTrayMenu}">

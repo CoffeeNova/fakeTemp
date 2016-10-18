@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows;
 using System.Globalization;
+using System.Windows.Documents;
 
 namespace CoffeeJelly.tempa.Converters
 {
@@ -65,6 +66,36 @@ namespace CoffeeJelly.tempa.Converters
         }
 
         public object ConvertBack(object value, System.Type targetType, object parameter, CultureInfo culture)
+        {
+            return null;
+        }
+    }
+
+    public class LogTextBlockConverter : IValueConverter
+    {
+
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (!string.IsNullOrEmpty(value as string))
+            {
+                FlowDocument fd = new FlowDocument();
+
+                string[] text = ((string)value).Split(' ');
+
+                Paragraph p = new Paragraph();
+                StringBuilder sb = new StringBuilder();
+
+                //add text and pictures, etc. and return now InlineCollection instead of FlowDocument
+
+                return p.Inlines;
+            }
+            else
+            {
+                return new FlowDocument();
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             return null;
         }

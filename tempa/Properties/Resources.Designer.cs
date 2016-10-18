@@ -122,13 +122,14 @@ namespace CoffeeJelly.tempa.Properties {
         /// <summary>
         ///   Looks up a localized string similar to 
         ///СИТ ГРЕЙНБАР
+        ///
         ///Измерение от 01.01.10, 00:00:00  Температура предупрежденя 30.0
         ///  № |ш.м.п.|Сил.      |       Т1       Т2       Т3       Т4       Т5       Т6
         ///------------------------------------------------------------------------------
         ///  1 | 1 1 2|5-2       |      0.0      0.0       0.0      0.0      0.0      0.0
         ///  2 | 1 1 3|5-84-1    |      0.0      0.0       0.0      0.0      0.0      0.0
         ///  3 | 1 1 4|5-1*      |      0.0      0.0       0.0      0.0      0.0      0.0
-        ///  4 | 1 2 1|5-2*      |      0.0   [rest of string was truncated]&quot;;.
+        ///  4 | 1 2 1|5-2*      |      0 [rest of string was truncated]&quot;;.
         /// </summary>
         public static string GrainbarPatternReport {
             get {
