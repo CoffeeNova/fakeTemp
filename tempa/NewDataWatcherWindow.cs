@@ -17,23 +17,25 @@ namespace CoffeeJelly.tempa
     {
         public NewDataWatcherWindow()
         {
-            Settings();
             CheckDataFiles();
+            Settings();
         }
 
-        private async void Settings()
+        private void Settings()
         {
             bool checkAgrolog = Internal.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
             bool checkGrainbar = Internal.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
-            if(checkAgrolog)
+            if (checkAgrolog)
             {
                 WatcherInitChange("IsAgrologDataCollect", true);
-                await CheckDirectoryForNewData<TermometerAgrolog>(GetReportsPathFromReg(ProgramType.Agrolog), Constants.AGROLOG_FILE_EXTENSION);
+                var checkAgrologDirTask = CheckDirectoryForNewDataAsync<TermometerAgrolog>(GetReportsPathFromReg(ProgramType.Agrolog), Constants.AGROLOG_FILE_EXTENSION);
+                checkAgrologDirTask.CriticalTask();
             }
-            if(checkGrainbar)
+            if (checkGrainbar)
             {
                 WatcherInitChange("IsGrainbarDataCollect", true);
-                await CheckDirectoryForNewData<TermometerGrainbar>(GetReportsPathFromReg(ProgramType.Grainbar), Constants.GRAINBAR_FILE_EXTENSION);
+                var checkGrainBarDirTask = CheckDirectoryForNewDataAsync<TermometerGrainbar>(GetReportsPathFromReg(ProgramType.Grainbar), Constants.GRAINBAR_FILE_EXTENSION);
+                checkGrainBarDirTask.CriticalTask();
             }
         }
 
@@ -128,8 +130,7 @@ namespace CoffeeJelly.tempa
             }
             catch (Exception ex)
             {
-                LogMaker.Log(
-                    $"Процесс извлечения данных из файла \"{dataFileName}\" завершился неудачно. См. Error.log", true);
+                LogMaker.Log($"Процесс извлечения данных из файла \"{dataFileName}\" завершился неудачно. См. Error.log", true);
                 ExceptionHandler.Handle(ex, false);
             }
 
@@ -154,7 +155,12 @@ namespace CoffeeJelly.tempa
             }
         }
 
-        private async Task CheckDirectoryForNewData<T>(string path, string fileExtension) where T : ITermometer
+        private Task CheckDirectoryForNewDataAsync<T>(string path, string fileExtension) where T : ITermometer
+        {
+            return Task.Factory.StartNew(() => CheckDirectoryForNewData<T>(path, fileExtension));
+        }
+
+        private void CheckDirectoryForNewData<T>(string path, string fileExtension) where T : ITermometer
         {
             var dirInfo = new DirectoryInfo(path);
             if (!dirInfo.Exists)
@@ -169,20 +175,33 @@ namespace CoffeeJelly.tempa
             DataHandlingLock<T>.SyncLock.WaitOne();
             LogMaker.Log($"Начинаю проверку каталога \"{path}\" на наличие новых данных {programName}...", false);
             var checkList = new List<bool>();
-            List<T> dataList = await ReadDataFile<T>(dataFileName, true);
+            List<T> dataList = ReadDataFile<T>(dataFileName, false).Result;
             if (dataList == null)
                 return;
 
             foreach (var fileInfo in filesInfo)
-                checkList.Add(await NewDataVerification<T>(fileInfo.DirectoryName, fileInfo.Name, dataList, true));
+            {
+                if (exitToken.IsCancellationRequested)
+                    return;
+                checkList.Add(NewDataVerification<T>(fileInfo.DirectoryName, fileInfo.Name, dataList, false).Result);
+            }
 
             if (checkList.Any(b => b == true))
             {
                 LogMaker.Log($"Данные приняты. Сохраняю их в файле \"{dataFileName}\".", false);
-                await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
+                var writeResult = WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, false).Result;
+                if (!writeResult)
+                {
+                    LogMaker.Log("Данные не сохранены, обнаруженные данные не будут удалены.", false);
+                    return;
+                }
             }
             else
                 LogMaker.Log($"Новых данных {programName} не обнаружено.", false);
+
+            foreach (var fileInfo in filesInfo)
+                DeleteFile(fileInfo.DirectoryName, fileInfo.Name);
+
             DataHandlingLock<T>.SyncLock.Release();
         }
 
@@ -212,7 +231,6 @@ namespace CoffeeJelly.tempa
                     $"Данные из файла отчета \"{fileName}\" уже существуют в базе данных файла \"{dataFileName}\".", false);
                 operationValue = false;
             }
-            DeleteFile(path, fileName);
             return operationValue;
         }
 
@@ -254,20 +272,19 @@ namespace CoffeeJelly.tempa
 
         public void WatcherInitChange(string propertyName, bool state)
         {
-            if(propertyName == "IsAgrologDataCollect")
+            if (propertyName == "IsAgrologDataCollect")
             {
-                if (state && _agrologDataWatcher ==null)
+                if (state && _agrologDataWatcher == null)
                 {
-
                     bool result = WatcherInit<TermometerAgrolog>(ref _agrologDataWatcher, GetReportsPathFromReg(ProgramType.Agrolog), Constants.AGROLOG_FILE_EXTENSION);
                     if (!result)
                         return;
                 }
-                else if(!state && _agrologDataWatcher != null)
+                else if (!state && _agrologDataWatcher != null)
                     DisposeWatcher<TermometerAgrolog>(ref _agrologDataWatcher);
 
             }
-            else if(propertyName == "IsGrainbarDataCollect")
+            else if (propertyName == "IsGrainbarDataCollect")
             {
                 if (state && _grainbarDataWatcher == null)
                 {
@@ -275,7 +292,7 @@ namespace CoffeeJelly.tempa
                     if (!result)
                         return;
                 }
-                else if(!state && _grainbarDataWatcher != null)
+                else if (!state && _grainbarDataWatcher != null)
                     DisposeWatcher<TermometerGrainbar>(ref _grainbarDataWatcher);
             }
         }
@@ -288,7 +305,25 @@ namespace CoffeeJelly.tempa
             return Internal.CheckRegistrySettings(regKeyPath, Constants.SETTINGS_LOCATION, regKeyValue);
         }
 
-        private async void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
+        private void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
+        {
+            if (exitToken.IsCancellationRequested)
+            {
+                this.Dispatcher.Invoke(new Action(() => (sender as FileSystemWatcher).EnableRaisingEvents = false));
+                return;
+            }
+
+            var fileProcessingTask = FileProcessingAsync<T>(sender, e);
+
+            fileProcessingTask.CriticalTask();
+        }
+
+        private Task FileProcessingAsync<T>(object sender, FileSystemEventArgs e) where T : ITermometer
+        {
+            return Task.Factory.StartNew(() => FileProcessing<T>(sender, e));
+        }
+
+        private void FileProcessing<T>(object sender, FileSystemEventArgs e) where T : ITermometer
         {
             string path = e.FullPath.Replace(e.Name, string.Empty);
             string dataFileName = DataFileName<T>();
@@ -296,18 +331,21 @@ namespace CoffeeJelly.tempa
             bool dataIsNew = false;
             DataHandlingLock<T>.SyncLock.WaitOne();
 
-            List<T> dataList = await ReadDataFile<T>(dataFileName, true);
+            List<T> dataList = ReadDataFile<T>(dataFileName, false).Result;
 
             if (dataList == null)
                 return;
 
-            dataIsNew = await NewDataVerification<T>(path, e.Name, dataList, true);
+            dataIsNew = NewDataVerification<T>(path, e.Name, dataList, false).Result;
 
+            var writeResult = true;
             if (dataIsNew)
             {
                 LogMaker.Log($"Данные приняты. Сохраняем их в файле \"{dataFileName}\".", false);
-                var result = await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
+                writeResult = WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, false).Result;
             }
+            if (writeResult)
+                DeleteFile(path, e.Name);
 
             DataHandlingLock<T>.SyncLock.Release();
         }
@@ -321,6 +359,8 @@ namespace CoffeeJelly.tempa
         FileSystemWatcher _agrologDataWatcher;
         FileSystemWatcher _grainbarDataWatcher;
 
+        public static CancellationTokenSource exitCancelTokenSource = new CancellationTokenSource();
+        public static CancellationToken exitToken = exitCancelTokenSource.Token;
 
         private static class DataHandlingLock<T>
         {

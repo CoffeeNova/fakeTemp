@@ -82,17 +82,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Examples\Agrolog example.csv" />
+    <EmbeddedResource Include="Examples\Agrolog example.csv" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Examples\Grainbar example.txt" />
+    <EmbeddedResource Include="Examples\Grainbar example.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\tempa\tempa.csproj">

@@ -22,7 +22,7 @@ namespace CoffeeJelly.ReportGenerateTool {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resource {
+    public class Resource {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace CoffeeJelly.ReportGenerateTool {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CoffeeJelly.ReportGenerateTool.Resource", typeof(Resource).Assembly);
@@ -51,7 +51,7 @@ namespace CoffeeJelly.ReportGenerateTool {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -79,7 +79,7 @@ namespace CoffeeJelly.ReportGenerateTool {
         ///35,11,7-Jun,Sensors alarms deactivated
         ///3 [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string Agrolog_example {
+        public static string Agrolog_example {
             get {
                 return ResourceManager.GetString("Agrolog_example", resourceCulture);
             }
@@ -94,7 +94,7 @@ namespace CoffeeJelly.ReportGenerateTool {
         ///  3 | 1 1 4|5-1*      |     21.6     20.7      20.6     20.7     20.1     19.6
         ///  4 | 1 2 1|5-2*      |     13.6     21.8      21 [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string Grainbar_example {
+        public static string Grainbar_example {
             get {
                 return ResourceManager.GetString("Grainbar_example", resourceCulture);
             }

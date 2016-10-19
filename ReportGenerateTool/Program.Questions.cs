@@ -15,14 +15,15 @@ namespace CoffeeJelly.ReportGenerateTool
 
         private static bool BeginGenerateQuestion()
         {
-            Console.WriteLine("Press [Enter] to start generate reports. [Q] - quit.");
+            Console.Write("Press [Enter] to start generate reports. [Q] - quit: ");
             ConsoleKeyInfo answerKey;
             while (true)
             {
-                answerKey = Console.ReadKey(true);
+                answerKey = Console.ReadKey(false);
+                Console.WriteLine();
                 if (answerKey.Key.EqualsAny(ConsoleKey.Enter, ConsoleKey.Q))
                     break;
-                Console.WriteLine("Fail. Press [Enter] to start generate reports. [Q] - quit.");
+                Console.Write("Fail. Press [Enter] to start generate reports. [Q] - quit:   ");
             }
             CheckExit(answerKey);
             return answerKey.Key == ConsoleKey.Enter;
@@ -30,15 +31,16 @@ namespace CoffeeJelly.ReportGenerateTool
 
         private static TimeRange? TimeRangeQuestion()
         {
-            Console.WriteLine("Choose time range then. [W] - week, [D] - day, [H] - hour. [Q] - quit.");
+            Console.Write("Choose time range then. [W] - week, [D] - day, [H] - hour. [Q] - quit:   ");
 
             ConsoleKeyInfo answerKey;
             while (true)
             {
-                answerKey = Console.ReadKey(true);
+                answerKey = Console.ReadKey(false);
+                Console.WriteLine();
                 if (answerKey.Key.EqualsAny<ConsoleKey>(ConsoleKey.W, ConsoleKey.D, ConsoleKey.H, ConsoleKey.Q))
                     break;
-                Console.WriteLine("Try again pls. Input should be only [W], [D], [H] or [Q].");
+                Console.Write("Try again pls. Input should be only [W], [D], [H] or [Q]:    ");
             }
             CheckExit(answerKey);
 
@@ -57,11 +59,11 @@ namespace CoffeeJelly.ReportGenerateTool
             defaultPath += reportType == ProgramType.Agrolog ? Constants.AGROLOG_FOLDER_NAME : Constants.GRAINBAR_FOLDER_NAME;
             string outpuPath;
 
-            Console.WriteLine($"Type output reports path or [default] to set location {defaultPath}.");
+            Console.Write($"Type output reports path or [default] to set location {defaultPath}:    ");
             while (true)
             {
                 var line = Console.ReadLine();
-
+                Console.WriteLine();
                 CheckExit(line);
 
                 Debug.Assert(line != null, "line != null");
@@ -83,7 +85,7 @@ namespace CoffeeJelly.ReportGenerateTool
                 }
                 catch
                 {
-                    Console.WriteLine("Wrong directory or you have no permissions to this folder, try default it is quite good.");
+                    Console.Write("Wrong directory or you have no permissions to this folder, try default it is quite good:    ");
                 }
             }
             return outpuPath;
@@ -92,12 +94,13 @@ namespace CoffeeJelly.ReportGenerateTool
         private static DateTime? StartDateQuestion()
         {
             string pattern = "dd.MM.yyyy";
-            Console.WriteLine($"Type initial date in format {pattern}");
+            Console.Write($"Type initial date in format {pattern}:    ");
 
             DateTime answer;
             while (true)
             {
                 var line = Console.ReadLine();
+                Console.WriteLine();
                 CheckExit(line);
                 try
                 {
@@ -109,7 +112,7 @@ namespace CoffeeJelly.ReportGenerateTool
                 {
                     // ignored
                 }
-                Console.WriteLine($"Wrong. Try again pls. Input patternt is {pattern} (example: 25.02.1987)");
+                Console.Write($"Wrong. Try again pls. Input patternt is {pattern} (example: 25.02.1987):    ");
             }
             return answer;
         }
@@ -117,12 +120,13 @@ namespace CoffeeJelly.ReportGenerateTool
         private static DateTime? EndDateQuestion()
         {
             string pattern = "dd.MM.yyyy";
-            Console.WriteLine($"Type final date in format {pattern}");
+            Console.Write($"Type final date in format {pattern}:    ");
 
             DateTime answer;
             while (true)
             {
                 var line = Console.ReadLine();
+                Console.WriteLine();
                 CheckExit(line);
                 try
                 {
@@ -134,22 +138,23 @@ namespace CoffeeJelly.ReportGenerateTool
                 {
                     // ignored
                 }
-                Console.WriteLine($"Wrong. Try again pls. Input patternt is {pattern} (example: 25.02.1987");
+                Console.Write($"Wrong. Try again pls. Input patternt is {pattern} (example: 25.02.1987):    ");
             }
             return answer;
         }
 
         private static bool DateRangePreferQuestion()
         {
-            Console.WriteLine("Do you want to set date range for reports? [Y] ,[N] or [Q] to quit");
+            Console.Write("Do you want to set date range for reports? [Y] ,[N] or [Q] to quit:    ");
 
             ConsoleKeyInfo answerKey;
             while (true)
             {
-                answerKey = Console.ReadKey(true);
+                answerKey = Console.ReadKey(false);
+                Console.WriteLine();
                 if (answerKey.Key.EqualsAny<ConsoleKey>(ConsoleKey.Y, ConsoleKey.N, ConsoleKey.Q))
                     break;
-                Console.WriteLine("Try again pls. Input should be only [Y], [N] or [Q].");
+                Console.Write("Try again pls. Input should be only [Y], [N] or [Q]:    ");
             }
             CheckExit(answerKey);
 
@@ -158,33 +163,35 @@ namespace CoffeeJelly.ReportGenerateTool
 
         private static ushort ReportsCountQuestion()
         {
-            Console.WriteLine($"Choose reports count. Only positive numbers (max:{UInt16.MaxValue}).");
+            Console.Write($"Choose reports count. Only positive numbers (min:1, max:{UInt16.MaxValue}):    ");
 
             ushort answer = 0;
             while (true)
             {
                 var line = Console.ReadLine();
+                Console.WriteLine();
                 CheckExit(line);
                 bool parseResult = UInt16.TryParse(line, out answer);
-                if (parseResult)
+                if (parseResult && answer > 0)
                     break;
 
-                Console.WriteLine("Wrong. Try again pls. Input should be POSITIVE NUMBERS or [Q].");
+                Console.Write("Wrong. Try again pls. Input should be POSITIVE NUMBERS or [Q]:    ");
             }
             return answer;
         }
 
         private static ProgramType ReportTypeQuestion()
         {
-            Console.WriteLine("Choose report type. [A] - Agrolog, [G] - Grainbar. [Q] - quit.");
+            Console.Write("Choose report type. [A] - Agrolog, [G] - Grainbar. [Q] - quit:    ");
 
             ConsoleKeyInfo answerKey;
             while (true)
             {
-                answerKey = Console.ReadKey(true);
+                answerKey = Console.ReadKey(false);
+                Console.WriteLine();
                 if (answerKey.Key.EqualsAny<ConsoleKey>(ConsoleKey.A, ConsoleKey.G, ConsoleKey.Q))
                     break;
-                Console.WriteLine("Try again pls. Input should be only [A], [G] or [Q].");
+                Console.Write("Try again pls. Input should be only [A], [G] or [Q]:    ");
             }
             CheckExit(answerKey);
 

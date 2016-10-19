@@ -301,12 +301,6 @@ namespace CoffeeJelly.tempa
                 NewCables();
             else if (e.PropertyName == nameof(SelectedCable))
                 SelectedCableChanged();
-            //else if (e.PropertyName == nameof(InitialDate))
-            //    InitialDateChanged();
-            //else if (e.PropertyName == nameof(FinalDate))
-            //    FinalDateChanged();
-            //else if (e.PropertyName == nameof(ActualDate))
-            //    ActualDateChanged();
             else if (e.PropertyName.EqualsAny(nameof(Line1Enabled), nameof(Line2Enabled), nameof(Line3Enabled),
                                               nameof(Line4Enabled), nameof(Line5Enabled), nameof(Line6Enabled), nameof(Line7Enabled)))
                 CreateNewLineSeries();

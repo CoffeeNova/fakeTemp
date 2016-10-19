@@ -21,6 +21,7 @@ using System.ComponentModel;
 using CoffeeJelly.tempa.Exceptions;
 using CoffeeJelly.tempa.Extensions;
 using System.Collections.ObjectModel;
+using CoffeeJelly.tempa.Controls;
 
 namespace CoffeeJelly.tempa
 {
@@ -63,6 +64,8 @@ namespace CoffeeJelly.tempa
             CreateReportShow += MainWindow_CreateReportShow;
             CreateReportHide += MainWindow_CreateReportHide;
             PropertyChanged += MainWindow_PropertyChanged;
+            LogCollection.CollectionChanged += LogCollection_CollectionChanged;
+
         }
 
         private void FillTreeViewWithRootDrives(ref TreeView treeview)
@@ -392,17 +395,23 @@ namespace CoffeeJelly.tempa
         }
 
 
-        void LogMaker_newMessage(string message, bool isError)
+        void LogMaker_newMessage(string message, DateTime time, bool isError)
         {
             this.Dispatcher.BeginInvoke(new Action(() =>
             {
-                Run run = new Run(message + Environment.NewLine);
-                if (isError)
-                    run.Foreground = Brushes.Red;
-                else
-                    run.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#EFEFEF"));
+                //Run run = new Run(message + Environment.NewLine);
+                //if (isError)
+                //    run.Foreground = Brushes.Red;
+                //else
+                //    run.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#EFEFEF"));
 
-                LogTextBlock.Inlines.Add(run);
+                LogCollection.Add(new LogEntry()
+                {
+                    DateTime = time,
+                    Index = _logIndex,
+                    Message = message
+                });
+                //LogTextBlock.Inlines.Add(run);
             }));
 
         }
@@ -659,6 +668,12 @@ namespace CoffeeJelly.tempa
         }
 
 
+        private void LogCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            NotifyPropertyChanged(nameof(LogCollection));
+            //LogScrollViewer.LogEntries = LogCollection;
+        }
+
         #endregion
         //------------------------------------------------------------------------------
 
@@ -720,19 +735,20 @@ namespace CoffeeJelly.tempa
         public bool IsCreateReportWindowShow = false;
         public bool IsAboutOnForm = false;
 
-        string _agrologReportsPath;
-        string _grainbarReportsPath;
-        readonly Logger _log = LogManager.GetCurrentClassLogger();
-        readonly ManualResetEvent _createReportResetEvent = new ManualResetEvent(false);
-        CancellationTokenSource _createReportCancellationToken;
-        MainPlotWindow _agrologPlot;
-        MainPlotWindow _grainbarPlot;
+        private string _agrologReportsPath;
+        private string _grainbarReportsPath;
+        private readonly Logger _log = LogManager.GetCurrentClassLogger();
+        private readonly ManualResetEvent _createReportResetEvent = new ManualResetEvent(false);
+        private CancellationTokenSource _createReportCancellationToken;
+        private MainPlotWindow _agrologPlot;
+        private MainPlotWindow _grainbarPlot;
 
-        bool _isAgrologDataCollect;
-        bool _isGrainbarDataCollect;
-        bool _isAutostart = true;
-        bool _isDataSubstitution = false;
-
+        private bool _isAgrologDataCollect;
+        private bool _isGrainbarDataCollect;
+        private bool _isAutostart = true;
+        private bool _isDataSubstitution = false;
+        private ObservableCollection<LogEntry> _logCollection = new ObservableCollection<LogEntry>();
+        private int _logIndex = 0;
 
         #endregion
 
@@ -812,6 +828,15 @@ namespace CoffeeJelly.tempa
                     _isDataSubstitution = value;
                     NotifyPropertyChanged();
                 }
+            }
+        }
+
+        public ObservableCollection<LogEntry> LogCollection
+        {
+            get { return _logCollection; }
+            set
+            {
+                _logCollection = value;
             }
         }
 

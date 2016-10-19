@@ -118,14 +118,6 @@ namespace CoffeeJelly.tempa
                 {
                     CommandAction = () =>
                     {
-                        var hwndSources = HwndSource.CurrentSources;
-
-                        foreach (PresentationSource hwnd in hwndSources)
-                        {
-                            var window = hwnd.RootVisual as Window;
-                            window?.Dispatcher.BeginInvoke(new Action(() => window.Close()));
-                        }
-
                         Application.Current.Shutdown();
                     }
                 };

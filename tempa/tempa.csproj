@@ -130,7 +130,11 @@
     </ApplicationDefinition>
     <Compile Include="Controls\LogTextBlock.cs" />
     <Compile Include="Controls\LogTextBox2.cs" />
+    <Compile Include="Controls\LogViewer.xaml.cs">
+      <DependentUpon>LogViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Converters\Converters.cs" />
+    <Compile Include="CriticalTasks.cs" />
     <Compile Include="DataWorker\DataWorker.Binary.cs" />
     <Compile Include="DataWorker\DataWorker.Excel.cs" />
     <Compile Include="DelegateCommand.cs" />
@@ -143,6 +147,7 @@
     <Compile Include="Extensions\OBjectExtension.cs" />
     <Compile Include="Extensions\StringExtension.cs" />
     <Compile Include="DataWorker\DataWorker.Reports.cs" />
+    <Compile Include="Extensions\TaskExtension.cs" />
     <Compile Include="GlobalConstants.cs" />
     <Compile Include="Internal.cs" />
     <Compile Include="LogMaker.cs" />
@@ -156,6 +161,10 @@
     <Compile Include="Properties\VersionInfo.cs" />
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Converters\TreeViewItemExtensions.cs" />
+    <Page Include="Controls\LogViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

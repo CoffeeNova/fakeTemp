@@ -19,9 +19,9 @@ namespace CoffeeJelly.ReportGenerateTool
         {
             Settings();
             SetCulturePattern();
-            WriteGreetings();
+            WriteGreetings(); 
             var reportType = ReportTypeQuestion();
-            ushort reporsCount = ReportsCountQuestion();
+            _reportsCount = ReportsCountQuestion();
             bool anyDateRangePrefer = DateRangePreferQuestion();
 
             DateTime? startDate = null;
@@ -37,28 +37,44 @@ namespace CoffeeJelly.ReportGenerateTool
             string outputPath = ReportsOutputPathQuestion(reportType);
 
             if (BeginGenerateQuestion())
-                LetsWork(reportType, reporsCount, startDate, endDate, timeRange, outputPath);
+                LetsWork(reportType, startDate, endDate, timeRange, outputPath);
+
+            Console.WriteLine("\r\nDone.");
             Console.ReadLine();
 
         }
 
-        private static async void LetsWork(ProgramType reportType, ushort reportsCount, DateTime? startDate, DateTime? endDate, TimeRange? timeRange, string outputPath)
+        private static void RewriteProcessString()
+        {
+           lock(_locker)
+            //{
+            _total += 1;
+                double tt = Convert.ToDouble(_total) / Convert.ToDouble(_reportsCount) * 100;
+            if (tt%1 == 0)
+                Console.Write($"\rProcessing: {(tt).ToString("0")}%");
+            //}
+        }
+
+        private static void LetsWork(ProgramType reportType, DateTime? startDate, DateTime? endDate, TimeRange? timeRange, string outputPath)
         {
             string outputFileExtension = reportType == ProgramType.Agrolog ? AGROLOG_FAKE_REPORT_EXTENSION_NAME : GRAINBAR_FAKE_REPORT_EXTENSION_NAME;
             string datePattern = reportType == ProgramType.Agrolog ? AGROLOG_DATE_PATTERN : GRAINBAR_DATE_PATTERN;
             string content = RetrieveContentFromResource(reportType);
 
-            List<int> reportNumbers = Enumerable.Range(1, reportsCount).ToList();
-            var dividedReportsNumbers = reportNumbers.DivideByChunks(THREADS_COUNT);
+            List<int> reportNumbers = Enumerable.Range(1, _reportsCount).ToList();
+            int chunks = THREADS_COUNT > _reportsCount ? _reportsCount : THREADS_COUNT;
+            var dividedReportsNumbers = reportNumbers.DivideByChunks(chunks);
 
             var checkList = new List<bool>();
 
             foreach (List<int> part in dividedReportsNumbers)
-                checkList.Add(await GenerateReportsAsync(part, startDate, endDate, timeRange, content, outputPath, datePattern, outputFileExtension));
+            {
+                checkList.Add(GenerateReportsAsync(part, startDate, endDate, timeRange, content, outputPath, datePattern, outputFileExtension).Result);
+            }
 
         }
 
-        private static DateTime DateFunc1(int days, TimeRange? timeRange)
+        private static DateTime DateFunc1(int value, TimeRange? timeRange)
         {
             var currentDate = DateTime.Now;
             var d = currentDate;
@@ -66,16 +82,17 @@ namespace CoffeeJelly.ReportGenerateTool
             switch (timeRange)
             {
                 case TimeRange.Week:
-                    return d.AddDays(-days * 7);
+                    return d.AddDays(-value * 7);
                 case TimeRange.Day:
-                    return d.AddDays(-days);case TimeRange.Hour:
-                    return d.AddHours(-days);
+                    return d.AddDays(-value);
+                case TimeRange.Hour:
+                    return d.AddHours(-value);
                 default:
                     return d;
             }
         }
 
-        private static DateTime DateFunc2(int days, DateTime? startDate, DateTime? endDate)
+        private static DateTime DateFunc2(DateTime? startDate, DateTime? endDate)
         {
             var random = new Random();
             Debug.Assert(endDate != null, "endDate != null");
@@ -99,12 +116,13 @@ namespace CoffeeJelly.ReportGenerateTool
             {
                 var outputFullPath = outputPath.PathFormatter();
 
-                DateTime reportDate = !startDate.HasValue ? DateFunc1(i, timeRange) : DateFunc2(i, startDate, endDate);
+                DateTime reportDate = !startDate.HasValue ? DateFunc1(i, timeRange) : DateFunc2(startDate, endDate);
                 string newContent = defaultContent.ReplaceFirst(REPLACE_DATE_PATTERN, reportDate.ToString(datePattern));
-                outputFullPath += $"{reportDate:dd-MM-yyyy}_report.{outputFileExtension}";
-                var fInfo = new FileInfo(outputFullPath);
+                outputFullPath += $"{reportDate:dd-MM-yyyy}_{reportDate:HH.mm}_report.{outputFileExtension}";
 
-                if (fInfo.Exists)
+                FileInfo fInfo = new FileInfo(outputFullPath);
+
+                if (fInfo.Exists && startDate.HasValue)
                 {
                     i--;
                     continue;
@@ -115,7 +133,9 @@ namespace CoffeeJelly.ReportGenerateTool
                     using (var outputWriter = new StreamWriter(output))
                     {
                         outputWriter.Write(newContent);
+                        RewriteProcessString();
                     }
+
                 }
             }
             return false;
@@ -128,11 +148,11 @@ namespace CoffeeJelly.ReportGenerateTool
 
             using (Stream resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
             {
-                if (resourceStream != null)
-                    using (var resourceReader = new StreamReader(resourceStream))
-                    {
-                        content = resourceReader.ReadToEnd();
-                    }
+                Debug.Assert(resourceStream != null, "resourceStream != null");
+                using (var resourceReader = new StreamReader(resourceStream))
+                {
+                    content = resourceReader.ReadToEnd();
+                }
             }
             return content;
         }
@@ -192,25 +212,26 @@ namespace CoffeeJelly.ReportGenerateTool
 
         private static void SetCulturePattern()
         {
-            var ci = CultureInfo.CreateSpecificCulture(CultureInfo.CurrentCulture.Name);
-            ci.DateTimeFormat.ShortDatePattern = "dd.MM.yyyy";
-            Thread.CurrentThread.CurrentCulture = ci;
+            //var ci = CultureInfo.CreateSpecificCulture(CultureInfo.InvariantCulture.Name);
+            //ci.DateTimeFormat.ShortDatePattern = "dd.MM.yyyy";
+            //ci.DateTimeFormat.LongDatePattern = "dd.MM.yyyy hh:mm:ss";
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("Ru-ru");
         }
 
         private static void Settings()
         {
             Console.Title = "Generate reports tool";
-            Console.SetWindowPosition(0, 0);   // sets window position to upper left
-            Console.SetBufferSize(200, 100);   // make sure buffer is bigger than window
-            Console.SetWindowSize(200, 54);   //set window size to almost full screen 
 
+            Console.SetWindowPosition(0, 0);   // sets window position to upper left
+            Console.SetBufferSize(120, 100);   // make sure buffer is bigger than window
+            Console.SetWindowSize(119, 54);   //set window size to almost full screen 
             Console.ForegroundColor = ConsoleColor.DarkBlue;
             Console.BackgroundColor = ConsoleColor.DarkGreen;
         }
 
         private const string FAKE_REPORTS_FOLDER_NAME = "Fake Reports";
-        private const string AGROLOG_EXAMPLE_RESOURCE_NAME = "CoffeeJelly.ReportGenerateTool.Agrolog_example";
-        private const string GRAINBAR_EXAMPLE_RESOURCE_NAME = "CoffeeJelly.ReportGenerateTool.Grainbar_example";
+        private const string AGROLOG_EXAMPLE_RESOURCE_NAME = "CoffeeJelly.ReportGenerateTool.Examples.Agrolog example.csv";
+        private const string GRAINBAR_EXAMPLE_RESOURCE_NAME = "CoffeeJelly.ReportGenerateTool.Examples.Agrolog example.txt";
         private const string AGROLOG_FAKE_REPORT_EXTENSION_NAME = "csv";
         private const string GRAINBAR_FAKE_REPORT_EXTENSION_NAME = "txt";
         private const string REPLACE_DATE_PATTERN = "###";
@@ -218,6 +239,10 @@ namespace CoffeeJelly.ReportGenerateTool
         private const string GRAINBAR_DATE_PATTERN = "dd.MM.yy, hh:mm:ss";
 
         private const int THREADS_COUNT = 4;
+
+        private static int _total =0;
+        private static ushort _reportsCount;
+        private static readonly object _locker = new object();
 
         private enum TimeRange
         {

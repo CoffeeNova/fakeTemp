@@ -12,9 +12,8 @@ namespace CoffeeJelly.tempa
         public static void Log(string message, bool isError)
         {
             DateTime currentDate = DateTime.Now;
-            FormattedMessage = string.Format("{0}   {1}", currentDate.ToShortTimeString(), message);
             _log.Info(message);
-            newMessage?.Invoke(FormattedMessage, isError);
+            newMessage?.Invoke(message, currentDate, isError);
         }
 
         public static void InvokedLog(string message, bool isError, Dispatcher dispatcher)
@@ -24,13 +23,13 @@ namespace CoffeeJelly.tempa
                     Log(message, isError);
                 }));
         }
-        public static string FormattedMessage
-        {
-            get;
-            private set;
-        }
+        //public static string FormattedMessage
+        //{
+        //    get;
+        //    private set;
+        //}
 
-        public delegate void MessageDelegate(string message, bool isError);
+        public delegate void MessageDelegate(string message, DateTime time, bool isError);
         public static event MessageDelegate newMessage;
         private static readonly Logger _log = LogManager.GetCurrentClassLogger();
     }

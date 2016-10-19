@@ -11,6 +11,9 @@ using System.Windows.Input;
 using Hardcodet.Wpf.TaskbarNotification;
 using NLog;
 using CoffeeJelly.tempa.Extensions;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Windows.Interop;
 
 namespace CoffeeJelly.tempa
 {
@@ -60,12 +63,7 @@ namespace CoffeeJelly.tempa
             _log.Info("{0} is started successfully.", Constants.APPLICATION_NAME);
         }
 
-        //protected override void OnStartup(StartupEventArgs e)
-        //{
-
-
-        //    //base.OnStartup(e); 
-        //}
+        
 
         void SelectivelyIgnoreMouseButton(object sender, MouseButtonEventArgs e)
         {
@@ -96,6 +94,19 @@ namespace CoffeeJelly.tempa
 
         protected override void OnExit(ExitEventArgs e)
         {
+            NewDataWatcherWindow.exitCancelTokenSource.CancelAfter(2000);
+            CriticalTasks.Cleanup();
+            CriticalTasks.WaitOnExit();
+
+            var hwndSources = HwndSource.CurrentSources;
+
+            foreach (PresentationSource hwnd in hwndSources)
+            {
+                var window = hwnd.RootVisual as Window;
+                window?.Dispatcher.BeginInvoke(new Action(() => window.Close()));
+            }
+
+
             notifyIcon.Dispose(); //the icon would clean up automatically, but this is cleaner
             base.OnExit(e);
             System.Threading.Timer closeTimer = new System.Threading.Timer((object state) => System.Diagnostics.Process.GetCurrentProcess().Kill(), null, 10000, System.Threading.Timeout.Infinite);
