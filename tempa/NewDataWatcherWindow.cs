@@ -52,7 +52,7 @@ namespace CoffeeJelly.tempa
             {
                 Task.Factory.StartNew((() =>
                 {
-                    MessageBox.Show(string.Format("Критическая ошибка. Приложение закроется через 5 сек."), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.None, MessageBoxOptions.ServiceNotification);
+                    MessageBox.Show("Критическая ошибка. Приложение закроется через 5 сек.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.None, MessageBoxOptions.ServiceNotification);
                 }));
                 Thread.Sleep(3000);
                 ExceptionHandler.Handle(ex, true);
@@ -61,9 +61,9 @@ namespace CoffeeJelly.tempa
 
         private void CreateNewDataFile<T>(string dataFilePath, string dataFileName) where T : ITermometer
         {
-            LogMaker.Log(string.Format("Файл данных {0} не обнаружен. Создаю новый.", dataFilePath.PathFormatter() + dataFileName), false);
-            string patternReportText = typeof(T) == typeof(TermometerAgrolog) ? Properties.Resources.AgrologPatternReport : Properties.Resources.GrainbarPatternReport;
-            List<T> patternReportList = DataWorker.ReadPatternReport<T>(patternReportText);
+            LogMaker.Log($"Файл данных {dataFilePath.PathFormatter() + dataFileName} не обнаружен. Создаю новый.", false);
+            var patternReportText = typeof(T) == typeof(TermometerAgrolog) ? Properties.Resources.AgrologPatternReport : Properties.Resources.GrainbarPatternReport;
+            var patternReportList = DataWorker.ReadPatternReport<T>(patternReportText);
             var task = WriteDataFile<T>(patternReportList, dataFilePath, dataFileName, false);
             if (!task.Result)
                 throw new InvalidOperationException("Can't create .dat file. Operation of application work is impossible.");
@@ -77,12 +77,12 @@ namespace CoffeeJelly.tempa
             {
                 watcher = new FileSystemWatcher(reportsPath);
                 WatcherSettings<T>(watcher, fileExtension);
-                LogMaker.Log(string.Format("Запуск мониторинга данных \"{0}\".", programName), false);
+                LogMaker.Log($"Запуск мониторинга данных \"{programName}\".", false);
                 return true;
             }
             catch (ArgumentException ex)
             {
-                LogMaker.Log(string.Format("Каталог \"{0}\" отчетов {1} не существует.", reportsPath, programName), true);
+                LogMaker.Log($"Каталог \"{reportsPath}\" отчетов {programName} не существует.", true);
                 ExceptionHandler.Handle(ex, false);
                 return false;
             }
@@ -103,7 +103,7 @@ namespace CoffeeJelly.tempa
             if (watcher == null)
                 return;
             string programName = Internal.GetProgramName<T>();
-            LogMaker.Log(string.Format("Данные {0} из каталога \"{1}\" не принимаются.", programName, watcher.Path), false);
+            LogMaker.Log($"Данные {programName} из каталога \"{watcher.Path}\" не принимаются.", false);
             watcher.EnableRaisingEvents = false;
             watcher.Dispose();
             watcher = null;
@@ -128,7 +128,8 @@ namespace CoffeeJelly.tempa
             }
             catch (Exception ex)
             {
-                LogMaker.Log(string.Format("Процесс извлечения данных из файла \"{0}\" завершился неудачно. См. Error.log", dataFileName), true);
+                LogMaker.Log(
+                    $"Процесс извлечения данных из файла \"{dataFileName}\" завершился неудачно. См. Error.log", true);
                 ExceptionHandler.Handle(ex, false);
             }
 
@@ -147,7 +148,7 @@ namespace CoffeeJelly.tempa
             }
             catch (Exception ex)
             {
-                LogMaker.Log(string.Format("Процесс записи данных в файл \"{0}\" завершился неудачно. См. Error.log", dataFileName), true);
+                LogMaker.Log($"Процесс записи данных в файл \"{dataFileName}\" завершился неудачно. См. Error.log", true);
                 ExceptionHandler.Handle(ex, false);
                 return false;
             }
@@ -158,7 +159,7 @@ namespace CoffeeJelly.tempa
             var dirInfo = new DirectoryInfo(path);
             if (!dirInfo.Exists)
             {
-                LogMaker.Log(string.Format("Каталог \"{0}\" не существует, или к нему нет доступа.", path), true);
+                LogMaker.Log($"Каталог \"{path}\" не существует, или к нему нет доступа.", true);
                 return;
             }
 
@@ -166,7 +167,7 @@ namespace CoffeeJelly.tempa
             string programName = Internal.GetProgramName<T>();
             string dataFileName = DataFileName<T>();
             DataHandlingLock<T>.SyncLock.WaitOne();
-            LogMaker.Log(string.Format("Начинаю проверку каталога \"{0}\" на наличие новых данных {1}...", path, programName), false);
+            LogMaker.Log($"Начинаю проверку каталога \"{path}\" на наличие новых данных {programName}...", false);
             var checkList = new List<bool>();
             List<T> dataList = await ReadDataFile<T>(dataFileName, true);
             if (dataList == null)
@@ -177,18 +178,18 @@ namespace CoffeeJelly.tempa
 
             if (checkList.Any(b => b == true))
             {
-                LogMaker.Log(string.Format("Данные приняты. Сохраняю их в файле \"{0}\".", dataFileName), false);
+                LogMaker.Log($"Данные приняты. Сохраняю их в файле \"{dataFileName}\".", false);
                 await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
             }
             else
-                LogMaker.Log(string.Format("Новых данных {0} не обнаружено.", programName), false);
+                LogMaker.Log($"Новых данных {programName} не обнаружено.", false);
             DataHandlingLock<T>.SyncLock.Release();
         }
 
         private async Task<bool> NewDataVerification<T>(string path, string fileName, List<T> dataList, bool isAsync) where T : ITermometer
         {
             string programName = Internal.GetProgramName<T>();
-            LogMaker.Log(string.Format("Обнаружен новый файл \"{0}\" отчета {1}. Начинаем процесс парсинга...", programName, fileName), false);
+            LogMaker.Log($"Обнаружен новый файл \"{programName}\" отчета {fileName}. Начинаем процесс парсинга...", false);
             List<T> initReportList;
             initReportList = await ReadNewReport<T>(path, fileName, programName, isAsync);
 
@@ -201,13 +202,14 @@ namespace CoffeeJelly.tempa
             if (!initReportAlreadySaved)
             {
                 dataList.AddRange(initReportList);
-                LogMaker.Log(string.Format("Данные из файла отчета \"{0}\" новые. Запишу в базу данных", fileName), false);
+                LogMaker.Log($"Данные из файла отчета \"{fileName}\" новые. Запишу в базу данных", false);
                 operationValue = true;
             }
             else
             {
                 string dataFileName = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_DATA_FILE : Constants.GRAINBAR_DATA_FILE;
-                LogMaker.Log(string.Format("Данные из файла отчета \"{0}\" уже существуют в базе данных файла \"{1}\".", fileName, dataFileName), false);
+                LogMaker.Log(
+                    $"Данные из файла отчета \"{fileName}\" уже существуют в базе данных файла \"{dataFileName}\".", false);
                 operationValue = false;
             }
             DeleteFile(path, fileName);
@@ -225,12 +227,12 @@ namespace CoffeeJelly.tempa
                     reportList = DataWorker.ReadReport<T>(path, fileName);
 
                 if (reportList == null || reportList.Count == 0)
-                    throw new InvalidOperationException(string.Format("Parsing file \"{0}\" operation returns empty result.", fileName));
+                    throw new InvalidOperationException($"Parsing file \"{fileName}\" operation returns empty result.");
                 return reportList;
             }
             catch (Exception ex)
             {
-                LogMaker.Log(string.Format("Парсинг данных файла \"{0}\" завершился неудачно. См. Error.log", fileName), true);
+                LogMaker.Log($"Парсинг данных файла \"{fileName}\" завершился неудачно. См. Error.log", true);
                 ExceptionHandler.Handle(ex, false);
             }
             return null;
@@ -238,14 +240,14 @@ namespace CoffeeJelly.tempa
 
         private void DeleteFile(string path, string fileName)
         {
-            LogMaker.Log(string.Format("Удаляю файл \"{0}\".", fileName), false);
+            LogMaker.Log($"Удаляю файл \"{fileName}\".", false);
             try
             {
                 new FileInfo(path.PathFormatter() + fileName).Delete();
             }
             catch (Exception ex)
             {
-                LogMaker.Log(string.Format("Ошибка удаления файла \"{0}\".", fileName), true);
+                LogMaker.Log($"Ошибка удаления файла \"{fileName}\".", true);
                 ExceptionHandler.Handle(ex, false);
             }
         }
@@ -303,7 +305,7 @@ namespace CoffeeJelly.tempa
 
             if (dataIsNew)
             {
-                LogMaker.Log(string.Format("Данные приняты. Сохраняем их в файле \"{0}\".", dataFileName), false);
+                LogMaker.Log($"Данные приняты. Сохраняем их в файле \"{dataFileName}\".", false);
                 var result = await WriteDataFile<T>(dataList, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, true);
             }
 

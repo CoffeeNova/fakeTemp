@@ -22,7 +22,7 @@ namespace CoffeeJelly.tempa
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("path should have not be empty or null value.");
 
-            var termometerList = new List<T>();
+            List<T> termometerList;
             BinaryFormatter formatter = new BinaryFormatter();
             using (FileStream fs = new FileStream(path.PathFormatter() + fileName, FileMode.OpenOrCreate))
             {

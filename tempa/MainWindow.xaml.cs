@@ -173,7 +173,7 @@ namespace CoffeeJelly.tempa
             }
             catch (ArgumentException ex)
             {
-                LogMaker.Log(string.Format("Имя папки содежит недопустимые символы, или содержит только пробелы. См. Error.log"), true);
+                LogMaker.Log("Имя папки содежит недопустимые символы, или содержит только пробелы. См. Error.log", true);
                 ExceptionHandler.Handle(ex, false);
             }
             return null;
@@ -194,7 +194,7 @@ namespace CoffeeJelly.tempa
             {
                 if (ex.InnerException.GetType() == typeof(ReportFileException))
                 {
-                    LogMaker.Log(string.Format("Файл отчета не существует. Необходимо создать новый."), true);
+                    LogMaker.Log("Файл отчета не существует. Необходимо создать новый.", true);
                     RaiseEvent(new RoutedEventArgs(MainWindow.CreateReportShowEvent, this));
                     _createReportCancellationToken = new CancellationTokenSource();
                     _createReportResetEvent.Reset();
@@ -276,7 +276,7 @@ namespace CoffeeJelly.tempa
             }
             catch (InvalidOperationException ex)
             {
-                LogMaker.Log(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true);
+                LogMaker.Log("Невозможно сохранить настройки в реестр. См. Error.log", true);
                 ExceptionHandler.Handle(ex, false);
             }
         }
@@ -537,11 +537,11 @@ namespace CoffeeJelly.tempa
                 }
                 catch (InvalidOperationException ex)
                 {
-                    LogMaker.InvokedLog(string.Format("Невозможно сохранить настройки в реестр. См. Error.log"), true, this.Dispatcher);
+                    LogMaker.InvokedLog("Невозможно сохранить настройки в реестр. См. Error.log", true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                 }
 
-                LogMaker.InvokedLog(string.Format("Настройки сохранены"), false, this.Dispatcher);
+                LogMaker.InvokedLog("Настройки сохранены", false, this.Dispatcher);
                 IsSettingsGridOnForm = false;
             });
         }
@@ -845,7 +845,7 @@ namespace CoffeeJelly.tempa
         private void TestButton_Click(object sender, RoutedEventArgs e)
         {
             for (int i = 1; i < 50; i++)
-                LogMaker.Log(string.Format("test"), i % 2 == 0);
+                LogMaker.Log("test", i % 2 == 0);
 
         }
 

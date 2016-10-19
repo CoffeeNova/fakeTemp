@@ -30,12 +30,12 @@ namespace CoffeeJelly.tempa
 #if DEBUG
             _log.Debug("START DEBUGGING!");
 #endif
-            _log.Info(string.Format("{0} starting.", Constants.APPLICATION_NAME));
+            _log.Info($"{Constants.APPLICATION_NAME} starting.");
             Process[] pr = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
             if (pr.Length > 1)
             {
                 System.Diagnostics.Process.GetCurrentProcess().Kill();
-                _log.Info(string.Format("Attempt to start another instance of the application. {0} closing.", Constants.APPLICATION_NAME));
+                _log.Info("Attempt to start another instance of the application. {0} closing.", Constants.APPLICATION_NAME);
             }
             //create the notifyicon (it's a resource declared in smNotify.xaml
             notifyIcon = (TaskbarIcon)FindResource("NotifyIcon");
@@ -57,7 +57,7 @@ namespace CoffeeJelly.tempa
                 ExceptionHandler.Handle(ex, true);
             }
 
-            _log.Info(string.Format("{0} is started successfully.", Constants.APPLICATION_NAME));
+            _log.Info("{0} is started successfully.", Constants.APPLICATION_NAME);
         }
 
         //protected override void OnStartup(StartupEventArgs e)

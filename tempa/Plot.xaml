@@ -75,11 +75,10 @@
             </i:Interaction.Triggers>
         </Slider>
         <Grid x:Name="CheckBoxGrid" HorizontalAlignment="Left" Height="Auto" Margin="262,14,0,0" VerticalAlignment="Top" Width="Auto">
-            <StackPanel x:Name="CheckBoxStackPanel" Orientation="Horizontal">
-
-            </StackPanel>
+            <StackPanel x:Name="CheckBoxStackPanel" Orientation="Horizontal" />
         </Grid>
 
 
     </Grid>
 </Window>
+

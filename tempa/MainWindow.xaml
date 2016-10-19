@@ -351,8 +351,7 @@
                       Width="464" RenderTransformOrigin="1.067,0.385" Height="145" Grid.Row="1" 
                       Grid.ColumnSpan="2">
             <TextBlock x:Name="LogTextBlock" Padding="5"  TextWrapping="Wrap" 
-                           ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
-            </TextBlock>
+                           ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" />
         </ScrollViewer>
         <Button x:Name="AgrologFileBrowsButt" Margin="235,4,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" HorizontalContentAlignment="Center" Height="23" RenderTransformOrigin="0.565,0.696" FontSize="24" FontFamily="Stencil" Click="FileBrowsButt_Click" HorizontalAlignment="Left" Width="23" Grid.Row="1" >
             <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
@@ -480,3 +479,4 @@
         </Grid>
     </Grid>
 </Window>
+

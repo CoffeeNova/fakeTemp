@@ -432,7 +432,7 @@
                                 <Trigger Property="IsEnabled" Value="false">
                                     <Setter Property="Background" TargetName="Bd" Value="{StaticResource TabItemDisabledBackground}"/>
                                     <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource TabItemDisabledBorderBrush}"/>
-                                    <Setter Property="Fill" TargetName="RoundedCorner" Value="{StaticResource TabItemDisabledBackground}"></Setter>
+                                    <Setter Property="Fill" TargetName="RoundedCorner" Value="{StaticResource TabItemDisabledBackground}" />
                                     <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -1279,7 +1279,7 @@
         <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}"/>
         <Setter Property="Background" Value="{StaticResource ButtonBackground}"/>
         <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}"/>
-        <Setter Property="BorderThickness" Value="1"></Setter>
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="{StaticResource ButtonForeground}"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -1602,7 +1602,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="false">
-                            <Setter Property="Margin" TargetName="arrow" Value="-0.526,4.842,0,0"></Setter>
+                            <Setter Property="Margin" TargetName="arrow" Value="-0.526,4.842,0,0" />
                             <Setter Property="RenderTransform" TargetName="arrow">
                                 <Setter.Value>
                                     <TransformGroup>
@@ -1666,7 +1666,7 @@
         </Setter>
     </Style>
     <Style TargetType="{x:Type CheckBox}">
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"></Setter>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
         <Setter Property="Background" Value="{StaticResource CheckBoxFillNormal}"/>
         <Setter Property="BorderBrush" Value="{StaticResource CheckBoxStroke}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource EmptyCheckBoxFocusVisual}"/>
@@ -2330,7 +2330,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="false">
-                            <Setter Property="Margin" TargetName="arrow" Value="-0.526,4.842,0,0"></Setter>
+                            <Setter Property="Margin" TargetName="arrow" Value="-0.526,4.842,0,0" />
                             <Setter Property="RenderTransform" TargetName="arrow">
                                 <Setter.Value>
                                     <TransformGroup>
@@ -2406,7 +2406,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="false">
-                            <Setter Property="Margin" TargetName="arrow" Value="-0.526,4.842,0,0"></Setter>
+                            <Setter Property="Margin" TargetName="arrow" Value="-0.526,4.842,0,0" />
                             <Setter Property="RenderTransform" TargetName="arrow">
                                 <Setter.Value>
                                     <TransformGroup>
@@ -2911,7 +2911,7 @@
         </ControlTemplate.Triggers>
     </ControlTemplate>
     <Style TargetType="{x:Type MenuItem}">
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"></Setter>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
         <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
         <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
         <Setter Property="Background" Value="Transparent"/>
@@ -3463,3 +3463,130 @@
     
     
 </ResourceDictionary>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
