@@ -27,7 +27,7 @@ namespace CoffeeJelly.tempa.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value != null && (value.GetType() == typeof(string)))
+            if (value is string)
             {
                 return ((string)value).ToUpper();
             }
@@ -76,23 +76,15 @@ namespace CoffeeJelly.tempa.Converters
 
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            if (!string.IsNullOrEmpty(value as string))
-            {
-                FlowDocument fd = new FlowDocument();
+            if (string.IsNullOrEmpty(value as string)) return new FlowDocument();
+            FlowDocument fd = new FlowDocument();
 
-                string[] text = ((string)value).Split(' ');
+            Paragraph p = new Paragraph();
+            StringBuilder sb = new StringBuilder();
 
-                Paragraph p = new Paragraph();
-                StringBuilder sb = new StringBuilder();
+            //add text and pictures, etc. and return now InlineCollection instead of FlowDocument
 
-                //add text and pictures, etc. and return now InlineCollection instead of FlowDocument
-
-                return p.Inlines;
-            }
-            else
-            {
-                return new FlowDocument();
-            }
+            return p.Inlines;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
@@ -100,4 +92,36 @@ namespace CoffeeJelly.tempa.Converters
             return null;
         }
     }
+
+    public class LogDateFormatter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+
+            var t = ((DateTime)values[0]).ToString((string)values[1]); 
+            return t;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("ValueToMethodConverter can only be used for one way to source conversion.");
+        }
+    }
+
+    public class ReverseBoolConvertor : IValueConverter
+    {
+
+        public object Convert(object value, System.Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!(value is bool))
+                throw new ArgumentException("value is not a bool");
+            return !(bool)value;
+        }
+
+        public object ConvertBack(object value, System.Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException("ValueToMethodConverter can only be used for one way to source conversion.");
+        }
+    }
+
 }

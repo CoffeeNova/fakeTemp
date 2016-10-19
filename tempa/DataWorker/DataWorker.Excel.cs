@@ -124,9 +124,12 @@ namespace CoffeeJelly.tempa
                 ExcelWorksheet configWorkSheet = pck.Workbook.Worksheets[3];
 
                 var currentDate = DateTime.Now;
-                reportWorksheet.Cells[ ReportSheet.HEADER_ROW, ReportSheet.HEADER_COL].Value = string.Format("Отчет сформирован по данным термометрии {0}.", thermometryName);
-                reportWorksheet.Cells[ReportSheet.HEADER_ROW + 1, ReportSheet.HEADER_COL].Value = string.Format("Время последней модификации отчета: {0}.", currentDate.ToString("hh:mm:ss dd.MM.yyyy"));
-                reportWorksheet.Cells[ReportSheet.HEADER_ROW + 2, ReportSheet.HEADER_COL].Value = string.Format("{0}.   {1}.", Constants.APPLICATION_NAME, Constants.COMPANY_NAME);
+                reportWorksheet.Cells[ ReportSheet.HEADER_ROW, ReportSheet.HEADER_COL].Value =
+                    $"Отчет сформирован по данным термометрии {thermometryName}.";
+                reportWorksheet.Cells[ReportSheet.HEADER_ROW + 1, ReportSheet.HEADER_COL].Value =
+                    $"Время последней модификации отчета: {currentDate.ToString("hh:mm:ss dd.MM.yyyy")}.";
+                reportWorksheet.Cells[ReportSheet.HEADER_ROW + 2, ReportSheet.HEADER_COL].Value =
+                    $"{Constants.APPLICATION_NAME}.   {Constants.COMPANY_NAME}.";
                 reportWorksheet.Cells[ReportSheet.TABLE_CAPTIONS_ROW, ReportSheet.SILO_COL].Value = "Силос";
                 reportWorksheet.Cells[ReportSheet.TABLE_CAPTIONS_ROW, ReportSheet.CABLE_COL].Value = secondColumnCaption;
                 reportWorksheet.Cells[ReportSheet.TABLE_CAPTIONS_ROW, ReportSheet.SENSOR_COL].Value = "Датчик";

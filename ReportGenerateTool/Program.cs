@@ -19,7 +19,7 @@ namespace CoffeeJelly.ReportGenerateTool
         {
             Settings();
             SetCulturePattern();
-            WriteGreetings(); 
+            WriteGreetings();
             var reportType = ReportTypeQuestion();
             _reportsCount = ReportsCountQuestion();
             bool anyDateRangePrefer = DateRangePreferQuestion();
@@ -46,13 +46,13 @@ namespace CoffeeJelly.ReportGenerateTool
 
         private static void RewriteProcessString()
         {
-           lock(_locker)
-            //{
-            _total += 1;
+            lock (_locker)
+            {
+                _total += 1;
                 double tt = Convert.ToDouble(_total) / Convert.ToDouble(_reportsCount) * 100;
-            if (tt%1 == 0)
-                Console.Write($"\rProcessing: {(tt).ToString("0")}%");
-            //}
+                if (tt % 1 == 0)
+                    Console.Write($"\rProcessing: {(tt).ToString("0")}%");
+            }
         }
 
         private static void LetsWork(ProgramType reportType, DateTime? startDate, DateTime? endDate, TimeRange? timeRange, string outputPath)
@@ -240,7 +240,7 @@ namespace CoffeeJelly.ReportGenerateTool
 
         private const int THREADS_COUNT = 4;
 
-        private static int _total =0;
+        private static int _total = 0;
         private static ushort _reportsCount;
         private static readonly object _locker = new object();
 

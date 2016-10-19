@@ -94,7 +94,7 @@ namespace CoffeeJelly.tempa
 
         protected override void OnExit(ExitEventArgs e)
         {
-            NewDataWatcherWindow.exitCancelTokenSource.CancelAfter(2000);
+            NewDataWatcherWindow.ExitCancelTokenSource.CancelAfter(2000);
             CriticalTasks.Cleanup();
             CriticalTasks.WaitOnExit();
 

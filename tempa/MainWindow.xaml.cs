@@ -39,8 +39,8 @@ namespace CoffeeJelly.tempa
             Settings();
 
             LogMaker.Log("Графичейский интерфейс запущен!", false);
-            LogMaker.Log($"Мониторинг данных Agrolog {(IsAgrologDataCollect == true ? "активен" : "не активен")}", false);
-            LogMaker.Log($"Мониторинг данных Грейнбар {(IsGrainbarDataCollect == true ? "активен" : "не активен")}", false);
+            LogMaker.Log($"Мониторинг данных Agrolog {(IsAgrologDataCollect ? "активен" : "не активен")}", false);
+            LogMaker.Log($"Мониторинг данных Грейнбар {(IsGrainbarDataCollect ? "активен" : "не активен")}", false);
         }
 
         private void Settings()
@@ -91,64 +91,61 @@ namespace CoffeeJelly.tempa
 
         private void FileBrowsTreeViewDirExpand(string path, ItemCollection itemCollection)
         {
-            for (int i = 0; i < itemCollection.Count; i++)
+            foreach (TreeViewItem item in itemCollection)
             {
-                TreeViewItem item = (TreeViewItem)itemCollection[i];
                 DirectoryInfo dir = GetDirectoryInfo(item, true);
 
-
                 var splittedPath = path.Split('\\').ToList();
-                splittedPath.RemoveAll(p => string.IsNullOrEmpty(p));
-                var pathCount = splittedPath.Count;
+                splittedPath.RemoveAll(string.IsNullOrEmpty);
+
                 foreach (string dirName in splittedPath)
                 {
-                    if (dir.Name.PathFormatter() == dirName.PathFormatter())
+                    if (dir.Name.PathFormatter() != dirName.PathFormatter()) continue;
+                    Dispatcher.Invoke(new Action(() =>
                     {
-                        Dispatcher.Invoke(new Action(() =>
-                        {
-                            item.IsExpanded = false;
-                            item.IsExpanded = true;
-                            item.IsSelected = true;
-                        }));
-                        FileBrowsTreeViewDirExpand(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), item.Items);
-                        break;
-                    }
+                        item.IsExpanded = false;
+                        item.IsExpanded = true;
+                        item.IsSelected = true;
+                    }));
+                    FileBrowsTreeViewDirExpand(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), item.Items);
+                    break;
                 }
             }
         }
 
         private void FillTreeViewItemWithDirectories(ref TreeViewItem treeViewItem)
         {
-            var bc = new BrushConverter();
-            //treeViewItem.Foreground = (Brush)bc.ConvertFrom("#FFBFB7B7");
             treeViewItem.Items.Clear();
             DirectoryInfo dir = GetDirectoryInfo(treeViewItem, false);
             try
             {
                 foreach (DirectoryInfo subDir in dir.GetDirectories())
                 {
-                    var newItem = new TreeViewItem();
-                    newItem.Tag = subDir;
-                    newItem.Header = subDir.ToString();
+                    var newItem = new TreeViewItem
+                    {
+                        Tag = subDir,
+                        Header = subDir.ToString()
+                    };
                     newItem.Items.Add("*");
-                    //newItem.Foreground = (Brush)bc.ConvertFrom("#FFFFFFFF");
                     treeViewItem.Items.Add(newItem);
                 }
             }
             catch
-            { }
-            finally { }
+            {
+                // ignored
+            }
         }
 
 
         private DirectoryInfo GetDirectoryInfo(TreeViewItem item, bool anotherThread)
         {
             DirectoryInfo dir;
-            object tag = anotherThread == true ? Dispatcher.Invoke(new Func<object>(() => item.Tag)) : item.Tag;
+            object tag = anotherThread ? Dispatcher.Invoke(new Func<object>(() => item.Tag)) : item.Tag;
 
-            if (tag is DriveInfo)
+            var info = tag as DriveInfo;
+            if (info != null)
             {
-                DriveInfo drive = (DriveInfo)tag;
+                DriveInfo drive = info;
                 dir = drive.RootDirectory;
             }
             else dir = (DirectoryInfo)tag;
@@ -169,7 +166,7 @@ namespace CoffeeJelly.tempa
                 if (!Directory.Exists(path))
                 {
                     DirectoryInfo newDir = Directory.CreateDirectory(path);
-                    LogMaker.Log(string.Format("Создана новая папка: \"{0}\".", newDir.FullName), false);
+                    LogMaker.Log($"Создана новая папка: \"{newDir.FullName}\".", false);
                     return newDir;
                 }
                 return new DirectoryInfo(path);
@@ -187,15 +184,15 @@ namespace CoffeeJelly.tempa
             List<T> reportData = null;
             try
             {
-                LogMaker.Log(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false);
+                LogMaker.Log($"Чтение данных из файла \"{dataFileName}\"", false);
                 reportData = await DataWorker.ReadBinaryAsync<T>(dataFolderPath, dataFileName);
-                LogMaker.Log(string.Format("Формирование отчета \"{0}\"", reportFileName), false);
+                LogMaker.Log($"Формирование отчета \"{reportFileName}\"", false);
                 await DataWorker.WriteExcelReportAsync<T>(reportPath, reportFileName, reportData);
-                LogMaker.Log(string.Format("Отчет \"{0}\" сформирован успешно.", reportFileName), false);
+                LogMaker.Log($"Отчет \"{reportFileName}\" сформирован успешно.", false);
             }
             catch (WriteReportException ex)
             {
-                if (ex.InnerException.GetType() == typeof(ReportFileException))
+                if (ex.InnerException != null && ex.InnerException.GetType() == typeof(ReportFileException))
                 {
                     LogMaker.Log("Файл отчета не существует. Необходимо создать новый.", true);
                     RaiseEvent(new RoutedEventArgs(MainWindow.CreateReportShowEvent, this));
@@ -204,7 +201,7 @@ namespace CoffeeJelly.tempa
                     ThreadPool.QueueUserWorkItem((state) => CreateNewReport<T>(reportPath, reportFileName, reportData));
                 }
                 else
-                    LogMaker.Log(string.Format("Не получилось сформировать отчет \"{0}\", cм. Error.log.", reportFileName), true);
+                    LogMaker.Log($"Не получилось сформировать отчет \"{reportFileName}\", cм. Error.log.", true);
                 ExceptionHandler.Handle(ex, false);
             }
         }
@@ -214,7 +211,7 @@ namespace CoffeeJelly.tempa
             _createReportResetEvent.WaitOne();
             if (_createReportCancellationToken.Token.IsCancellationRequested)
                 return;
-            LogMaker.InvokedLog(string.Format("Создаю файл отчета \"{0}\".", reportFileName), false, this.Dispatcher);
+            LogMaker.InvokedLog($"Создаю файл отчета \"{reportFileName}\".", false, this.Dispatcher);
             string tempExcelTemplateName = Constants.APPLICATION_DIRECTORY.PathFormatter() + Constants.EXCEL_TEMPLATE_REPORT_TEMP_NAME;
 
             try
@@ -223,11 +220,11 @@ namespace CoffeeJelly.tempa
                 var tempExcelTemplate = new FileInfo(tempExcelTemplateName);
                 DataWorker.CreateNewExcelReport<T>(reportPath, reportFileName, Constants.APPLICATION_DIRECTORY, Constants.EXCEL_TEMPLATE_REPORT_TEMP_NAME, reportData);
                 tempExcelTemplate.Delete();
-                LogMaker.InvokedLog(string.Format("Отчет \"{0}\" сформирован успешно.", reportFileName), false, this.Dispatcher);
+                LogMaker.InvokedLog($"Отчет \"{reportFileName}\" сформирован успешно.", false, this.Dispatcher);
             }
             catch (Exception ex)
             {
-                LogMaker.InvokedLog(string.Format("Ошибка создания отчета \"{0}\".", reportFileName), true, this.Dispatcher);
+                LogMaker.InvokedLog($"Ошибка создания отчета \"{reportFileName}\".", true, this.Dispatcher);
                 ExceptionHandler.Handle(ex, false);
             }
 
@@ -236,7 +233,7 @@ namespace CoffeeJelly.tempa
         private Task OpenPlotAsync<T>(string dataFolderPath, string dataFileName) where T : ITermometer
         {
             var tcs = new TaskCompletionSource<object>();
-            var plotThread = new Thread(new ThreadStart(() =>
+            var plotThread = new Thread(() =>
             {
                 try
                 {
@@ -246,25 +243,26 @@ namespace CoffeeJelly.tempa
                 }
                 catch (PlotDataException ex)
                 {
-                    LogMaker.InvokedLog(string.Format("Нет данных для построения графика \"{0}\", cм. Error.log.", Internal.GetProgramName<T>()), true, this.Dispatcher);
+                    LogMaker.InvokedLog(
+                        $"Нет данных для построения графика \"{Internal.GetProgramName<T>()}\", cм. Error.log.", true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     tcs.SetResult(null);
                     //tcs.SetException(ex);
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.InvokedLog(string.Format("Не получилось построить график \"{0}\", cм. Error.log.", Internal.GetProgramName<T>()), true, this.Dispatcher);
+                    LogMaker.InvokedLog(
+                        $"Не получилось построить график \"{Internal.GetProgramName<T>()}\", cм. Error.log.", true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     tcs.SetResult(null);
                     //tcs.SetException(ex);
                 }
-            }));
+            });
 
             plotThread.SetApartmentState(ApartmentState.STA);
             plotThread.IsBackground = true;
             plotThread.Name = "Plot Thread";
             plotThread.Start();
-            //Thread.Sleep(30000);
             return tcs.Task;
         }
 
@@ -288,14 +286,14 @@ namespace CoffeeJelly.tempa
         {
             if (programType == ProgramType.Agrolog)
             {
-                if (agrologDataChb.IsChecked.Value)
+                if (agrologDataChb.IsChecked != null && agrologDataChb.IsChecked.Value)
                 {
                     agrologDataChb.IsChecked = false;
                     agrologDataChb.IsChecked = true;
                 }
             }
             else if (programType == ProgramType.Grainbar)
-                if (grainbarDataChb.IsChecked.Value)
+                if (grainbarDataChb.IsChecked != null && grainbarDataChb.IsChecked.Value)
                 {
                     grainbarDataChb.IsChecked = false;
                     grainbarDataChb.IsChecked = true;
@@ -307,22 +305,19 @@ namespace CoffeeJelly.tempa
 
         private void OpenPlotCallBack<T>(string dataFolderPath, string dataFileName) where T : ITermometer
         {
-            List<T> reportData = null;
-
             try
             {
-                LogMaker.InvokedLog(string.Format("Чтение данных из файла \"{0}\"", dataFileName), false, this.Dispatcher);
-                reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
-                LogMaker.InvokedLog(string.Format("Построение графика \"{0}\"", Internal.GetProgramName<T>()), false, this.Dispatcher);
+                LogMaker.InvokedLog($"Чтение данных из файла \"{dataFileName}\"", false, this.Dispatcher);
+                var reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
+                LogMaker.InvokedLog($"Построение графика \"{Internal.GetProgramName<T>()}\"", false, this.Dispatcher);
 
-                List<Termometer> data = new List<Termometer>();
-                data = reportData.Select(t => t as Termometer).ToList();
+                var data = reportData.Select(t => t as Termometer).ToList();
 
                 var func = new Func<MainPlotWindow>(() =>
                 {
                     var p = new MainPlotWindow(data);
                     p.Show();
-                    p.Closed += (sender, e) => ClosePlotCallback(sender, e, Internal.GetProgramName<T>(), ref p);
+                    p.Closed += (sender, e) => ClosePlotCallback(Internal.GetProgramName<T>(), ref p);
                     return p;
                 });
 
@@ -338,22 +333,22 @@ namespace CoffeeJelly.tempa
             {
                 if (typeof(T) == typeof(TermometerAgrolog))
                 {
-                    _agrologPlot.Close();
-                    _agrologPlot.Dispatcher.InvokeShutdown();
+                    _agrologPlot?.Close();
+                    _agrologPlot?.Dispatcher.InvokeShutdown();
                 }
                 else if (typeof(T) == typeof(TermometerGrainbar))
                 {
-                    _grainbarPlot.Close();
-                    _grainbarPlot.Dispatcher.InvokeShutdown();
+                    _grainbarPlot?.Close();
+                    _grainbarPlot?.Dispatcher.InvokeShutdown();
                 }
                 throw new Exception("Abort thread Exception", ex);
             }
 
         }
 
-        private void ClosePlotCallback(object sender, EventArgs e, string plotName, ref MainPlotWindow plotWindow)
+        private void ClosePlotCallback(string plotName, ref MainPlotWindow plotWindow)
         {
-            LogMaker.InvokedLog(string.Format("Закрытие окна графика \"{0}\"", plotName), false, this.Dispatcher);
+            LogMaker.InvokedLog($"Закрытие окна графика \"{plotName}\"", false, this.Dispatcher);
             plotWindow.Dispatcher.InvokeShutdown();
             plotWindow = null;
         }
@@ -387,40 +382,55 @@ namespace CoffeeJelly.tempa
                     path += item.Header.ToString();
                 i++;
             }
-            var tag = (ProgramType)(sender as TreeView).Tag;
-            if (tag == ProgramType.Agrolog)
-                AgrologReportsPath = path;
-            else
-                GrainbarReportsPath = path;
+            var treeView = sender as TreeView;
+            if (treeView != null)
+            {
+                var tag = (ProgramType)treeView.Tag;
+                if (tag == ProgramType.Agrolog)
+                    AgrologReportsPath = path;
+                else
+                    GrainbarReportsPath = path;
+            }
         }
 
 
-        void LogMaker_newMessage(string message, DateTime time, bool isError)
+        private void LogMaker_newMessage(string message, DateTime time, bool isError)
         {
             this.Dispatcher.BeginInvoke(new Action(() =>
             {
-                //Run run = new Run(message + Environment.NewLine);
-                //if (isError)
-                //    run.Foreground = Brushes.Red;
-                //else
-                //    run.Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom("#EFEFEF"));
+                if (_logDate.Day != time.Day)
+                {
+                    _logDate = time;
+                    LogCollection.Add(new LogEntry
+                    {
+                        DateTime = time,
+                        DatePattern = "dd.MM.yyyy",
+                    });
+                }
+                Brush messageColor = isError
+                    ? Brushes.Red
+                    : (SolidColorBrush) new BrushConverter().ConvertFrom("#EFEFEF");
 
-                LogCollection.Add(new LogEntry()
+                _logIndex++;
+
+                LogCollection.Add(new LogEntry
                 {
                     DateTime = time,
-                    Index = _logIndex,
-                    Message = message
+                    DatePattern = "HH:mm:ss",
+                    Index = _logIndex.ToString(),
+                    Message = message,
+                    MessageColor = messageColor
                 });
-                //LogTextBlock.Inlines.Add(run);
             }));
 
         }
 
         private async void FileBrowsButt_Click(object sender, RoutedEventArgs e)
         {
-            if (IsFileBrowsTreeOnForm == false)
+            if (IsFileBrowsTreeOnForm) return;
+            var button = sender as Button;
+            if (button != null)
             {
-                var button = sender as Button;
                 FileBrowsTreeView.Tag = button.Tag;
                 FillTreeViewWithRootDrives(ref FileBrowsTreeView);
                 if (FileBrowsTreeView.Items.Count == 0)
@@ -430,10 +440,10 @@ namespace CoffeeJelly.tempa
                     await FileBrowsTreeViewDirExpandAsync(AgrologReportsPath, FileBrowsTreeView.Items);
                 else
                     await FileBrowsTreeViewDirExpandAsync(GrainbarReportsPath, FileBrowsTreeView.Items);
-
-                IsFileBrowsTreeOnForm = true;
-                FileBrowsTreeView.Focus();
             }
+
+            IsFileBrowsTreeOnForm = true;
+            FileBrowsTreeView.Focus();
         }
 
         private void FileBrowsOkButt_Click(object sender, RoutedEventArgs e)
@@ -447,10 +457,11 @@ namespace CoffeeJelly.tempa
         private async void ReportButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
+            if (button == null) return;
             button.IsEnabled = false;
-            if (button == AgrologButton)
+            if (Equals(button, AgrologButton))
                 await WriteReport<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE, Constants.EXCEL_REPORT_FOLDER_PATH, Constants.AGROLOG_EXCEL_REPORT_FILE_NAME);
-            else if (button == GrainbarButton)
+            else if (Equals(button, GrainbarButton))
                 await WriteReport<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE, Constants.EXCEL_REPORT_FOLDER_PATH, Constants.GRAINBAR_EXCEL_REPORT_FILE_NAME);
             button.IsEnabled = true;
         }
@@ -517,14 +528,14 @@ namespace CoffeeJelly.tempa
         private void CreateReportYesButton_Click(object sender, RoutedEventArgs e)
         {
             _createReportResetEvent.Set();
-            RaiseEvent(new RoutedEventArgs(MainWindow.CreateReportHideEvent, this));
+            RaiseEvent(new RoutedEventArgs(CreateReportHideEvent, this));
         }
 
         private void CreateReportNoButton_Click(object sender, RoutedEventArgs e)
         {
             _createReportCancellationToken.Cancel();
             _createReportResetEvent.Set();
-            RaiseEvent(new RoutedEventArgs(MainWindow.CreateReportHideEvent, this));
+            RaiseEvent(new RoutedEventArgs(CreateReportHideEvent, this));
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
@@ -577,14 +588,17 @@ namespace CoffeeJelly.tempa
             if (e.Key == Key.Enter)
             {
                 var textBox = (sender as TextBox);
-                var text = textBox.Text;
-                DirectoryInfo newDir = CreateNewFolder(text);
-                if (newDir == null)
+                if (textBox != null)
                 {
-                    textBox.Text = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
-                    textBox.SelectAll();
+                    var text = textBox.Text;
+                    DirectoryInfo newDir = CreateNewFolder(text);
+                    if (newDir == null)
+                    {
+                        textBox.Text = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
+                        textBox.SelectAll();
+                    }
+                    if (newDir != null) await FileBrowsTreeViewDirExpandAsync(newDir.FullName, FileBrowsTreeView.Items);
                 }
-                await FileBrowsTreeViewDirExpandAsync(newDir.FullName, FileBrowsTreeView.Items);
 
                 FileBrowsTreeView.Focus();
             }
@@ -593,13 +607,14 @@ namespace CoffeeJelly.tempa
         private void FilesPathTextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
             var textBox = sender as TextBox;
+            if (textBox == null) return;
             var programType = textBox.Name == "AgrologFilesPathTextBox" ? ProgramType.Agrolog : ProgramType.Grainbar;
             var propertyName = textBox.Name == "AgrologFilesPathTextBox" ? "AgrologReportsPath" : "GrainbarReportsPath";
 
             if (textBox.Text == (string)this.GetPropertyValue(propertyName))
                 return;
-            else
-                this.SetPropertyValue(propertyName, textBox.Text);
+
+            this.SetPropertyValue(propertyName, textBox.Text);
 
             SaveReportsPathToRegistry(programType);
             StartDataCollect(programType);
@@ -607,27 +622,28 @@ namespace CoffeeJelly.tempa
 
         private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
         {
+            if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private void OpenExcelButton_Click(object sender, RoutedEventArgs e)
         {
             string filePath = Constants.EXCEL_REPORT_FOLDER_PATH.PathFormatter();
-            filePath += (sender as Button).Name == "AShowExcelBut" ? Constants.AGROLOG_EXCEL_REPORT_FILE_NAME : Constants.GRAINBAR_EXCEL_REPORT_FILE_NAME;
-            string programName = (sender as Button).Name == "AShowExcelBut" ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
+            filePath += (sender as Button)?.Name == "AShowExcelBut" ? Constants.AGROLOG_EXCEL_REPORT_FILE_NAME : Constants.GRAINBAR_EXCEL_REPORT_FILE_NAME;
+            string programName = (sender as Button)?.Name == "AShowExcelBut" ? Constants.AGROLOG_PROGRAM_NAME : Constants.GRAINBAR_PROGRAM_NAME;
             try
             {
                 Process.Start(filePath);
-                LogMaker.Log(string.Format("Отчет {0} запущен.", programName), false);
+                LogMaker.Log($"Отчет {programName} запущен.", false);
             }
             catch (FileNotFoundException ex)
             {
-                LogMaker.Log(string.Format("Файл отчета {0} не существует.", programName), true);
+                LogMaker.Log($"Файл отчета {programName} не существует.", true);
                 ExceptionHandler.Handle(ex, false);
             }
             catch (Exception ex)
             {
-                LogMaker.Log(string.Format("Ошибка открытия файла отчета {0}.", programName), true);
+                LogMaker.Log($"Ошибка открытия файла отчета {programName}.", true);
                 ExceptionHandler.Handle(ex, false);
             }
         }
@@ -635,18 +651,19 @@ namespace CoffeeJelly.tempa
         private async void PlotButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
+            if (button == null || AgrologPlotButton == null) return;
             button.IsEnabled = false;
 
-            if (button == AgrologPlotButton)
+            if (Equals(button, AgrologPlotButton))
                 await OpenPlotAsync<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE);
-            else if (button == GrainbarPlotButton)
+            else if (Equals(button, GrainbarPlotButton))
                 await OpenPlotAsync<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE);
             button.IsEnabled = true;
         }
 
         private void AboutOKButton_Click(object sender, RoutedEventArgs e)
         {
-            RaiseEvent(new RoutedEventArgs(MainWindow.AboutHideEvent, this));
+            RaiseEvent(new RoutedEventArgs(AboutHideEvent, this));
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -657,21 +674,20 @@ namespace CoffeeJelly.tempa
 
         private void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName.EqualsAny(nameof(IsAgrologDataCollect), nameof(IsGrainbarDataCollect)))
+            if (!e.PropertyName.EqualsAny(nameof(IsAgrologDataCollect), nameof(IsGrainbarDataCollect))) return;
+            string propertyName = e.PropertyName;
+            bool value = (bool)sender.GetPropertyValue(e.PropertyName);
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
-                string propertyName = e.PropertyName;
-                bool value = (bool)sender.GetPropertyValue(e.PropertyName);
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                (Application.Current.MainWindow as NewDataWatcherWindow).WatcherInitChange(propertyName, value)));
-            }
-
+                var newDataWatcherWindow = Application.Current.MainWindow as NewDataWatcherWindow;
+                newDataWatcherWindow?.WatcherInitChange(propertyName, value);
+            }));
         }
 
 
         private void LogCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            NotifyPropertyChanged(nameof(LogCollection));
-            //LogScrollViewer.LogEntries = LogCollection;
+            NotifyPropertyChanged(propertyName: nameof(LogCollection));
         }
 
         #endregion
@@ -730,14 +746,13 @@ namespace CoffeeJelly.tempa
 
         #region fields
 
-        public bool IsFileBrowsTreeOnForm = false;                 //на форме ли окно выбора файлов
-        public bool IsSettingsGridOnForm = false;
-        public bool IsCreateReportWindowShow = false;
-        public bool IsAboutOnForm = false;
+        public bool IsFileBrowsTreeOnForm;                 //на форме ли окно выбора файлов
+        public bool IsSettingsGridOnForm;
+        public bool IsCreateReportWindowShow;
+        public bool IsAboutOnForm;
 
         private string _agrologReportsPath;
         private string _grainbarReportsPath;
-        private readonly Logger _log = LogManager.GetCurrentClassLogger();
         private readonly ManualResetEvent _createReportResetEvent = new ManualResetEvent(false);
         private CancellationTokenSource _createReportCancellationToken;
         private MainPlotWindow _agrologPlot;
@@ -746,9 +761,9 @@ namespace CoffeeJelly.tempa
         private bool _isAgrologDataCollect;
         private bool _isGrainbarDataCollect;
         private bool _isAutostart = true;
-        private bool _isDataSubstitution = false;
-        private ObservableCollection<LogEntry> _logCollection = new ObservableCollection<LogEntry>();
+        private bool _isDataSubstitution;
         private int _logIndex = 0;
+        private DateTime _logDate = DateTime.Today.AddDays(-1);
 
         #endregion
 
@@ -759,9 +774,7 @@ namespace CoffeeJelly.tempa
             get { return _agrologReportsPath; }
             private set
             {
-                if (string.IsNullOrEmpty(value))
-                    _agrologReportsPath = Constants.AGROLOG_REPORTS_FOLDER_PATH;
-                else _agrologReportsPath = value;
+                _agrologReportsPath = string.IsNullOrEmpty(value) ? Constants.AGROLOG_REPORTS_FOLDER_PATH : value;
                 NotifyPropertyChanged();
             }
         }
@@ -771,9 +784,7 @@ namespace CoffeeJelly.tempa
             get { return _grainbarReportsPath; }
             private set
             {
-                if (string.IsNullOrEmpty(value))
-                    _grainbarReportsPath = Constants.AGROLOG_REPORTS_FOLDER_PATH;
-                else _grainbarReportsPath = value;
+                _grainbarReportsPath = string.IsNullOrEmpty(value) ? Constants.AGROLOG_REPORTS_FOLDER_PATH : value;
                 NotifyPropertyChanged();
             }
         }
@@ -783,11 +794,11 @@ namespace CoffeeJelly.tempa
             get { return _isAgrologDataCollect; }
             set
             {
-                if (_isAgrologDataCollect != value)
-                {
-                    _isAgrologDataCollect = value;
-                    NotifyPropertyChanged();
-                }
+                if (_isAgrologDataCollect == value)
+                    return;
+
+                _isAgrologDataCollect = value;
+                NotifyPropertyChanged();
             }
 
         }
@@ -797,11 +808,11 @@ namespace CoffeeJelly.tempa
             get { return _isGrainbarDataCollect; }
             set
             {
-                if (_isGrainbarDataCollect != value)
-                {
-                    _isGrainbarDataCollect = value;
-                    NotifyPropertyChanged();
-                }
+                if (_isGrainbarDataCollect == value)
+                    return;
+
+                _isGrainbarDataCollect = value;
+                NotifyPropertyChanged();
             }
         }
 
@@ -810,11 +821,11 @@ namespace CoffeeJelly.tempa
             get { return _isAutostart; }
             set
             {
-                if (_isAutostart != value)
-                {
-                    _isAutostart = value;
-                    NotifyPropertyChanged();
-                }
+                if (_isAutostart == value)
+                    return;
+
+                _isAutostart = value;
+                NotifyPropertyChanged();
             }
         }
 
@@ -823,56 +834,30 @@ namespace CoffeeJelly.tempa
             get { return _isDataSubstitution; }
             set
             {
-                if (_isDataSubstitution != value)
-                {
-                    _isDataSubstitution = value;
-                    NotifyPropertyChanged();
-                }
+                if (_isDataSubstitution == value)
+                    return;
+                _isDataSubstitution = value;
+                NotifyPropertyChanged();
             }
         }
 
-        public ObservableCollection<LogEntry> LogCollection
-        {
-            get { return _logCollection; }
-            set
-            {
-                _logCollection = value;
-            }
-        }
+        public ObservableCollection<LogEntry> LogCollection { get; set; } = new ObservableCollection<LogEntry>();
 
         public string AssemblyVersion
         {
             get
             {
                 var assembly = Assembly.GetExecutingAssembly();
-                var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+                var fileVersionInfo = FileVersionInfo.GetVersionInfo(fileName: assembly.Location);
                 return fileVersionInfo.FileVersion;
             }
         }
 
-        public string ApplicationName
-        {
-            get
-            {
-                return Constants.APPLICATION_NAME;
-            }
-        }
+        public string ApplicationName => Constants.APPLICATION_NAME;
 
-        public string Description
-        {
-            get
-            {
-                return Constants.APPLICATION_DESCRIPTION;
-            }
-        }
+        public string Description => Constants.APPLICATION_DESCRIPTION;
+
         #endregion
-
-        private void TestButton_Click(object sender, RoutedEventArgs e)
-        {
-            for (int i = 1; i < 50; i++)
-                LogMaker.Log("test", i % 2 == 0);
-
-        }
 
     }
 }

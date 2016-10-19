@@ -13,7 +13,7 @@ using System.ComponentModel;
 
 namespace CoffeeJelly.tempa
 {
-    public class NewDataWatcherWindow : Window
+    public class NewDataWatcherWindow : Window, INotifyPropertyChanged
     {
         public NewDataWatcherWindow()
         {
@@ -118,15 +118,18 @@ namespace CoffeeJelly.tempa
 
         private async Task<List<T>> ReadDataFile<T>(string dataFileName, bool readAsync) where T : ITermometer
         {
-            List<T> dataFile;
-
             try
             {
+                List<T> dataFile;
                 if (readAsync)
                     dataFile = await DataWorker.ReadBinaryAsync<T>(Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName);
                 else
                     dataFile = DataWorker.ReadBinary<T>(Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName);
                 return dataFile;
+            }
+            catch (IOException ex)
+            {
+
             }
             catch (Exception ex)
             {
@@ -172,7 +175,10 @@ namespace CoffeeJelly.tempa
             FileInfo[] filesInfo = dirInfo.GetFiles("*." + fileExtension);
             string programName = Internal.GetProgramName<T>();
             string dataFileName = DataFileName<T>();
-            DataHandlingLock<T>.SyncLock.WaitOne();
+
+            LockNow<T>();
+
+
             LogMaker.Log($"Начинаю проверку каталога \"{path}\" на наличие новых данных {programName}...", false);
             var checkList = new List<bool>();
             List<T> dataList = ReadDataFile<T>(dataFileName, false).Result;
@@ -181,7 +187,7 @@ namespace CoffeeJelly.tempa
 
             foreach (var fileInfo in filesInfo)
             {
-                if (exitToken.IsCancellationRequested)
+                if (ExitToken.IsCancellationRequested)
                     return;
                 checkList.Add(NewDataVerification<T>(fileInfo.DirectoryName, fileInfo.Name, dataList, false).Result);
             }
@@ -202,7 +208,7 @@ namespace CoffeeJelly.tempa
             foreach (var fileInfo in filesInfo)
                 DeleteFile(fileInfo.DirectoryName, fileInfo.Name);
 
-            DataHandlingLock<T>.SyncLock.Release();
+            UnLockNow<T>();
         }
 
         private async Task<bool> NewDataVerification<T>(string path, string fileName, List<T> dataList, bool isAsync) where T : ITermometer
@@ -305,9 +311,30 @@ namespace CoffeeJelly.tempa
             return Internal.CheckRegistrySettings(regKeyPath, Constants.SETTINGS_LOCATION, regKeyValue);
         }
 
+        private void LockNow<T>()
+        {
+            var qWaitOne = DataHandlingLock<T>.SyncLock.WaitOne();
+            if (typeof(T) == typeof(TermometerAgrolog))
+                AgrologQueue = qWaitOne;
+            else if (typeof(T) == typeof(TermometerGrainbar))
+                GrainbarQueue = qWaitOne;
+        }
+
+        private void UnLockNow<T>()
+        {
+            var qRelease = DataHandlingLock<T>.SyncLock.Release();
+            if (qRelease > 0)
+                return;
+
+            if (typeof(T) == typeof(TermometerAgrolog))
+                AgrologQueue = false;
+            else if (typeof(T) == typeof(TermometerGrainbar))
+                GrainbarQueue = false;
+        }
+
         private void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
         {
-            if (exitToken.IsCancellationRequested)
+            if (ExitToken.IsCancellationRequested)
             {
                 this.Dispatcher.Invoke(new Action(() => (sender as FileSystemWatcher).EnableRaisingEvents = false));
                 return;
@@ -329,10 +356,10 @@ namespace CoffeeJelly.tempa
             string dataFileName = DataFileName<T>();
             var disp = Dispatcher;
             bool dataIsNew = false;
-            DataHandlingLock<T>.SyncLock.WaitOne();
+
+             LockNow<T>();
 
             List<T> dataList = ReadDataFile<T>(dataFileName, false).Result;
-
             if (dataList == null)
                 return;
 
@@ -347,27 +374,58 @@ namespace CoffeeJelly.tempa
             if (writeResult)
                 DeleteFile(path, e.Name);
 
-            DataHandlingLock<T>.SyncLock.Release();
+            UnLockNow<T>();
         }
 
         private void Watcher_Error(object sender, ErrorEventArgs e)
         {
             LogMaker.Log("Слишком много файлов за один раз. Буфер увеличен в 2 раза. Удалите файлы из каталога и попробуйте еще раз.", true);
-            (sender as FileSystemWatcher).InternalBufferSize = (sender as FileSystemWatcher).InternalBufferSize * 2;
+            var fileSystemWatcher = sender as FileSystemWatcher;
+            if (fileSystemWatcher != null)
+                fileSystemWatcher.InternalBufferSize = fileSystemWatcher.InternalBufferSize * 2;
         }
 
-        FileSystemWatcher _agrologDataWatcher;
-        FileSystemWatcher _grainbarDataWatcher;
+        private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
+        {
+            if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
-        public static CancellationTokenSource exitCancelTokenSource = new CancellationTokenSource();
-        public static CancellationToken exitToken = exitCancelTokenSource.Token;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public static CancellationTokenSource ExitCancelTokenSource = new CancellationTokenSource();
+        public static CancellationToken ExitToken = ExitCancelTokenSource.Token;
+
+        private FileSystemWatcher _agrologDataWatcher;
+        private FileSystemWatcher _grainbarDataWatcher;
+        private bool _agrologQueue;
+        private bool _grainbarQueue = false;
+
+        public bool AgrologQueue
+        {
+            get { return _agrologQueue; }
+            set
+            {
+                _agrologQueue = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool GrainbarQueue
+        {
+            get { return _grainbarQueue; }
+            set
+            {
+                _grainbarQueue = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private static class DataHandlingLock<T>
         {
-            //public static readonly object SyncLock = new object();
             public static Semaphore SyncLock = new Semaphore(1, 1);
-
         }
 
     }
+
 }

@@ -4,14 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CoffeeJelly.tempa.Controls"
+             xmlns:conv="clr-namespace:CoffeeJelly.tempa.Converters"
+             xmlns:extensions="clr-namespace:CoffeeJelly.tempa.Extensions"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
+        <conv:LogDateFormatter x:Key="logDateFormatter"/>
         <Style TargetType="ItemsControl" x:Key="LogViewerStyle">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate>
-                        <ScrollViewer CanContentScroll="True">
+                        <ScrollViewer CanContentScroll="True" extensions:AutoScrollBehavior.AutoScroll="True">
                             <ItemsPresenter/>
                         </ScrollViewer>
                     </ControlTemplate>
@@ -35,14 +38,19 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="{Binding DateTime}" Grid.Column="0"
-                       FontWeight="Bold" Margin="5,0,5,0"/>
+                <TextBlock  Grid.Column="0" FontWeight="Bold" Margin="5,0,5,0">
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource logDateFormatter}">
+                            <Binding Path="DateTime"/>
+                            <Binding Path="DatePattern"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Text="{Binding Index}" Grid.Column="1" FontWeight="Bold" 
+                           Margin="0,0,2,0" />
 
-                <TextBlock Text="{Binding Index}" Grid.Column="1"
-                       FontWeight="Bold" Margin="0,0,2,0" />
-
-                <TextBlock Text="{Binding Message}" Grid.Column="2"
-                       TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding Message}" Grid.Column="2" TextWrapping="Wrap"
+                           Foreground="{Binding MessageColor}"/>
             </Grid>
         </DataTemplate>
 
@@ -59,14 +67,19 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Text="{Binding DateTime}" Grid.Column="0"
-                       FontWeight="Bold" Margin="5,0,5,0"/>
+                <TextBlock  Grid.Column="0"
+                       FontWeight="Bold" Margin="5,0,5,0">
+                     <MultiBinding Converter="{StaticResource logDateFormatter}">
+                        <Binding Path="DateTime"/>
+                        <Binding Path="DatePattern"/>
+                    </MultiBinding>
+                </TextBlock>
 
                 <TextBlock Text="{Binding Index}" Grid.Column="1"
                        FontWeight="Bold" Margin="0,0,2,0" />
 
                 <TextBlock Text="{Binding Message}" Grid.Column="2"
-                       TextWrapping="Wrap"/>
+                       TextWrapping="Wrap" Foreground="{Binding MessageColor}"/>
 
                 <ToggleButton x:Name="Expander" Grid.Row="1" Grid.Column="0"
                           VerticalAlignment="Top" Content="+" HorizontalAlignment="Right"/>
@@ -74,7 +87,6 @@
                 <ItemsControl ItemsSource="{Binding Contents}" Style="{StaticResource LogViewerStyle}"
                           Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
                           x:Name="Contents" Visibility="Collapsed"/>
-
             </Grid>
             <DataTemplate.Triggers>
                 <Trigger SourceName="Expander" Property="IsChecked" Value="True">
@@ -92,7 +104,7 @@
         <ItemsControl ItemsSource="{Binding}" Style="{StaticResource LogViewerStyle}">
             <ItemsControl.Template>
                 <ControlTemplate>
-                    <ScrollViewer CanContentScroll="True">
+                    <ScrollViewer CanContentScroll="True" extensions:AutoScrollBehavior.AutoScroll="True">
                         <ItemsPresenter/>
                     </ScrollViewer>
                 </ControlTemplate>

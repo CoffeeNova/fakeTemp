@@ -34,7 +34,7 @@ namespace CoffeeJelly.tempa
             if (StringExtension.AnyNullOrEmpty(silo, cable))
                 throw new ArgumentException("All strings should have not be empty or null values.");
             if (sensor.Count() != SensorsCount)
-                throw new ArgumentOutOfRangeException("sensor", string.Format("Array size must equal {0} value", SensorsCount));
+                throw new ArgumentOutOfRangeException("sensor", $"Array size must equal {SensorsCount} value");
             MeasurementDate = measurementDate;
             Silo = silo;
             Cable = cable;
