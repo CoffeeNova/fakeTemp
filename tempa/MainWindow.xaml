@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:extensions="clr-namespace:CoffeeJelly.tempa.Extensions"
-        mc:Ignorable="d" x:Class="CoffeeJelly.tempa.MainWindow"
+        mc:Ignorable="d" x:Class="CoffeeJelly.tempa.UIwindow"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Title="TermoReporter" Height="415.367" Width="484.334" Closed="Program_Closed" ResizeMode="NoResize" WindowStyle="None"
         xmlns:tempa="clr-namespace:CoffeeJelly.tempa"   
@@ -15,8 +15,8 @@
         <tempa:MainWindow/>
     </Window.DataContext>-->
     <Window.Resources>
-        <conv:ReverseBoolConvertor x:Key="reverseBoolConvertor"/> 
-        <Style x:Key="datePickerStyle" TargetType="{x:Type DatePicker}">
+        <conv:ReverseBoolConvertor x:Key="ReverseBoolConvertor"/>
+        <Style x:Key="DatePickerStyle" TargetType="{x:Type DatePicker}">
             <Setter Property="Height" Value="32"/>
             <Setter Property="Width" Value="148"/>
             <Setter Property="Margin" Value="0"/>
@@ -266,40 +266,40 @@
     </Window.Resources>
     <Window.Triggers>
         <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="AgrologFileBrowsButt">
-            <BeginStoryboard x:Name="OnClick1_BeginStoryboard" Storyboard="{StaticResource OnClick1}"/>
+            <BeginStoryboard x:Name="OnClick1BeginStoryboard" Storyboard="{StaticResource OnClick1}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="GrainbarFileBrowsButt">
-            <BeginStoryboard x:Name="OnClick1_BeginStoryboard1" Storyboard="{StaticResource OnClick1}"/>
+            <BeginStoryboard x:Name="OnClick1BeginStoryboard1" Storyboard="{StaticResource OnClick1}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FileBrowsOkButt">
             <RemoveStoryboard BeginStoryboardName="OnClick1_BeginStoryboard"/>
-            <BeginStoryboard x:Name="OnClick1_reverse_BeginStoryboard" Storyboard="{StaticResource OnClick1_reverse}"/>
+            <BeginStoryboard x:Name="OnClick1ReverseBeginStoryboard" Storyboard="{StaticResource OnClick1_reverse}"/>
         </EventTrigger>
-        <EventTrigger RoutedEvent="tempa:MainWindow.SettingsShow" >
-            <BeginStoryboard x:Name="ShowSettings_BeginStoryboard" Storyboard="{StaticResource ShowSettings}"/>
+        <EventTrigger RoutedEvent="tempa:UIwindow.SettingsShow">
+            <BeginStoryboard x:Name="ShowSettingsBeginStoryboard" Storyboard="{StaticResource ShowSettings}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="SettingsOkButt">
             <RemoveStoryboard BeginStoryboardName="ShowSettings_BeginStoryboard"/>
-            <BeginStoryboard x:Name="HideSettings_BeginStoryboard" Storyboard="{StaticResource HideSettings}"/>
+            <BeginStoryboard x:Name="HideSettingsBeginStoryboard" Storyboard="{StaticResource HideSettings}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FileBrowsPlusButt">
-            <BeginStoryboard x:Name="OnClick1_BeginStoryboard2" Storyboard="{StaticResource NewFolderTbShow}"/>
+            <BeginStoryboard x:Name="OnClick1BeginStoryboard2" Storyboard="{StaticResource NewFolderTbShow}"/>
         </EventTrigger>
-        <EventTrigger RoutedEvent="tempa:MainWindow.CreateReportShow">
-            <BeginStoryboard x:Name="CreateReportShow_BeginStoryboard" Storyboard="{StaticResource CreateReportShow}"/>
+        <EventTrigger RoutedEvent="tempa:UIwindow.CreateReportShow">
+            <BeginStoryboard x:Name="CreateReportShowBeginStoryboard" Storyboard="{StaticResource CreateReportShow}"/>
         </EventTrigger>
-        <EventTrigger RoutedEvent="tempa:MainWindow.CreateReportHide">
-            <BeginStoryboard x:Name="CreateReportHide_BeginStoryboard" Storyboard="{StaticResource CreateReportHide}"/>
+        <EventTrigger RoutedEvent="tempa:UIwindow.CreateReportHide">
+            <BeginStoryboard x:Name="CreateReportHideBeginStoryboard" Storyboard="{StaticResource CreateReportHide}"/>
         </EventTrigger>
-        <EventTrigger RoutedEvent="tempa:MainWindow.AboutShow">
-            <BeginStoryboard x:Name="ShowAbout_BeginStoryboard" Storyboard="{StaticResource ShowAbout}"/>
+        <EventTrigger RoutedEvent="tempa:UIwindow.AboutShow">
+            <BeginStoryboard x:Name="ShowAboutBeginStoryboard" Storyboard="{StaticResource ShowAbout}"/>
         </EventTrigger>
-        <EventTrigger RoutedEvent="tempa:MainWindow.AboutHide">
+        <EventTrigger RoutedEvent="tempa:UIwindow.AboutHide">
             <RemoveStoryboard BeginStoryboardName="ShowAbout_BeginStoryboard"/>
-            <BeginStoryboard x:Name="HideAbout_BeginStoryboard" Storyboard="{StaticResource HideAbout}"/>
+            <BeginStoryboard x:Name="HideAboutBeginStoryboard" Storyboard="{StaticResource HideAbout}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="UIElement.LostFocus" SourceName="NewFolderBox">
-            <BeginStoryboard x:Name="NewFolderTbHide_BeginStoryboard" Storyboard="{StaticResource NewFolderTbHide}"/>
+            <BeginStoryboard x:Name="NewFolderTbHideBeginStoryboard" Storyboard="{StaticResource NewFolderTbHide}"/>
         </EventTrigger>
     </Window.Triggers>
     <Grid >
@@ -329,9 +329,9 @@
         <Label x:Name="LogLabel" Content="ЛОГ:" HorizontalAlignment="Left" Margin="7,181.333,0,0" VerticalAlignment="Top" Width="129" RenderTransformOrigin="0.56,3.962" FontSize="14" Grid.Row="1"/>
         <Grid Margin="13,87,244,189" Grid.Row="1">
             <!--<Border BorderBrush="#333333" BorderThickness="3"/>-->
-            <Button x:Name="GrainbarButton" IsEnabled="{Binding AgrologQueue, ElementName=NewDataWatcherWindow, Converter={StaticResource reverseBoolConvertor}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Content="ГРЕЙНБАР" HorizontalAlignment="Left" VerticalAlignment="Top" Width="83" Click="ReportButton_Click" Height="26" FontSize="14" Margin="112,34,0,0" />
+            <Button x:Name="GrainbarButton" IsEnabled="{Binding GrainbarDataHandling, ElementName=FakeTemp, Converter={StaticResource ReverseBoolConvertor}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Content="ГРЕЙНБАР" HorizontalAlignment="Left" VerticalAlignment="Top" Width="83" Click="ReportButton_Click" Height="26" FontSize="14" Margin="112,34,0,0" />
             <Label x:Name="label"  Content="СОЗДАТЬ ОТЧЕТ:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="205"  FontSize="14"/>
-            <Button x:Name="AgrologButton" IsEnabled="{Binding AgrologQueue, ElementName=NewDataWatcherWindow, Converter={StaticResource reverseBoolConvertor}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Content="AGROLOG" HorizontalAlignment="Left" Margin="10,34,0,0" VerticalAlignment="Top" Width="83" Click="ReportButton_Click" Height="26"  FontSize="14"/>
+            <Button x:Name="AgrologButton" IsEnabled="{Binding AgrologDataHandling, ElementName=FakeTemp, Converter={StaticResource ReverseBoolConvertor}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Content="AGROLOG" HorizontalAlignment="Left" Margin="10,34,0,0" VerticalAlignment="Top" Width="83" Click="ReportButton_Click" Height="26"  FontSize="14"/>
         </Grid>
 
         <Grid Margin="266,87,13,189" Grid.ColumnSpan="2" Grid.Row="1">

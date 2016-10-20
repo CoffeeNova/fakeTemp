@@ -28,10 +28,10 @@ namespace CoffeeJelly.tempa
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window, INotifyPropertyChanged
+    public partial class UIwindow : Window, INotifyPropertyChanged
     {
 
-        public MainWindow()
+        public UIwindow()
         {
             InitializeComponent();
             DwmDropShadow.DropShadowToWindow(this);
@@ -66,6 +66,25 @@ namespace CoffeeJelly.tempa
             PropertyChanged += MainWindow_PropertyChanged;
             LogCollection.CollectionChanged += LogCollection_CollectionChanged;
 
+            Application.Current.Dispatcher.Invoke(new Action(() =>
+            {
+                var window = Application.Current.MainWindow as NewDataWatcherWindow;
+                window.PropertyChanged += UIwindow_PropertyChanged;
+                AgrologDataHandling = window.AgrologDataHandling;
+                GrainbarDataHandling = window.GrainbarDataHandling;
+            }));
+
+
+
+
+        }
+
+        private void UIwindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "AgrologDataHandling")
+                AgrologDataHandling = (sender as NewDataWatcherWindow).AgrologDataHandling;
+            if (e.PropertyName == "GrainbarDataHandling")
+                GrainbarDataHandling = (sender as NewDataWatcherWindow).GrainbarDataHandling;
         }
 
         private void FillTreeViewWithRootDrives(ref TreeView treeview)
@@ -195,7 +214,7 @@ namespace CoffeeJelly.tempa
                 if (ex.InnerException != null && ex.InnerException.GetType() == typeof(ReportFileException))
                 {
                     LogMaker.Log("Файл отчета не существует. Необходимо создать новый.", true);
-                    RaiseEvent(new RoutedEventArgs(MainWindow.CreateReportShowEvent, this));
+                    RaiseEvent(new RoutedEventArgs(UIwindow.CreateReportShowEvent, this));
                     _createReportCancellationToken = new CancellationTokenSource();
                     _createReportResetEvent.Reset();
                     ThreadPool.QueueUserWorkItem((state) => CreateNewReport<T>(reportPath, reportFileName, reportData));
@@ -393,7 +412,6 @@ namespace CoffeeJelly.tempa
             }
         }
 
-
         private void LogMaker_newMessage(string message, DateTime time, bool isError)
         {
             this.Dispatcher.BeginInvoke(new Action(() =>
@@ -409,7 +427,7 @@ namespace CoffeeJelly.tempa
                 }
                 Brush messageColor = isError
                     ? Brushes.Red
-                    : (SolidColorBrush) new BrushConverter().ConvertFrom("#EFEFEF");
+                    : (SolidColorBrush)new BrushConverter().ConvertFrom("#EFEFEF");
 
                 _logIndex++;
 
@@ -695,7 +713,7 @@ namespace CoffeeJelly.tempa
 
         #region events
         public static readonly RoutedEvent SettingShowEvent = EventManager.RegisterRoutedEvent(
-        "SettingsShow", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(MainWindow));
+        "SettingsShow", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(UIwindow));
 
         public event RoutedEventHandler SettingsShow
         {
@@ -704,7 +722,7 @@ namespace CoffeeJelly.tempa
         }
 
         public static readonly RoutedEvent CreateReportShowEvent = EventManager.RegisterRoutedEvent(
-        "CreateReportShow", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(MainWindow));
+        "CreateReportShow", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(UIwindow));
 
         public event RoutedEventHandler CreateReportShow
         {
@@ -713,7 +731,7 @@ namespace CoffeeJelly.tempa
         }
 
         public static readonly RoutedEvent CreateReportHideEvent = EventManager.RegisterRoutedEvent(
-        "CreateReportHide", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(MainWindow));
+        "CreateReportHide", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(UIwindow));
 
         public event RoutedEventHandler CreateReportHide
         {
@@ -722,7 +740,7 @@ namespace CoffeeJelly.tempa
         }
 
         public static readonly RoutedEvent AboutShowEvent = EventManager.RegisterRoutedEvent(
-        "AboutShow", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(MainWindow));
+        "AboutShow", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(UIwindow));
 
         public event RoutedEventHandler AboutShow
         {
@@ -731,7 +749,7 @@ namespace CoffeeJelly.tempa
         }
 
         public static readonly RoutedEvent AboutHideEvent = EventManager.RegisterRoutedEvent(
-        "AboutHide", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(MainWindow));
+        "AboutHide", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(UIwindow));
 
         public event RoutedEventHandler AboutHide
         {
@@ -750,6 +768,8 @@ namespace CoffeeJelly.tempa
         public bool IsSettingsGridOnForm;
         public bool IsCreateReportWindowShow;
         public bool IsAboutOnForm;
+        private bool _agrologDataHandling;
+        private bool _grainbarDataHandling;
 
         private string _agrologReportsPath;
         private string _grainbarReportsPath;
@@ -764,6 +784,9 @@ namespace CoffeeJelly.tempa
         private bool _isDataSubstitution;
         private int _logIndex = 0;
         private DateTime _logDate = DateTime.Today.AddDays(-1);
+
+
+
 
         #endregion
 
@@ -837,6 +860,26 @@ namespace CoffeeJelly.tempa
                 if (_isDataSubstitution == value)
                     return;
                 _isDataSubstitution = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool AgrologDataHandling
+        {
+            get { return _agrologDataHandling; }
+            set
+            {
+                _agrologDataHandling = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool GrainbarDataHandling
+        {
+            get { return _grainbarDataHandling; }
+            set
+            {
+                _grainbarDataHandling = value;
                 NotifyPropertyChanged();
             }
         }

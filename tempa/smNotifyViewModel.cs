@@ -80,7 +80,7 @@ namespace CoffeeJelly.tempa
                             _uiWindow.Visibility = Visibility.Visible;
                             _uiWindow.WindowState = WindowState.Normal;
                             if (!_uiWindow.IsFileBrowsTreeOnForm && !_uiWindow.IsSettingsGridOnForm && !_uiWindow.IsAboutOnForm)
-                                _uiWindow.RaiseEvent(new RoutedEventArgs(MainWindow.SettingShowEvent, _uiWindow));
+                                _uiWindow.RaiseEvent(new RoutedEventArgs(UIwindow.SettingShowEvent, _uiWindow));
                         }));
                     }
                 };
@@ -101,7 +101,7 @@ namespace CoffeeJelly.tempa
                             _uiWindow.Visibility = Visibility.Visible;
                         _uiWindow.WindowState = WindowState.Normal;
                         if (!_uiWindow.IsFileBrowsTreeOnForm && !_uiWindow.IsSettingsGridOnForm && !_uiWindow.IsAboutOnForm)
-                            _uiWindow.RaiseEvent(new RoutedEventArgs(MainWindow.AboutShowEvent, _uiWindow));
+                            _uiWindow.RaiseEvent(new RoutedEventArgs(UIwindow.AboutShowEvent, _uiWindow));
                         }));
                     }
                 };
@@ -137,7 +137,7 @@ namespace CoffeeJelly.tempa
 
                 catch (Exception ex)
                 {
-                    LogMaker.InvokedLog(($"Не удалось создать {nameof(MainWindow)}."), true, _uiWindow.Dispatcher);
+                    LogMaker.InvokedLog(($"Не удалось создать {nameof(UIwindow)}."), true, _uiWindow.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     _uiWindow = null;
                     IsUIWindowExist = false;
@@ -154,7 +154,7 @@ namespace CoffeeJelly.tempa
 
         private void OpenUICallBack()
         {
-            _uiWindow = new MainWindow();
+            _uiWindow = new UIwindow();
 
             try
             {
@@ -200,7 +200,7 @@ namespace CoffeeJelly.tempa
             }
         }
 
-        public static MainWindow _uiWindow = null;
+        public static UIwindow _uiWindow = null;
         private static readonly object _locker = new object();
         private bool _isUIWindowExist = false;
     }

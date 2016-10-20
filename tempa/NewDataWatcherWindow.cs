@@ -178,7 +178,6 @@ namespace CoffeeJelly.tempa
 
             LockNow<T>();
 
-
             LogMaker.Log($"Начинаю проверку каталога \"{path}\" на наличие новых данных {programName}...", false);
             var checkList = new List<bool>();
             List<T> dataList = ReadDataFile<T>(dataFileName, false).Result;
@@ -315,9 +314,9 @@ namespace CoffeeJelly.tempa
         {
             var qWaitOne = DataHandlingLock<T>.SyncLock.WaitOne();
             if (typeof(T) == typeof(TermometerAgrolog))
-                AgrologQueue = qWaitOne;
+                AgrologDataHandling = qWaitOne;
             else if (typeof(T) == typeof(TermometerGrainbar))
-                GrainbarQueue = qWaitOne;
+                GrainbarDataHandling = qWaitOne;
         }
 
         private void UnLockNow<T>()
@@ -327,9 +326,9 @@ namespace CoffeeJelly.tempa
                 return;
 
             if (typeof(T) == typeof(TermometerAgrolog))
-                AgrologQueue = false;
+                AgrologDataHandling = false;
             else if (typeof(T) == typeof(TermometerGrainbar))
-                GrainbarQueue = false;
+                GrainbarDataHandling = false;
         }
 
         private void FileSystemWatcher_OnCreated<T>(object sender, FileSystemEventArgs e) where T : ITermometer
@@ -398,25 +397,25 @@ namespace CoffeeJelly.tempa
 
         private FileSystemWatcher _agrologDataWatcher;
         private FileSystemWatcher _grainbarDataWatcher;
-        private bool _agrologQueue;
-        private bool _grainbarQueue = false;
+        private bool _agrologDataHandling;
+        private bool _grainbarDataHandling;
 
-        public bool AgrologQueue
+        public bool AgrologDataHandling
         {
-            get { return _agrologQueue; }
+            get { return _agrologDataHandling; }
             set
             {
-                _agrologQueue = value;
+                _agrologDataHandling = value;
                 NotifyPropertyChanged();
             }
         }
 
-        public bool GrainbarQueue
+        public bool GrainbarDataHandling
         {
-            get { return _grainbarQueue; }
+            get { return _grainbarDataHandling; }
             set
             {
-                _grainbarQueue = value;
+                _grainbarDataHandling = value;
                 NotifyPropertyChanged();
             }
         }
