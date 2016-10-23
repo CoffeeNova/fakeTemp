@@ -23,9 +23,6 @@ namespace CoffeeJelly.tempa
 
         private void NewData()
         {
-            if (TermoData.Count < 2)
-                return;
-
             Model = new PlotModel();
             InitVisual();
             InitData();
@@ -48,8 +45,7 @@ namespace CoffeeJelly.tempa
             Model.LegendPosition = LegendPosition.TopRight;
             Model.LegendBackground = OxyColor.FromAColor(200, OxyColors.White);
             Model.LegendBorder = OxyColors.Black;
-
-            var dateAxis = new DateTimeAxis()
+            var dateAxis = new DateTimeAxis
             {
                 Position = AxisPosition.Bottom,
                 StringFormat = "dd/MM/yy",
@@ -66,11 +62,12 @@ namespace CoffeeJelly.tempa
                 TitlePosition = 0.1,
                 Minimum = InitialDate.ToOADate(),
                 Maximum = FinalDate.ToOADate(),
-                MinimumRange = MINIMUM_DATE_RANGE_DAYS,
+                MinimumRange = MINIMUM_DATE_RANGE_DAYS >= DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()
+                ? DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate() : MINIMUM_DATE_RANGE_DAYS,
             };
             dateAxis.AxisChanged += DateAxis_AxisChanged;
             Model.Axes.Add(dateAxis);
-            var valueAxis = new LinearAxis()
+            var valueAxis = new LinearAxis
             {
                 Position = AxisPosition.Left,
                 MajorGridlineStyle = LineStyle.Solid,
@@ -92,16 +89,6 @@ namespace CoffeeJelly.tempa
             valueAxis.AbsoluteMinimum = 0;
             valueAxis.IsZoomEnabled = false;
             Model.Axes.Add(valueAxis);
-        }
-
-        private void DateAxis_KeyDown(object sender, OxyKeyEventArgs e)
-        {
-            //if (e.Key == OxyKey.Left) || e.Key == OxyKey.Right)
-            //{
-            //    var axis = sender as DateTimeAxis;
-            //    axis.ZoomAt()
-            //    //ChangeDateRange(axis);
-            //}
         }
 
         private void DateAxis_AxisChanged(object sender, AxisChangedEventArgs e)
@@ -170,10 +157,18 @@ namespace CoffeeJelly.tempa
 
         private void InitVisual()
         {
-            DisplayDateStart = TermoData[1].MeasurementDate;
+            DisplayDateStart = TermoData.First().MeasurementDate;
             DisplayDateEnd = TermoData.Last().MeasurementDate;
+
+            double minimumDateRange = MINIMUM_DATE_RANGE_DAYS >=
+                                   DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate() ?
+                                   DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate() :
+                                   MINIMUM_DATE_RANGE_DAYS;
             FinalDate = DisplayDateEnd;
-            InitialDate = FinalDate.AddDays(-MINIMUM_DATE_RANGE_DAYS) > DisplayDateStart ? FinalDate.AddDays(-MINIMUM_DATE_RANGE_DAYS) : DisplayDateStart;
+
+            InitialDate = FinalDate.AddDays(-Convert.ToInt32(minimumDateRange)) > DisplayDateStart ?
+                          FinalDate.AddDays(-Convert.ToInt32(minimumDateRange)) :
+                          DisplayDateStart;
             ActualDate = FinalDate;
             MaxZoomValue = (DisplayDateEnd.ToOADate() - DisplayDateStart.ToOADate()) / (FinalDate.ToOADate() - InitialDate.ToOADate());
             ZoomValue = MaxZoomValue;

@@ -9,6 +9,7 @@ using CoffeeJelly.tempa;
 using CoffeeJelly.tempa.Extensions;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace CoffeeJelly.ReportGenerateTool
@@ -51,7 +52,7 @@ namespace CoffeeJelly.ReportGenerateTool
                 _total += 1;
                 double tt = Convert.ToDouble(_total) / Convert.ToDouble(_reportsCount) * 100;
                 if (tt % 1 == 0)
-                    Console.Write($"\rProcessing: {(tt).ToString("0")}%");
+                    Console.Write($"\rProcessing: {tt:0}%");
             }
         }
 
@@ -69,6 +70,8 @@ namespace CoffeeJelly.ReportGenerateTool
 
             foreach (List<int> part in dividedReportsNumbers)
             {
+                if (part.Count == 0)
+                    continue;
                 checkList.Add(GenerateReportsAsync(part, startDate, endDate, timeRange, content, outputPath, datePattern, outputFileExtension).Result);
             }
 
@@ -149,7 +152,9 @@ namespace CoffeeJelly.ReportGenerateTool
             using (Stream resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
             {
                 Debug.Assert(resourceStream != null, "resourceStream != null");
-                using (var resourceReader = new StreamReader(resourceStream))
+
+                //var encoding = GetEncoding(resourceStream);
+                using (var resourceReader = new StreamReader(resourceStream, Encoding.Default))
                 {
                     content = resourceReader.ReadToEnd();
                 }
@@ -229,14 +234,54 @@ namespace CoffeeJelly.ReportGenerateTool
             Console.BackgroundColor = ConsoleColor.DarkGreen;
         }
 
+        /// <summary>
+        /// Determines a text file's encoding by analyzing its byte order mark (BOM).
+        /// Defaults to ASCII when detection of the text file's endianness fails.
+        /// </summary>
+        /// <param name="filename">The text file to analyze.</param>
+        /// <returns>The detected encoding.</returns>
+        /// <remarks>http://stackoverflow.com/questions/3825390/effective-way-to-find-any-files-encoding</remarks>
+        private static Encoding GetEncoding(string filename)
+        {
+            // Read the BOM
+            var bom = new byte[4];
+            using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                file.Read(bom, 0, 4);
+            }
+
+            // Analyze the BOM
+            if (bom[0] == 0x2b && bom[1] == 0x2f && bom[2] == 0x76) return Encoding.UTF7;
+            if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) return Encoding.UTF8;
+            if (bom[0] == 0xff && bom[1] == 0xfe) return Encoding.Unicode; //UTF-16LE
+            if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
+            if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
+            return Encoding.ASCII;
+        }
+
+        private static Encoding GetEncoding(Stream stream)
+        {
+            // Read the BOM
+            var bom = new byte[4];
+            stream.Read(bom, 0, 4);
+
+            // Analyze the BOM
+            if (bom[0] == 0x2b && bom[1] == 0x2f && bom[2] == 0x76) return Encoding.UTF7;
+            if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) return Encoding.UTF8;
+            if (bom[0] == 0xff && bom[1] == 0xfe) return Encoding.Unicode; //UTF-16LE
+            if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
+            if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
+            return Encoding.ASCII;
+        }
+
         private const string FAKE_REPORTS_FOLDER_NAME = "Fake Reports";
         private const string AGROLOG_EXAMPLE_RESOURCE_NAME = "CoffeeJelly.ReportGenerateTool.Examples.Agrolog example.csv";
-        private const string GRAINBAR_EXAMPLE_RESOURCE_NAME = "CoffeeJelly.ReportGenerateTool.Examples.Agrolog example.txt";
+        private const string GRAINBAR_EXAMPLE_RESOURCE_NAME = "CoffeeJelly.ReportGenerateTool.Examples.Grainbar example.txt";
         private const string AGROLOG_FAKE_REPORT_EXTENSION_NAME = "csv";
         private const string GRAINBAR_FAKE_REPORT_EXTENSION_NAME = "txt";
         private const string REPLACE_DATE_PATTERN = "###";
-        private const string AGROLOG_DATE_PATTERN = "yyyy-MM-dd hh:mm:ss";
-        private const string GRAINBAR_DATE_PATTERN = "dd.MM.yy, hh:mm:ss";
+        private const string AGROLOG_DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
+        private const string GRAINBAR_DATE_PATTERN = "dd.MM.yy, HH:mm:ss";
 
         private const int THREADS_COUNT = 4;
 

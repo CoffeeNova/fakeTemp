@@ -17,6 +17,7 @@ namespace CoffeeJelly.tempa
         public const string GRAINBAR_FOLDER_NAME = "Grainbar";
         public const string APPLICATION_DATA_FOLDER = "Data";
         public const string APPLICATION_EXCEL_REPORT_FOLDER = "Report";
+        public const string APPLICATION_ARCHIEVE_DATA_FOLDER = "Archieve";
         public const string AGROLOG_DATA_FILE = "Agrolog.dat";
         public const string GRAINBAR_DATA_FILE = "Grainbar.dat";
         public const string AGROLOG_EXCEL_REPORT_FILE_NAME = "Agrolog report.xlsm";
@@ -47,5 +48,7 @@ namespace CoffeeJelly.tempa
         public static readonly string APPLICATION_DATA_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + APPLICATION_DATA_FOLDER;
         public static readonly string EXCEL_REPORT_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + APPLICATION_EXCEL_REPORT_FOLDER;
         public static readonly string EXCEL_TEMPLATE_REPORT_NAME = ROOT_APPLICATION_NAMESPACE + ".other_files." + EXCEL_TEMPLATE_REPORT_TEMP_NAME;
+        public static readonly string APPLICATION_ARCHIEVE_DATA_FOLDER_PATH =
+            APPLICATION_DATA_FOLDER_PATH.PathFormatter() + APPLICATION_ARCHIEVE_DATA_FOLDER;
     }
 }

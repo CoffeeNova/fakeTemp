@@ -111,7 +111,13 @@ namespace CoffeeJelly.tempa.Properties {
         ///35,7,2,
         ///35,7,3,
         ///35,7,4,
-        ///35, [rest of string was truncated]&quot;;.
+        ///35,7,5,
+        ///35,7,6,
+        ///35,7,7,
+        ///35,8,1,
+        ///35,8,2,
+        ///35,8,3,
+        ///35,8, [rest of string was truncated]&quot;;.
         /// </summary>
         public static string AgrologPatternReport {
             get {

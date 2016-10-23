@@ -43,7 +43,7 @@ namespace CoffeeJelly.tempa.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotSupportedException("ValueToMethodConverter can only be used for one way to source conversion.");
+            throw new NotSupportedException($"{nameof(ValueToMethodConverter)} can only be used for one way to source conversion.");
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -98,13 +98,13 @@ namespace CoffeeJelly.tempa.Converters
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
 
-            var t = ((DateTime)values[0]).ToString((string)values[1]); 
+            var t = ((DateTime)values[0]).ToString((string)values[1]);
             return t;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotSupportedException("ValueToMethodConverter can only be used for one way to source conversion.");
+            throw new NotSupportedException($"{nameof(LogDateFormatter)} can only be used for one way to source conversion.");
         }
     }
 
@@ -120,8 +120,43 @@ namespace CoffeeJelly.tempa.Converters
 
         public object ConvertBack(object value, System.Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotSupportedException("ValueToMethodConverter can only be used for one way to source conversion.");
+            if (!(value is bool))
+                throw new ArgumentException("value is not a bool");
+            return !(bool)value;
         }
     }
 
+    public class AnyIsIndeterminateConvertor : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            try
+            {
+                var result = !(bool)values[0] | !(bool)values[1];
+                return result;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException($"{nameof(AnyIsIndeterminateConvertor)} can only be used for one way to source conversion.");
+        }
+    }
+
+    public class AnyIsVisibilityConvertor : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (Visibility)values[0] | (Visibility)values[1];
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException($"{nameof(AnyIsVisibilityConvertor)} can only be used for one way to source conversion.");
+        }
+    }
 }

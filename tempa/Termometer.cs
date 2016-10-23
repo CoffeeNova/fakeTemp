@@ -13,7 +13,7 @@ namespace CoffeeJelly.tempa
     {
         public TermometerAgrolog(DateTime measurementDate, string silo, string cable, float?[] sensor) : base(measurementDate, silo, cable, sensor) { }
 
-        public override int SensorsCount { get { return Sensors; } }
+        public override int SensorsCount => Sensors;
         public static readonly int Sensors = 7;
     }
 
@@ -22,19 +22,19 @@ namespace CoffeeJelly.tempa
     {
         public TermometerGrainbar(DateTime measurementDate, string silo, string cable, float?[] sensor) : base(measurementDate, silo, cable, sensor) { }
 
-        public override int SensorsCount { get { return  Sensors;} }
+        public override int SensorsCount => Sensors;
         public static readonly int Sensors = 6;
     }
 
     [Serializable]
     public abstract class Termometer : ITermometer
     {
-        public Termometer(DateTime measurementDate, string silo, string cable, float?[] sensor)
+        protected Termometer(DateTime measurementDate, string silo, string cable, float?[] sensor)
         {
             if (StringExtension.AnyNullOrEmpty(silo, cable))
                 throw new ArgumentException("All strings should have not be empty or null values.");
-            if (sensor.Count() != SensorsCount)
-                throw new ArgumentOutOfRangeException("sensor", $"Array size must equal {SensorsCount} value");
+            if (sensor.Length != SensorsCount)
+                throw new ArgumentOutOfRangeException(nameof(sensor), $"Array size must equal {SensorsCount} value");
             MeasurementDate = measurementDate;
             Silo = silo;
             Cable = cable;
@@ -46,7 +46,7 @@ namespace CoffeeJelly.tempa
         /// </summary>
         /// <typeparam name="T">Тип создаваемого клаcса (должен наследовать интерфейс <see cref="ITermometer"/>).</typeparam>
         /// <returns>Возвращает экземляр созданного класса типа <typeparamref name="T"/>.</returns>
-        /// <exception cref="MessengerBuildException">Исключение вызванное ошибкой создания экземпляра класса. Подробности во внутреннем исключении.</exception>
+        /// <exception cref="TermometerBuildException">Исключение вызванное ошибкой создания экземпляра класса. Подробности во внутреннем исключении.</exception>
         public static T Create<T>(DateTime measurementDate, string silo, string cable, float?[] sensor) where T : ITermometer
         {
             System.Threading.Monitor.Enter(_locker);
@@ -64,12 +64,10 @@ namespace CoffeeJelly.tempa
                 System.Threading.Monitor.Exit(_locker);
             }
         }
-
-        public DateTime MeasurementDate { get; private set; }
-        public string Silo { get; private set; }
-        public string Cable { get; private set; }
-        public float?[] Sensor { get; private set; }
-
+        public DateTime MeasurementDate { get; }
+        public string Silo { get; }
+        public string Cable { get; }
+        public float?[] Sensor { get; }
         public abstract int SensorsCount { get; }
 
         private static readonly object _locker = new object();

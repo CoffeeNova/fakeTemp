@@ -5,7 +5,9 @@ using System.Text;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using System.IO;
+using System.Threading;
 using CoffeeJelly.tempa.Extensions;
+using MsgPack.Serialization;
 
 namespace CoffeeJelly.tempa
 {
@@ -20,34 +22,39 @@ namespace CoffeeJelly.tempa
         {
             DatFileNameChecker(fileName);
             if (string.IsNullOrEmpty(path))
-                throw new ArgumentException("path should have not be empty or null value.");
+            throw new ArgumentException("path should have not be empty or null value.");
 
             List<T> termometerList;
-            BinaryFormatter formatter = new BinaryFormatter();
+            //BinaryFormatter formatter = new BinaryFormatter();
             using (FileStream fs = new FileStream(path.PathFormatter() + fileName, FileMode.OpenOrCreate))
             {
-                termometerList = (List<T>)formatter.Deserialize(fs);
+                //termometerList = (List<T>)formatter.Deserialize(fs);
+                fs.Position = 0;
+                var serializer = MessagePackSerializer.Get<List<T>>();
+                termometerList = serializer.Unpack(fs);
             }
             return termometerList;
         }
 
-        public static Task WriteBinaryAsync<T>(string path, string fileName, List<T> termometerList, bool appendMode) where T : ITermometer
+        public static Task WriteBinaryAsync<T>(string path, string fileName, List<T> termometerList) where T : ITermometer
         {
-            return Task.Factory.StartNew(() => WriteBinary<T>(path, fileName, termometerList, appendMode));
+            return Task.Factory.StartNew(() => WriteBinary<T>(path, fileName, termometerList));
         }
 
-        public static void WriteBinary<T>(string path, string fileName, List<T> termometerList, bool appendMode) where T : ITermometer
+        public static void WriteBinary<T>(string path, string fileName, List<T> termometerList) where T : ITermometer
         {
             DatFileNameChecker(fileName);
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("path should have not be empty or null value.");
 
-            BinaryFormatter formatter = new BinaryFormatter();
-            var fileMode = appendMode == true ? FileMode.Append : FileMode.Create;
-            using (FileStream fs = new FileStream(path.PathFormatter() + fileName, fileMode))
+            // BinaryFormatter formatter = new BinaryFormatter();
+            using (FileStream fs = new FileStream(path.PathFormatter() + fileName, FileMode.Create))
             {
-                formatter.Serialize(fs, termometerList);
+                //formatter.Serialize(fs, termometerList);
+                var serializer = MessagePackSerializer.Get<List<T>>();
+                serializer.Pack(fs, termometerList);
             }
+
         }
 
     }

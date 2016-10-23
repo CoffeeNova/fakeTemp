@@ -17,4 +17,12 @@ namespace CoffeeJelly.tempa.Extensions
             return obj.GetType().GetProperty(propName).GetValue(obj, null);
         }
     }
+
+    public static class IsNullExtension
+    {
+        public static bool IsNull(this object obj)
+        {
+            return obj == null;
+        }
+    }
 }

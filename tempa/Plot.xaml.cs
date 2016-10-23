@@ -28,8 +28,11 @@ namespace CoffeeJelly.tempa
 
             this.DataContext = new PlotViewModel();
             (DataContext as PlotViewModel).View = this as IView;
-            data.RemoveAll(t => t.MeasurementDate == data.First().MeasurementDate);
-            if (data.Count == 0)
+
+            var patternDate = data.First().MeasurementDate;
+            data.RemoveAll(t => t.MeasurementDate == patternDate); 
+
+            if (data.Count < 2)
                 throw new PlotDataException("Have no data for plotting.");
             (DataContext as PlotViewModel).TermoData = data;
             GenerateCheckBoxes(data.First().SensorsCount);

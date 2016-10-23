@@ -21,6 +21,7 @@ using System.ComponentModel;
 using CoffeeJelly.tempa.Exceptions;
 using CoffeeJelly.tempa.Extensions;
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
 using CoffeeJelly.tempa.Controls;
 
 namespace CoffeeJelly.tempa
@@ -69,22 +70,19 @@ namespace CoffeeJelly.tempa
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {
                 var window = Application.Current.MainWindow as NewDataWatcherWindow;
+                if (window == null) return;
                 window.PropertyChanged += UIwindow_PropertyChanged;
-                AgrologDataHandling = window.AgrologDataHandling;
-                GrainbarDataHandling = window.GrainbarDataHandling;
+                AgrologDataHandlingPermission = window.AgrologDataHandlingPermission;
+                GrainbarDataHandlingPermission = window.GrainbarDataHandlingPermission;
             }));
-
-
-
-
         }
 
         private void UIwindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "AgrologDataHandling")
-                AgrologDataHandling = (sender as NewDataWatcherWindow).AgrologDataHandling;
-            if (e.PropertyName == "GrainbarDataHandling")
-                GrainbarDataHandling = (sender as NewDataWatcherWindow).GrainbarDataHandling;
+            if (e.PropertyName == nameof(AgrologDataHandlingPermission))
+                AgrologDataHandlingPermission = (sender as NewDataWatcherWindow).AgrologDataHandlingPermission;
+            if (e.PropertyName == nameof(GrainbarDataHandlingPermission))
+                GrainbarDataHandlingPermission = (sender as NewDataWatcherWindow).GrainbarDataHandlingPermission;
         }
 
         private void FillTreeViewWithRootDrives(ref TreeView treeview)
@@ -198,13 +196,19 @@ namespace CoffeeJelly.tempa
             return null;
         }
 
-        private async Task WriteReport<T>(string dataFolderPath, string dataFileName, string reportPath, string reportFileName) where T : ITermometer
+        private async Task WriteReport<T>(string dataFolderPath, string dataFileName, string reportPath,
+            string reportFileName) where T : ITermometer
         {
             List<T> reportData = null;
             try
             {
                 LogMaker.Log($"Чтение данных из файла \"{dataFileName}\"", false);
+
+                var app = Application.Current;
+                app.Dispatcher.Invoke(new Action(() => DataAccessChanged<T>(true)));
                 reportData = await DataWorker.ReadBinaryAsync<T>(dataFolderPath, dataFileName);
+                app.Dispatcher.Invoke(new Action(() => DataAccessChanged<T>(false)));
+
                 LogMaker.Log($"Формирование отчета \"{reportFileName}\"", false);
                 await DataWorker.WriteExcelReportAsync<T>(reportPath, reportFileName, reportData);
                 LogMaker.Log($"Отчет \"{reportFileName}\" сформирован успешно.", false);
@@ -217,13 +221,25 @@ namespace CoffeeJelly.tempa
                     RaiseEvent(new RoutedEventArgs(UIwindow.CreateReportShowEvent, this));
                     _createReportCancellationToken = new CancellationTokenSource();
                     _createReportResetEvent.Reset();
-                    ThreadPool.QueueUserWorkItem((state) => CreateNewReport<T>(reportPath, reportFileName, reportData));
+                    //ThreadPool.QueueUserWorkItem(async (state) => await CreateNewReport<T>(reportPath, reportFileName, reportData));
+                    await CreateNewReportAsync<T>(reportPath, reportFileName, reportData);
                 }
                 else
                     LogMaker.Log($"Не получилось сформировать отчет \"{reportFileName}\", cм. Error.log.", true);
                 ExceptionHandler.Handle(ex, false);
             }
+            catch (Exception)
+            {
+                LogMaker.Log($"Не получилось сформировать отчет \"{reportFileName}\", cм. Error.log.", true);
+            }
         }
+
+        private Task CreateNewReportAsync<T>(string reportPath, string reportFileName, List<T> reportData)
+            where T : ITermometer
+        {
+            return Task.Factory.StartNew((() => CreateNewReport<T>(reportPath, reportFileName, reportData)));
+        }
+
 
         private void CreateNewReport<T>(string reportPath, string reportFileName, List<T> reportData) where T : ITermometer
         {
@@ -263,7 +279,7 @@ namespace CoffeeJelly.tempa
                 catch (PlotDataException ex)
                 {
                     LogMaker.InvokedLog(
-                        $"Нет данных для построения графика \"{Internal.GetProgramName<T>()}\", cм. Error.log.", true, this.Dispatcher);
+                        $"Не достаточно данных для построения графика \"{Internal.GetProgramName<T>()}\", cм. Error.log.", true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     tcs.SetResult(null);
                     //tcs.SetException(ex);
@@ -305,17 +321,17 @@ namespace CoffeeJelly.tempa
         {
             if (programType == ProgramType.Agrolog)
             {
-                if (agrologDataChb.IsChecked != null && agrologDataChb.IsChecked.Value)
+                if (AgrologDataChb.IsChecked != null && AgrologDataChb.IsChecked.Value)
                 {
-                    agrologDataChb.IsChecked = false;
-                    agrologDataChb.IsChecked = true;
+                    AgrologDataChb.IsChecked = false;
+                    AgrologDataChb.IsChecked = true;
                 }
             }
             else if (programType == ProgramType.Grainbar)
-                if (grainbarDataChb.IsChecked != null && grainbarDataChb.IsChecked.Value)
+                if (GrainbarDataChb.IsChecked != null && GrainbarDataChb.IsChecked.Value)
                 {
-                    grainbarDataChb.IsChecked = false;
-                    grainbarDataChb.IsChecked = true;
+                    GrainbarDataChb.IsChecked = false;
+                    GrainbarDataChb.IsChecked = true;
                 }
         }
 
@@ -472,15 +488,41 @@ namespace CoffeeJelly.tempa
             IsFileBrowsTreeOnForm = false;
         }
 
+
+        private static void DataAccessChanged<T>(bool value) where T : ITermometer
+        {
+            var app = Application.Current;
+            if (!Equals(Thread.CurrentThread, app.Dispatcher.Thread))
+                throw new Exception("Wrong thread.");
+
+            var window = app.MainWindow as NewDataWatcherWindow;
+            if (window == null) return;
+
+            if (value)
+                window.LockDataAccess<T>();
+            else
+                window.UnLockDataAccess<T>();
+        }
+
         private async void ReportButton_Click(object sender, RoutedEventArgs e)
         {
+
             var button = sender as Button;
             if (button == null) return;
+
             button.IsEnabled = false;
             if (Equals(button, AgrologButton))
-                await WriteReport<TermometerAgrolog>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.AGROLOG_DATA_FILE, Constants.EXCEL_REPORT_FOLDER_PATH, Constants.AGROLOG_EXCEL_REPORT_FILE_NAME);
+                await WriteReport<TermometerAgrolog>(
+                    Constants.APPLICATION_DATA_FOLDER_PATH,
+                    Constants.AGROLOG_DATA_FILE,
+                    Constants.EXCEL_REPORT_FOLDER_PATH,
+                    Constants.AGROLOG_EXCEL_REPORT_FILE_NAME);
             else if (Equals(button, GrainbarButton))
-                await WriteReport<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH, Constants.GRAINBAR_DATA_FILE, Constants.EXCEL_REPORT_FOLDER_PATH, Constants.GRAINBAR_EXCEL_REPORT_FILE_NAME);
+                await WriteReport<TermometerGrainbar>(
+                    Constants.APPLICATION_DATA_FOLDER_PATH,
+                    Constants.GRAINBAR_DATA_FILE,
+                    Constants.EXCEL_REPORT_FOLDER_PATH,
+                    Constants.GRAINBAR_EXCEL_REPORT_FILE_NAME);
             button.IsEnabled = true;
         }
 
@@ -698,7 +740,10 @@ namespace CoffeeJelly.tempa
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 var newDataWatcherWindow = Application.Current.MainWindow as NewDataWatcherWindow;
-                newDataWatcherWindow?.WatcherInitChange(propertyName, value);
+                if (Equals(propertyName, nameof(IsAgrologDataCollect)))
+                    newDataWatcherWindow?.WatcherInitChange<TermometerAgrolog>(value);
+                else
+                    newDataWatcherWindow?.WatcherInitChange<TermometerGrainbar>(value);
             }));
         }
 
@@ -768,8 +813,6 @@ namespace CoffeeJelly.tempa
         public bool IsSettingsGridOnForm;
         public bool IsCreateReportWindowShow;
         public bool IsAboutOnForm;
-        private bool _agrologDataHandling;
-        private bool _grainbarDataHandling;
 
         private string _agrologReportsPath;
         private string _grainbarReportsPath;
@@ -782,6 +825,10 @@ namespace CoffeeJelly.tempa
         private bool _isGrainbarDataCollect;
         private bool _isAutostart = true;
         private bool _isDataSubstitution;
+        private bool _agrologDataHandlingPermission = true;
+        private bool _grainbarDataHandlingPermission = true;
+        private Visibility _progressBarVisibility = Visibility.Hidden;
+
         private int _logIndex = 0;
         private DateTime _logDate = DateTime.Today.AddDays(-1);
 
@@ -859,27 +906,49 @@ namespace CoffeeJelly.tempa
             {
                 if (_isDataSubstitution == value)
                     return;
+
                 _isDataSubstitution = value;
                 NotifyPropertyChanged();
             }
         }
 
-        public bool AgrologDataHandling
+        public bool AgrologDataHandlingPermission
         {
-            get { return _agrologDataHandling; }
+            get { return _agrologDataHandlingPermission; }
             set
             {
-                _agrologDataHandling = value;
+                if (_agrologDataHandlingPermission == value)
+                    return;
+
+                _agrologDataHandlingPermission = value;
+                ProgressBarVisibility = value & GrainbarDataHandlingPermission ? Visibility.Hidden : Visibility.Visible;
                 NotifyPropertyChanged();
             }
         }
 
-        public bool GrainbarDataHandling
+        public bool GrainbarDataHandlingPermission
         {
-            get { return _grainbarDataHandling; }
+            get { return _grainbarDataHandlingPermission; }
             set
             {
-                _grainbarDataHandling = value;
+                if (_grainbarDataHandlingPermission == value)
+                    return;
+
+                _grainbarDataHandlingPermission = value;
+                ProgressBarVisibility = value & AgrologDataHandlingPermission ? Visibility.Hidden : Visibility.Visible;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public Visibility ProgressBarVisibility
+        {
+            get { return _progressBarVisibility; }
+            set
+            {
+                if (_progressBarVisibility == value)
+                    return;
+
+                _progressBarVisibility = value;
                 NotifyPropertyChanged();
             }
         }

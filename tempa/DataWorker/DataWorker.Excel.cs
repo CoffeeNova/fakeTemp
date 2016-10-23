@@ -12,9 +12,9 @@ namespace CoffeeJelly.tempa
 {
     public static partial class DataWorker
     {
-        public static void CreateNewExcelReportAsync<T>(string repotPath, string reportFileName, string templatePath, string templateFileName, List<T> reportData) where T : ITermometer
+        public static Task CreateNewExcelReportAsync<T>(string repotPath, string reportFileName, string templatePath, string templateFileName, List<T> reportData) where T : ITermometer
         {
-            Task.Factory.StartNew(() => CreateNewExcelReport<T>(repotPath, reportFileName, templatePath, templateFileName, reportData));
+            return Task.Factory.StartNew(() => CreateNewExcelReport<T>(repotPath, reportFileName, templatePath, templateFileName, reportData));
         }
 
         public static void CreateNewExcelReport<T>(string repotPath, string reportFileName, string templatePath, string templateFileName, List<T> reportData) where T : ITermometer
@@ -68,7 +68,7 @@ namespace CoffeeJelly.tempa
                     DateTime lastDate = dataWorkSheet.Cells[DataSheet.DATE_ROW, lastColumn].GetValue<DateTime>();
                     reportData.RemoveAll(t => t.MeasurementDate <= lastDate);
 
-                    for (int rep = 0; rep < reportData.Count; rep ++ )
+                    while(reportData.Count>0)
                     {
                         lastColumn++;
                         DateTime date = reportData.First().MeasurementDate;
@@ -127,7 +127,7 @@ namespace CoffeeJelly.tempa
                 reportWorksheet.Cells[ ReportSheet.HEADER_ROW, ReportSheet.HEADER_COL].Value =
                     $"Отчет сформирован по данным термометрии {thermometryName}.";
                 reportWorksheet.Cells[ReportSheet.HEADER_ROW + 1, ReportSheet.HEADER_COL].Value =
-                    $"Время последней модификации отчета: {currentDate.ToString("hh:mm:ss dd.MM.yyyy")}.";
+                    $"Время последней модификации отчета: {currentDate.ToString("HH:mm:ss dd.MM.yyyy")}.";
                 reportWorksheet.Cells[ReportSheet.HEADER_ROW + 2, ReportSheet.HEADER_COL].Value =
                     $"{Constants.APPLICATION_NAME}.   {Constants.COMPANY_NAME}.";
                 reportWorksheet.Cells[ReportSheet.TABLE_CAPTIONS_ROW, ReportSheet.SILO_COL].Value = "Силос";

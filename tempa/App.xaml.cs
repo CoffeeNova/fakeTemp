@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Windows;
 using System.Diagnostics;
+using System.Globalization;
 using System.Windows.Media;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -14,6 +15,7 @@ using CoffeeJelly.tempa.Extensions;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Windows.Interop;
+using System.Windows.Markup;
 
 namespace CoffeeJelly.tempa
 {
@@ -40,6 +42,17 @@ namespace CoffeeJelly.tempa
                 System.Diagnostics.Process.GetCurrentProcess().Kill();
                 _log.Info("Attempt to start another instance of the application. {0} closing.", Constants.APPLICATION_NAME);
             }
+
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-Ru");
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("ru-Ru");
+
+            Thread.CurrentThread.CurrentCulture.GetType()
+                .GetProperty("DefaultThreadCurrentCulture")
+                .SetValue(Thread.CurrentThread.CurrentCulture, Thread.CurrentThread.CurrentCulture, null);
+            Thread.CurrentThread.CurrentCulture.GetType()
+                .GetProperty("DefaultThreadCurrentUICulture")
+                .SetValue(Thread.CurrentThread.CurrentUICulture, Thread.CurrentThread.CurrentUICulture, null);
+
             //create the notifyicon (it's a resource declared in smNotify.xaml
             notifyIcon = (TaskbarIcon)FindResource("NotifyIcon");
 

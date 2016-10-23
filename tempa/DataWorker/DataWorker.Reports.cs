@@ -35,14 +35,13 @@ namespace CoffeeJelly.tempa
 
         public static List<T> ReadReport<T>(string path, string fileName) where T : ITermometer
         {
-            ProgramType programType = ReportFileNameChecker(fileName);
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("path should have not be empty or null value.");
 
-            List<String> lines = new List<String>();
-            using (TextReader reader = new StreamReader(path.PathFormatter() + fileName, Encoding.Default))
+            var lines = new List<string>();
+            using (TextReader reader = new StreamReader(path.PathFormatter() + fileName, true))
             {
-                String line;
+                string line;
                 while ((line = reader.ReadLine()) != null)
                 {
                     lines.Add(line);
