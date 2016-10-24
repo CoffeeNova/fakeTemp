@@ -22,6 +22,7 @@
         <conv:AllIsFalseConvertor x:Key="AllIsFalseConvertor"/>
         <conv:NotAllIsTrueConvertor x:Key="NotAllIsTrueConvertor"/>
         <conv:AllIsTrueEqualsHiddenConvertor x:Key="AllIsTrueEqualsHiddenConvertor"/>
+        <tempa:NewDataWatcherWindow x:Key="NewDataWatcherWindow"/>
         <Style x:Key="DatePickerStyle" TargetType="{x:Type DatePicker}">
             <Setter Property="Height" Value="32"/>
             <Setter Property="Width" Value="148"/>
@@ -320,6 +321,18 @@
             <ColumnDefinition Width="21*"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
+        <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+            <StackPanel  Orientation="Horizontal" >
+                <Label Content="Период Agrolog:" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
+                <TextBox Margin="2,0,0,0" IsReadOnly="False"
+                    Text="текущий" FontSize="8" 
+                    VerticalContentAlignment="Center" />
+                <Label Content="Период Грейнбар:" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
+                <TextBox Margin="2,0,0,0" IsReadOnly="False"
+                         Text="текущий" FontSize="10"
+                         VerticalContentAlignment="Center"/>
+            </StackPanel>
+        </Grid>
         <Border x:Name="Border" Grid.Row="1" Margin="15,4,0,0"
                 CornerRadius="3" Background="#333333" BorderBrush="#333333" BorderThickness="1" 
                 HorizontalAlignment="Left" VerticalAlignment="Top" 
@@ -334,7 +347,7 @@
                Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" />
         <Label x:Name="GrainbarFilesPathLabel" Grid.Row="1" Grid.Column="0" Margin="15,23.668,0,0"
                Content="ПУТЬ К ДАННЫМ ГРЕЙНБАР:" 
-               HorizontalAlignment="Left"  VerticalAlignment="Top" Width="220"  FontSize="14"/> 
+               HorizontalAlignment="Left"  VerticalAlignment="Top" Width="220"  FontSize="14"/>
         <Border x:Name="Border1" Grid.Row="1" Grid.Column="0" Margin="15,50,0,0" 
                 CornerRadius="3" Background="#333333" BorderBrush="#333333" BorderThickness="1" 
                 HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -347,26 +360,6 @@
                  LostKeyboardFocus="FilesPathTextBox_LostKeyboardFocus"
                  VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
                  ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" extensions:TextBoxAutoScrollBehavior.AutoScroll="True"/>
-        <Label x:Name="LogLabel" Grid.Row="1" Grid.Column="0" Margin="7,181.333,0,0"
-               Content="ЛОГ:" FontSize="14"
-               HorizontalAlignment="Left"  VerticalAlignment="Top"
-               Width="129" RenderTransformOrigin="0.56,3.962" />
-        <StackPanel Grid.Row="1" Grid.Column="0" Margin="164,181,0,155"
-            Width="240" HorizontalAlignment="Left">
-            <ProgressBar x:Name="ProgressB" Margin="0,0,0,16"
-                         Minimum="0" Maximum="1" Height="16"  IsEnabled="True"
-                         Visibility="{Binding ProgressBarVisibility, ElementName=FakeTemp, 
-                         Mode=Oneway, UpdateSourceTrigger=PropertyChanged}">
-                <ProgressBar.IsIndeterminate>
-                    <MultiBinding Converter="{StaticResource NotAllIsTrueConvertor}">
-                        <Binding Path="AgrologDataHandlingPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
-                        <Binding Path="GrainbarDataHandlingPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
-                        <Binding Path="AgrologReportPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
-                        <Binding Path="GrainbarReportPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
-                </MultiBinding>
-                </ProgressBar.IsIndeterminate>
-            </ProgressBar>
-        </StackPanel>
         <Grid Margin="13,87,244,189" Grid.Row="1" Grid.Column="0">
             <Button x:Name="GrainbarButton" Margin="112,34,0,0"
                     Content="ГРЕЙНБАР" FontSize="14"
@@ -452,14 +445,48 @@
             <TextBlock x:Name="LogTextBlock" Padding="5"  TextWrapping="Wrap" 
                            ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" />
         </ScrollViewer>-->
+        <Grid  Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" Margin="10,0,0,10"
+                HorizontalAlignment="Left"  VerticalAlignment="Bottom"
+            Width="464"  Height="174" 
+               RenderTransformOrigin="1.067,0.385" >
 
-        <controls:LogViewer x:Name="LogScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                            HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom"
-                            Width="464" RenderTransformOrigin="1.067,0.385" Height="145" Grid.Row="1" 
-                             Grid.ColumnSpan="2" Grid.Column="0"
-                            DataContext="{Binding LogCollection, ElementName=FakeTemp, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+            <StackPanel  Width="120" Height="21"
+                         HorizontalAlignment="Left" VerticalAlignment="Top"
+                         Orientation="Horizontal" Margin="0,-2,0,0" d:DataContext="{StaticResource NewDataWatcherWindow}">
+                <Label Content="A" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
+                <TextBox Margin="2,0,0,0"  IsReadOnly="False"
+                         Text="{Binding Path=TotalReportsProcessedA, Mode=OneWay,
+                             UpdateSourceTrigger=PropertyChanged}" FontSize="10" 
+                         VerticalContentAlignment="Center"  />
+                <Label Content="Г" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
+                <TextBox Margin="2,0,0,0" IsReadOnly="False"
+                         Text="{Binding Path=TotalReportsProcessedG, Mode=OneWay,
+                             UpdateSourceTrigger=PropertyChanged}" FontSize="10" 
+                         VerticalContentAlignment="Center"/>
+            </StackPanel>
 
-        </controls:LogViewer>
+            <controls:LogViewer x:Name="LogScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                           
+                            DataContext="{Binding LogCollection, ElementName=FakeTemp, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,19,0,0">
+
+            </controls:LogViewer>
+            <StackPanel Grid.Column="0" Margin="199,-2,0,155"
+             HorizontalAlignment="Left">
+                <ProgressBar x:Name="ProgressB" Margin="0,0,0,16"
+                             Width="240" Height="20"
+                         Minimum="0" Maximum="1" IsEnabled="True"
+                         Visibility="{Binding ProgressBarVisibility, ElementName=FakeTemp, Mode=Oneway, UpdateSourceTrigger=PropertyChanged}">
+                    <ProgressBar.IsIndeterminate>
+                        <MultiBinding Converter="{StaticResource NotAllIsTrueConvertor}">
+                            <Binding Path="AgrologDataHandlingPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Path="GrainbarDataHandlingPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Path="AgrologReportPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Path="GrainbarReportPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
+                        </MultiBinding>
+                    </ProgressBar.IsIndeterminate>
+                </ProgressBar>
+            </StackPanel>
+        </Grid>
         <Button x:Name="AgrologFileBrowsButt" Grid.Row="1" Grid.Column="0"
                 Margin="235,4,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" 
                 VerticalContentAlignment="Top"  HorizontalContentAlignment="Center"

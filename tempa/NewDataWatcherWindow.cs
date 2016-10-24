@@ -30,8 +30,6 @@ namespace CoffeeJelly.tempa
 
             NewDataInitVerification<TermometerAgrolog>(checkAgrolog);
             NewDataInitVerification<TermometerGrainbar>(checkGrainbar);
-
-
         }
 
         private void NewDataInitVerification<T>(bool check) where T : ITermometer
@@ -71,6 +69,8 @@ namespace CoffeeJelly.tempa
                 datFile = new FileInfo(Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter() + Constants.GRAINBAR_DATA_FILE);
                 if (!datFile.Exists)
                     CreateNewDataFile<TermometerGrainbar>(Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter(), Constants.GRAINBAR_DATA_FILE);
+                else
+                    NewPeriodVerify<TermometerGrainbar>(datFile);
             }
             catch (Exception ex)
             {
@@ -89,19 +89,19 @@ namespace CoffeeJelly.tempa
             if (fileInfo.CreationTime.Year >= DateTime.Today.Year)
                 return;
             LogMaker.Log($"Начало нового периода. Копирую данные файла {fileInfo.Name} в архив.", false);
-
+            ArchieveDataFile<T>(fileInfo);
         }
 
         private void ArchieveDataFile<T>(FileInfo dataFileInfo) where T : ITermometer
         {
-            //LockDataAccess<T>();
-            List<T> dataList = ReadDataFile<T>(dataFileInfo.FullName, false).Result;
-           // UnLockDataAccess<T>();
+            List<T> dataList = ReadDataFile<T>(dataFileInfo.Name, false).Result;
 
-            if (dataList.Count < 2)
-                return; //data file is empty or has only pattern info
+            var patternDate = dataList.First().MeasurementDate;
+            dataList.RemoveAll(t => t.MeasurementDate == patternDate);
+            if (dataList.Count == 0)
+                return; //data file had only pattern info
 
-            DateTime firstDate = dataList[1].MeasurementDate;
+            DateTime firstDate = dataList.First().MeasurementDate;
             DateTime lastDate = dataList.Last().MeasurementDate;
             string archievedName = $"{firstDate.Date:dd.MM.yy}-{lastDate.Date:dd.MM.yy} {dataFileInfo.Name}";
             bool transferResult = TransferDataFileToArchieve(dataFileInfo, archievedName);
@@ -141,14 +141,12 @@ namespace CoffeeJelly.tempa
 
         private void CreateNewDataFile<T>(string dataFilePath, string dataFileName) where T : ITermometer
         {
-            //LockDataAccess<T>();
             LogMaker.Log($"Файл данных {dataFilePath.PathFormatter() + dataFileName} не обнаружен. Создаю новый.", false);
             var patternReportText = typeof(T) == typeof(TermometerAgrolog) ? Properties.Resources.AgrologPatternReport : Properties.Resources.GrainbarPatternReport;
             var patternReportList = DataWorker.ReadPatternReport<T>(patternReportText);
             var task = WriteDataFile(patternReportList, dataFilePath, dataFileName, false);
             if (!task.Result)
                 throw new InvalidOperationException("Can't create .dat file. Operation of application work is impossible.");
-            //UnLockDataAccess<T>();
         }
 
         private bool WatcherInit<T>(ref FileSystemWatcher watcher, string reportsPath, string fileExtension) where T : ITermometer
@@ -174,7 +172,7 @@ namespace CoffeeJelly.tempa
         {
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             watcher.Filter = "*." + fileExtension;
-            watcher.Created += (sender, e) => FileSystemWatcher_OnCreated<T>(sender, e);
+            watcher.Created += FileSystemWatcher_OnCreated<T>;
             watcher.InternalBufferSize = 81920;
             watcher.EnableRaisingEvents = true;
             watcher.Error += Watcher_Error;
@@ -204,6 +202,14 @@ namespace CoffeeJelly.tempa
                 Constants.AGROLOG_PROGRAM_NAME :
                 Constants.GRAINBAR_PROGRAM_NAME;
         }
+
+        private string DefineDataFileExtension<T>() where T : ITermometer
+        {
+            return typeof(T) == typeof(TermometerAgrolog)
+                ? Constants.AGROLOG_FILE_EXTENSION
+                : Constants.GRAINBAR_FILE_EXTENSION;
+        }
+
 
         private async Task<List<T>> ReadDataFile<T>(string dataFileName, bool readAsync) where T : ITermometer
         {
@@ -236,15 +242,21 @@ namespace CoffeeJelly.tempa
             return null;
         }
 
-        private async Task<bool> WriteDataFile<T>(List<T> dataList, string dataFilePath, string dataFileName, bool writeAsync) where T : ITermometer
+        private async Task<bool> WriteDataFile<T>(IEnumerable<T> dataList, string dataFilePath, string dataFileName, bool writeAsync) where T : ITermometer
         {
             try
             {
                 LockDataAccess<T>();
                 var orderedDataList = dataList.OrderBy(t => t.MeasurementDate).ToList();
+
                 if (writeAsync)
                     await DataWorker.WriteBinaryAsync<T>(dataFilePath, dataFileName, orderedDataList);
                 else DataWorker.WriteBinary<T>(dataFilePath, dataFileName, orderedDataList);
+
+                if (typeof(T) == typeof(TermometerAgrolog))
+                    TotalReportsProcessedA += orderedDataList.GroupBy(t => t.MeasurementDate).Count() - 1;
+                else if (typeof(T) == typeof(TermometerGrainbar))
+                    TotalReportsProcessedG += orderedDataList.GroupBy(t => t.MeasurementDate).Count() - 1;
                 return true;
             }
             catch (Exception ex)
@@ -401,14 +413,6 @@ namespace CoffeeJelly.tempa
             return Internal.CheckRegistrySettings(regKeyPath, Constants.SETTINGS_LOCATION, regKeyValue);
         }
 
-        private string DefineDataFileExtension<T>() where T : ITermometer
-        {
-            return typeof(T) == typeof(TermometerAgrolog)
-                ? Constants.AGROLOG_FILE_EXTENSION
-                : Constants.GRAINBAR_FILE_EXTENSION;
-        }
-
-
 
         public void LockDataAccess<T>() where T : ITermometer
         {
@@ -495,10 +499,10 @@ namespace CoffeeJelly.tempa
         public static CancellationTokenSource ExitCancelTokenSource = new CancellationTokenSource();
         public static CancellationToken ExitToken = ExitCancelTokenSource.Token;
 
-        //private FileSystemWatcher _agrologDataWatcher;
-        //private FileSystemWatcher _grainbarDataWatcher;
         private bool _agrologDataHandlingPermission = true;
         private bool _grainbarDataHandlingPermission = true;
+        private int _totalReportsProcessedA = 0;
+        private int _totalReportsProcessedG = 0;
         private static readonly object Locker = new object();
         private static readonly Semaphore CriticalErrorLock = new Semaphore(1, 1);
 
@@ -522,6 +526,30 @@ namespace CoffeeJelly.tempa
                 if (_grainbarDataHandlingPermission == value)
                     return;
                 _grainbarDataHandlingPermission = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public int TotalReportsProcessedA
+        {
+            get { return _totalReportsProcessedA; }
+            set
+            {
+                if (_totalReportsProcessedA == value)
+                    return;
+                _totalReportsProcessedA = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public int TotalReportsProcessedG
+        {
+            get { return _totalReportsProcessedG; }
+            set
+            {
+                if (_totalReportsProcessedG == value)
+                    return;
+                _totalReportsProcessedG = value;
                 NotifyPropertyChanged();
             }
         }
