@@ -28,19 +28,19 @@ namespace CoffeeJelly.tempa
             Settings(out checkAgrolog, out checkGrainbar);
             CheckDataFiles();
 
-            NewDataVerification<TermometerAgrolog>(checkAgrolog);
-            NewDataVerification<TermometerGrainbar>(checkGrainbar);
+            NewDataInitVerification<TermometerAgrolog>(checkAgrolog);
+            NewDataInitVerification<TermometerGrainbar>(checkGrainbar);
 
 
         }
 
-        private void NewDataVerification<T>(bool check) where T : ITermometer
+        private void NewDataInitVerification<T>(bool check) where T : ITermometer
         {
             if (!check) return;
 
             WatcherInitChange<T>(true);
             var task = CheckDirectoryForNewDataAsync<T>(GetNewDataPathFromReg<T>(), DefineDataFileExtension<T>());
-            task.CriticalTask();
+            task.AwaitCriticalTask();
         }
 
         private void Settings(out bool checkAgrolog, out bool checkGrainbar)
@@ -210,7 +210,6 @@ namespace CoffeeJelly.tempa
             try
             {
                 LockDataAccess<T>();
-                Thread.Sleep(5000);
                 List<T> dataFile;
                 if (readAsync)
                     dataFile = await DataWorker.ReadBinaryAsync<T>(Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName);
@@ -439,7 +438,7 @@ namespace CoffeeJelly.tempa
 
             var fileProcessingTask = FileProcessingAsync<T>(sender, e);
 
-            fileProcessingTask.CriticalTask();
+             fileProcessingTask.AwaitCriticalTask();
         }
 
         private Task FileProcessingAsync<T>(object sender, FileSystemEventArgs e) where T : ITermometer
@@ -456,13 +455,13 @@ namespace CoffeeJelly.tempa
 
             if (FileWatcherTimer<T>.State == FileWatcherTimer<T>.TimerState.Stopped)
             {
-                TempRepository<T>.ExistedData = ReadDataFile<T>(dataFileName, false).Result;
-                if (TempRepository<T>.ExistedData == null)
+                var data = ReadDataFile<T>(dataFileName, false).Result;
+                if (data == null)
                 {
                     DataHandlingLock<T>.SyncLock.Release();
                     return;
                 }
-                TempRepository<T>.NewData.AddRange(TempRepository<T>.ExistedData);
+                TempRepository<T>.ExistedData.AddRange(data);
             }
 
             FileWatcherTimer<T>.StartFunction(path, e.Name);
@@ -540,7 +539,7 @@ namespace CoffeeJelly.tempa
         private static class TempRepository<T> where T : ITermometer
         {
             public static List<T> NewData { get; } = new List<T>();
-            public static List<T> ExistedData { get; set; }
+            public static List<T> ExistedData { get; set; } = new List<T>();
         }
 
         private static class NewDataWatcher<T> where T : ITermometer
@@ -564,8 +563,6 @@ namespace CoffeeJelly.tempa
 
             private static void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
-                Timer.Stop();
-
                 var newDataWatcherWindow = (NewDataWatcherWindow)Application.Current.Dispatcher.Invoke(
                                                                     new Func<NewDataWatcherWindow>(() =>
                                                                    Application.Current.MainWindow as NewDataWatcherWindow));
@@ -611,18 +608,21 @@ namespace CoffeeJelly.tempa
 
             private static void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
+                DataHandlingLock<T>.SyncLock.WaitOne();
                 var dataFileName = DefineDataFileName<T>();
                 var newDataWatcherWindow = (NewDataWatcherWindow)Application.Current.Dispatcher.Invoke(
                                                                     new Func<NewDataWatcherWindow>(() =>
                                                                    Application.Current.MainWindow as NewDataWatcherWindow));
                 if (newDataWatcherWindow == null)
+                {
+                    DataHandlingLock<T>.SyncLock.Release();
                     return;
-                // newDataWatcherWindow.LockDataAccess<T>();
+                }
                 var writeResult = true;
-                if (TempRepository<T>.NewData.Count > TempRepository<T>.ExistedData.Count)
+                if (TempRepository<T>.NewData.Count > 0)
                 {
                     LogMaker.Log($"Новых данных - {TempRepository<T>.NewData.Count}. Данные приняты. Сохраняем их в файле \"{dataFileName}\".", false);
-                    writeResult = newDataWatcherWindow.WriteDataFile(TempRepository<T>.NewData, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, false).Result;
+                    writeResult = newDataWatcherWindow.WriteDataFile(TempRepository<T>.ExistedData, Constants.APPLICATION_DATA_FOLDER_PATH, dataFileName, false).Result;
                 }
                 else
                     LogMaker.Log($"Новых данных {DefineProgramName<T>()} не обнаружено.", false);
@@ -635,9 +635,9 @@ namespace CoffeeJelly.tempa
                 State = TimerState.Stopped;
                 ProcessedFilesList.Clear();
                 TempRepository<T>.NewData.Clear();
-                TempRepository<T>.ExistedData = null;
+                TempRepository<T>.ExistedData.Clear();
 
-                //newDataWatcherWindow.UnLockDataAccess<T>();
+                DataHandlingLock<T>.SyncLock.Release();
             }
             /// <summary>
             /// List of processed files by FileSystemWatcher, where key - file path, value - file name.

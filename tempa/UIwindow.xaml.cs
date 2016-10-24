@@ -59,25 +59,25 @@ namespace CoffeeJelly.tempa
             LogMaker.newMessage += LogMaker_newMessage;
             AgrologFileBrowsButt.Tag = ProgramType.Agrolog;
             GrainbarFileBrowsButt.Tag = ProgramType.Grainbar;
-            SettingsShow += MainWindow_onSettingsShow;
-            AboutShow += MainWindow_AboutShow;
-            AboutHide += MainWindow_AboutHide;
-            CreateReportShow += MainWindow_CreateReportShow;
-            CreateReportHide += MainWindow_CreateReportHide;
-            PropertyChanged += MainWindow_PropertyChanged;
+            SettingsShow += UIWindow_onSettingsShow;
+            AboutShow += UIWindow_AboutShow;
+            AboutHide += UIWindow_AboutHide;
+            CreateReportShow += UIWindow_CreateReportShow;
+            CreateReportHide += UIWindow_CreateReportHide;
+            PropertyChanged += UIWindow_PropertyChanged;
             LogCollection.CollectionChanged += LogCollection_CollectionChanged;
 
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {
                 var window = Application.Current.MainWindow as NewDataWatcherWindow;
                 if (window == null) return;
-                window.PropertyChanged += UIwindow_PropertyChanged;
+                window.PropertyChanged += NewDataWatcherWindow_PropertyChanged;
                 AgrologDataHandlingPermission = window.AgrologDataHandlingPermission;
                 GrainbarDataHandlingPermission = window.GrainbarDataHandlingPermission;
             }));
         }
 
-        private void UIwindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void NewDataWatcherWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(AgrologDataHandlingPermission))
                 AgrologDataHandlingPermission = (sender as NewDataWatcherWindow).AgrologDataHandlingPermission;
@@ -343,7 +343,10 @@ namespace CoffeeJelly.tempa
             try
             {
                 LogMaker.InvokedLog($"Чтение данных из файла \"{dataFileName}\"", false, this.Dispatcher);
+                var app = Application.Current;
+                app.Dispatcher.Invoke(new Action(() => DataAccessChanged<T>(true)));
                 var reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
+                app.Dispatcher.Invoke(new Action(() => DataAccessChanged<T>(false)));
                 LogMaker.InvokedLog($"Построение графика \"{Internal.GetProgramName<T>()}\"", false, this.Dispatcher);
 
                 var data = reportData.Select(t => t as Termometer).ToList();
@@ -510,20 +513,28 @@ namespace CoffeeJelly.tempa
             var button = sender as Button;
             if (button == null) return;
 
-            button.IsEnabled = false;
             if (Equals(button, AgrologButton))
-                await WriteReport<TermometerAgrolog>(
+            {
+                AgrologReportPermission = false;
+                var task =WriteReport<TermometerAgrolog>(
                     Constants.APPLICATION_DATA_FOLDER_PATH,
                     Constants.AGROLOG_DATA_FILE,
                     Constants.EXCEL_REPORT_FOLDER_PATH,
                     Constants.AGROLOG_EXCEL_REPORT_FILE_NAME);
+                await task.AwaitCriticalTask();
+                AgrologReportPermission = true;
+            }
             else if (Equals(button, GrainbarButton))
-                await WriteReport<TermometerGrainbar>(
+            {
+                GrainbarReportPermission = false;
+                var task = WriteReport<TermometerGrainbar>(
                     Constants.APPLICATION_DATA_FOLDER_PATH,
                     Constants.GRAINBAR_DATA_FILE,
                     Constants.EXCEL_REPORT_FOLDER_PATH,
                     Constants.GRAINBAR_EXCEL_REPORT_FILE_NAME);
-            button.IsEnabled = true;
+                await task.AwaitCriticalTask();
+                GrainbarReportPermission = true;
+            }
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -556,30 +567,30 @@ namespace CoffeeJelly.tempa
 
         }
 
-        void MainWindow_onSettingsShow(object sender, RoutedEventArgs e)
+        void UIWindow_onSettingsShow(object sender, RoutedEventArgs e)
         {
             IsSettingsGridOnForm = true;
         }
 
 
-        private void MainWindow_AboutShow(object sender, RoutedEventArgs e)
+        private void UIWindow_AboutShow(object sender, RoutedEventArgs e)
         {
             IsAboutOnForm = true;
         }
 
 
-        private void MainWindow_AboutHide(object sender, RoutedEventArgs e)
+        private void UIWindow_AboutHide(object sender, RoutedEventArgs e)
         {
             IsAboutOnForm = false;
         }
 
 
-        void MainWindow_CreateReportShow(object sender, RoutedEventArgs e)
+        void UIWindow_CreateReportShow(object sender, RoutedEventArgs e)
         {
             IsCreateReportWindowShow = true;
         }
 
-        void MainWindow_CreateReportHide(object sender, RoutedEventArgs e)
+        void UIWindow_CreateReportHide(object sender, RoutedEventArgs e)
         {
             IsCreateReportWindowShow = false;
         }
@@ -604,12 +615,6 @@ namespace CoffeeJelly.tempa
             {
                 try
                 {
-                    //var func = new Func<CheckBox, bool>(ch =>
-                    //{
-                    //    return (bool)this.Dispatcher.Invoke(new Func<bool>(() => (ch as CheckBox).IsChecked.Value));
-                    //}
-                    //);
-
                     Internal.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsAgrologDataCollect);
                     Internal.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsGrainbarDataCollect);
                     Internal.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, IsAutostart);
@@ -732,7 +737,7 @@ namespace CoffeeJelly.tempa
             base.OnClosing(e);
         }
 
-        private void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void UIWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (!e.PropertyName.EqualsAny(nameof(IsAgrologDataCollect), nameof(IsGrainbarDataCollect))) return;
             string propertyName = e.PropertyName;
@@ -827,6 +832,10 @@ namespace CoffeeJelly.tempa
         private bool _isDataSubstitution;
         private bool _agrologDataHandlingPermission = true;
         private bool _grainbarDataHandlingPermission = true;
+        private bool _agrologReportPermission = true;
+        private bool _grainbarReportPermission = true;
+        private bool _agrologPlotPermission = true;
+        private bool _grainbarPlotPermission = true;
         private Visibility _progressBarVisibility = Visibility.Hidden;
 
         private int _logIndex = 0;
@@ -921,7 +930,9 @@ namespace CoffeeJelly.tempa
                     return;
 
                 _agrologDataHandlingPermission = value;
-                ProgressBarVisibility = value & GrainbarDataHandlingPermission ? Visibility.Hidden : Visibility.Visible;
+                ProgressBarVisibility = value & GrainbarDataHandlingPermission &
+                                        AgrologReportPermission & GrainbarReportPermission &
+                                        AgrologPlotPermission & GrainbarPlotPermission ? Visibility.Hidden : Visibility.Visible;
                 NotifyPropertyChanged();
             }
         }
@@ -935,7 +946,73 @@ namespace CoffeeJelly.tempa
                     return;
 
                 _grainbarDataHandlingPermission = value;
-                ProgressBarVisibility = value & AgrologDataHandlingPermission ? Visibility.Hidden : Visibility.Visible;
+                ProgressBarVisibility = value & AgrologDataHandlingPermission &
+                                        AgrologReportPermission & GrainbarReportPermission &
+                                        AgrologPlotPermission & GrainbarPlotPermission ? Visibility.Hidden : Visibility.Visible;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool AgrologReportPermission
+        {
+            get { return _agrologReportPermission; }
+            set
+            {
+                if (_agrologReportPermission == value)
+                    return;
+
+                _agrologReportPermission = value;
+                ProgressBarVisibility = value & AgrologDataHandlingPermission &
+                                        GrainbarDataHandlingPermission & GrainbarReportPermission &
+                                        AgrologPlotPermission & GrainbarPlotPermission ? Visibility.Hidden : Visibility.Visible;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool GrainbarReportPermission
+        {
+            get { return _grainbarReportPermission; }
+            set
+            {
+                if (_grainbarReportPermission == value)
+                    return;
+
+                _grainbarReportPermission = value;
+                ProgressBarVisibility = value & AgrologDataHandlingPermission &
+                                        GrainbarDataHandlingPermission & AgrologReportPermission &
+                                        AgrologPlotPermission & GrainbarPlotPermission ? Visibility.Hidden : Visibility.Visible;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool AgrologPlotPermission
+        {
+            get { return _agrologPlotPermission; }
+            set
+            {
+                if (_agrologPlotPermission == value)
+                    return;
+
+                _agrologPlotPermission = value;
+                ProgressBarVisibility = value & AgrologDataHandlingPermission &
+                                        GrainbarDataHandlingPermission & AgrologReportPermission &
+                                        GrainbarReportPermission & GrainbarPlotPermission ? Visibility.Hidden : Visibility.Visible;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool GrainbarPlotPermission
+        {
+            get { return _grainbarPlotPermission; }
+            set
+            {
+                if (_grainbarPlotPermission == value)
+                    return;
+
+                _grainbarPlotPermission = value;
+                ProgressBarVisibility = value & AgrologDataHandlingPermission &
+                                        GrainbarDataHandlingPermission & AgrologReportPermission &
+                                        GrainbarReportPermission & AgrologPlotPermission ? Visibility.Hidden : Visibility.Visible;
                 NotifyPropertyChanged();
             }
         }

@@ -59,7 +59,7 @@ namespace CoffeeJelly.ReportGenerateTool
             defaultPath += reportType == ProgramType.Agrolog ? Constants.AGROLOG_FOLDER_NAME : Constants.GRAINBAR_FOLDER_NAME;
             string outpuPath;
 
-            Console.Write($"Type output reports path or [default] to set location {defaultPath}:    ");
+            Console.Write($"Type output reports path or [default] of just press [Enter] to set location {defaultPath}:    ");
             while (true)
             {
                 var line = Console.ReadLine();
@@ -67,7 +67,7 @@ namespace CoffeeJelly.ReportGenerateTool
                 CheckExit(line);
 
                 Debug.Assert(line != null, "line != null");
-                if (line.Equals("default", StringComparison.InvariantCultureIgnoreCase))
+                if (line.EqualsAny(StringComparison.InvariantCultureIgnoreCase, "", "default"))
                 {
                     outpuPath = defaultPath;
                     break;

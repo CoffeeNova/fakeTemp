@@ -126,13 +126,13 @@ namespace CoffeeJelly.tempa.Converters
         }
     }
 
-    public class AnyIsIndeterminateConvertor : IMultiValueConverter
+    public class AnyIsTrueConvertor : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             try
             {
-                var result = !(bool)values[0] | !(bool)values[1];
+                var result = values.Any(b => (bool)b == true);
                 return result;
             }
             catch
@@ -143,20 +143,111 @@ namespace CoffeeJelly.tempa.Converters
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotSupportedException($"{nameof(AnyIsIndeterminateConvertor)} can only be used for one way to source conversion.");
+            throw new NotSupportedException($"{nameof(AnyIsTrueConvertor)} can only be used for one way to source conversion.");
         }
     }
 
-    public class AnyIsVisibilityConvertor : IMultiValueConverter
+    public class AnyIsFalseConvertor : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return (Visibility)values[0] | (Visibility)values[1];
+            try
+            {
+                var result = values.Any(b => (bool)b == false);
+                return result;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotSupportedException($"{nameof(AnyIsVisibilityConvertor)} can only be used for one way to source conversion.");
+            throw new NotSupportedException($"{nameof(AnyIsFalseConvertor)} can only be used for one way to source conversion.");
+        }
+    }
+
+    public class AllIsTrueConvertor : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            try
+            {
+                var result = values.All(b => (bool)b == true);
+                return result;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException($"{nameof(AllIsTrueConvertor)} can only be used for one way to source conversion.");
+        }
+    }
+
+    public class AllIsFalseConvertor : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            try
+            {
+                var result = values.All(b => (bool)b == false);
+                return result;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException($"{nameof(AllIsTrueConvertor)} can only be used for one way to source conversion.");
+        }
+    }
+
+    public class NotAllIsTrueConvertor : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            try
+            {
+                var result = values.All(b => (bool)b == true);
+                return !result;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException($"{nameof(AllIsTrueConvertor)} can only be used for one way to source conversion.");
+        }
+    }
+
+    public class AllIsTrueEqualsHiddenConvertor : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            try
+            {
+                return values.All(b => (bool)b == true) ? Visibility.Hidden : Visibility.Visible;
+            }
+            catch
+            {
+                return Visibility.Visible;
+            }
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException($"{nameof(AllIsTrueEqualsHiddenConvertor)} can only be used for one way to source conversion.");
         }
     }
 }

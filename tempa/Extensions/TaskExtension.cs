@@ -8,7 +8,7 @@ namespace CoffeeJelly.tempa.Extensions
 {
     public static class TaskExtension
     {
-        public static async void CriticalTask(this Task task)
+        public static async Task AwaitCriticalTask(this Task task)
         {
             CriticalTasks.Add(task);
             await task;

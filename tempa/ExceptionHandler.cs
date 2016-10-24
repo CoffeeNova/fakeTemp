@@ -26,7 +26,7 @@ namespace CoffeeJelly.tempa
             if (!close)
                 return;
             _log.Info("{0} is closed with error.", Constants.APPLICATION_NAME);
-            Application.Current.Shutdown();
+           Application.Current.Dispatcher.Invoke(new Action(() => Application.Current.Shutdown()));
         }
 
         private static Logger _log = LogManager.GetCurrentClassLogger();
