@@ -591,7 +591,7 @@ namespace CoffeeJelly.tempa
 
             private static void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
-                var newDataWatcherWindow = (NewDataWatcherWindow)Application.Current.Dispatcher.Invoke(
+                var newDataWatcherWindow = (NewDataWatcherWindow)Application.Current?.Dispatcher?.Invoke(
                                                                     new Func<NewDataWatcherWindow>(() =>
                                                                    Application.Current.MainWindow as NewDataWatcherWindow));
                 if (newDataWatcherWindow == null)

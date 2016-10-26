@@ -7,9 +7,13 @@
         mc:Ignorable="d" x:Class="CoffeeJelly.tempa.UIwindow"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Title="TermoReporter" Height="415.367" Width="484.334" Closed="Program_Closed" ResizeMode="NoResize" WindowStyle="None"
-        xmlns:tempa="clr-namespace:CoffeeJelly.tempa"   
+        xmlns:tempa="clr-namespace:CoffeeJelly.tempa"
+        xmlns:viewmodel ="clr-namespace:CoffeeJelly.tempa.ViewModel"
         xmlns:conv="clr-namespace:CoffeeJelly.tempa.Converters"
         xmlns:controls="clr-namespace:CoffeeJelly.tempa.Controls"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+        xmlns:behaviors ="clr-namespace:CoffeeJelly.tempa.Behaviors"
         MouseLeftButtonDown="Window_MouseLeftButtonDown" x:Name="FakeTemp" Background="#444444" Loaded="FakeTemp_Loaded">
     <!--<Window.DataContext>
         <tempa:MainWindow/>
@@ -340,8 +344,8 @@
         <TextBox x:Name="AgrologFilesPathTextBox"  Text="{Binding Path=AgrologReportsPath, ElementName=FakeTemp, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                  HorizontalAlignment="Left" Height="23" Margin="15,4,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="220" 
                  VerticalContentAlignment="Center" HorizontalContentAlignment="Left"   LostKeyboardFocus="FilesPathTextBox_LostKeyboardFocus" 
-                  ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Grid.Row="1" Grid.Column="0"
-                 extensions:TextBoxAutoScrollBehavior.AutoScroll="True"/>
+                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Grid.Row="1" Grid.Column="0"
+                 behaviors:TextBoxAutoScrollBehavior.AutoScroll="True"/>
         <Label x:Name="AgroloFilesPathLabel" 
                Content="ПУТЬ К ДАННЫМ AGROLOG:" HorizontalAlignment="Left" Margin="15,28.674,0,0" VerticalAlignment="Top" Width="191" FontSize="14"
                Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" />
@@ -359,7 +363,7 @@
                  Width="220" Height="23"  TextWrapping="NoWrap" 
                  LostKeyboardFocus="FilesPathTextBox_LostKeyboardFocus"
                  VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
-                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" extensions:TextBoxAutoScrollBehavior.AutoScroll="True"/>
+                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" behaviors:TextBoxAutoScrollBehavior.AutoScroll="True"/>
         <Grid Margin="13,87,244,189" Grid.Row="1" Grid.Column="0">
             <Button x:Name="GrainbarButton" Margin="112,34,0,0"
                     Content="ГРЕЙНБАР" FontSize="14"
@@ -493,7 +497,7 @@
                 Height="23" Width="23"
                 RenderTransformOrigin="0.565,0.696" FontSize="24" FontFamily="Stencil"
                 Click="FileBrowsButt_Click">
-
+            
             <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
                 <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
             </Canvas>
@@ -528,8 +532,7 @@
         </Button>
         <Grid x:Name="SettingsGrid" 
               Background="#333333" HorizontalAlignment="Left" Height="190" Width="204" Margin="33,36,-215,0" VerticalAlignment="Top" 
-              Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" RenderTransformOrigin="0.5,0.5" 
-              LostFocus="FileBrowsGrid_LostFocus" IsVisibleChanged="FileBrowsGrid_IsVisibleChanged">
+              Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" RenderTransformOrigin="0.5,0.5" >
             <Grid.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -571,14 +574,12 @@
                           Margin="0,79,0,0" VerticalAlignment="Top" Width="184" 
                           Background="#FF110F0F" Foreground="#FFF1EBEB"/>
             </Grid>
-
         </Grid>
         <Grid x:Name="FileBrowsGrid" 
               HorizontalAlignment="Left" Height="220.372" 
               Margin="33.197,36,-215.182,0" VerticalAlignment="Top" Width="204"
               Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" 
-              RenderTransformOrigin="0.5,0.5" LostFocus="FileBrowsGrid_LostFocus" 
-              IsVisibleChanged="FileBrowsGrid_IsVisibleChanged">
+              RenderTransformOrigin="0.5,0.5">
             <Grid.Triggers>
             </Grid.Triggers>
             <Grid.RenderTransform>
@@ -598,7 +599,23 @@
                           Height="190" VerticalAlignment="Top" Width="204" 
                           TreeViewItem.Expanded ="FileBrowsTreeView_Expanded" 
                           SelectedItemChanged="FileBrowsTreeView_SelectedItemChanged" 
-                          LostFocus="FileBrowsTreeView_LostFocus" BorderBrush="{x:Null}" />
+                          LostFocus="FileBrowsTreeView_LostFocus" BorderBrush="{x:Null}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectedItemChanged">
+                            <i:InvokeCommandAction Command="{Binding SelectionChanged}"
+                                                   CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"/>
+                        </i:EventTrigger>
+                        <i:EventTrigger EventName="LostFocus">
+                            <i:InvokeCommandAction Command="{Binding LostFocus}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    
+                    <TreeViewItem>
+                        <i:Interaction.Behaviors>
+                            <behaviors:EventToCommandBehavior Command="{Binding ExpandedCommand}" Event="Expanded" PassArguments="True"/>
+                        </i:Interaction.Behaviors>
+                    </TreeViewItem>
+                </TreeView>
                 <Button x:Name="FileBrowsOkButt"  
                         Content="ВЫБРАТЬ" 
                         HorizontalAlignment="Left" VerticalAlignment="Top" Width="64"  Height="22.372" 
@@ -652,7 +669,7 @@
         </Grid>
         <Grid x:Name="AboutGrid" HorizontalAlignment="Left" Height="220.372" Margin="33.197,36,-215.182,0" 
               VerticalAlignment="Top" Width="204" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" RenderTransformOrigin="0.5,0.5"
-               IsVisibleChanged="FileBrowsGrid_IsVisibleChanged" Background="#333333" >
+               Background="#333333" >
             <Grid.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -683,6 +700,8 @@
                     Content="Понятно"  VerticalAlignment="Top" Click="AboutOKButton_Click"  
                     Height="26" Width="83" FontSize="14" Margin="111,184,10,0"/>
         </Grid>
+
+
     </Grid>
 </Window>
 

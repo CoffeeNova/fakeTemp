@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:CoffeeJelly.tempa.Controls"
              xmlns:conv="clr-namespace:CoffeeJelly.tempa.Converters"
              xmlns:extensions="clr-namespace:CoffeeJelly.tempa.Extensions"
+             xmlns:behaviors ="clr-namespace:CoffeeJelly.tempa.Behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
@@ -14,7 +15,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate>
-                        <ScrollViewer CanContentScroll="True" extensions:AutoScrollBehavior.AutoScroll="True">
+                        <ScrollViewer CanContentScroll="True" behaviors:AutoScrollBehavior.AutoScroll="True">
                             <ItemsPresenter/>
                         </ScrollViewer>
                     </ControlTemplate>
@@ -104,7 +105,7 @@
         <ItemsControl ItemsSource="{Binding}" Style="{StaticResource LogViewerStyle}">
             <ItemsControl.Template>
                 <ControlTemplate>
-                    <ScrollViewer CanContentScroll="True" extensions:AutoScrollBehavior.AutoScroll="True">
+                    <ScrollViewer CanContentScroll="True" behaviors:AutoScrollBehavior.AutoScroll="True">
                         <ItemsPresenter/>
                     </ScrollViewer>
                 </ControlTemplate>

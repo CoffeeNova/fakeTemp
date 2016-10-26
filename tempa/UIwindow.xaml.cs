@@ -483,6 +483,7 @@ namespace CoffeeJelly.tempa
             FileBrowsTreeView.Focus();
         }
 
+
         private void FileBrowsOkButt_Click(object sender, RoutedEventArgs e)
         {
             var programType = (ProgramType)FileBrowsTreeView.Tag;
@@ -545,16 +546,6 @@ namespace CoffeeJelly.tempa
         private void MinimizeButt_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Minimized;
-        }
-
-        private void FileBrowsGrid_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-
-        }
-
-        private void FileBrowsGrid_LostFocus(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private void CloseButt_Click(object sender, RoutedEventArgs e)
