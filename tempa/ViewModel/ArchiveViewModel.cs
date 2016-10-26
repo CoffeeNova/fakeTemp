@@ -35,11 +35,11 @@ namespace CoffeeJelly.tempa.ViewModel
 
         private void OnExpanded(RoutedEventArgs e)
         {
-            var item = (TreeViewItem)e.OriginalSource;
-            FillTreeViewItemWithDirectories(ref item);
-            ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
-            scroller.ScrollToBottom();
-            item.BringIntoView();
+            //var item = (TreeViewItem)e.OriginalSource;
+            //FillTreeViewItemWithDirectories(ref item);
+            //ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
+            //scroller.ScrollToBottom();
+            //item.BringIntoView();
         }
 
         //public ICommand SelectedItemChanged
