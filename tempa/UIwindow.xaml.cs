@@ -23,6 +23,7 @@ using CoffeeJelly.tempa.Extensions;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
 using CoffeeJelly.tempa.Controls;
+using CoffeeJelly.tempa.ViewModel;
 
 namespace CoffeeJelly.tempa
 {
@@ -85,113 +86,116 @@ namespace CoffeeJelly.tempa
                 GrainbarDataHandlingPermission = (sender as NewDataWatcherWindow).GrainbarDataHandlingPermission;
         }
 
-        private void FillTreeViewWithRootDrives(ref TreeView treeview)
-        {
-            treeview.Items.Clear();
-            foreach (DriveInfo drive in DriveInfo.GetDrives())
-            {
-                var item = new TreeViewItem();
-                var bc = new BrushConverter();
-                item.Foreground = (Brush)bc.ConvertFrom("#FFFFFFFF");
-                item.Tag = drive;
-                item.Header = drive.ToString();
-                item.Items.Add("*");
-                treeview.Items.Add(item);
-            }
-        }
+        //delete
+        //private void FillTreeViewWithRootDrives(ref TreeView treeview)
+        //{
+        //    treeview.Items.Clear();
+        //    foreach (DriveInfo drive in DriveInfo.GetDrives())
+        //    {
+        //        var item = new TreeViewItem();
+        //        var bc = new BrushConverter();
+        //        item.Foreground = (Brush)bc.ConvertFrom("#FFFFFFFF");
+        //        item.Tag = drive;
+        //        item.Header = drive.ToString();
+        //        item.Items.Add("*");
+        //        treeview.Items.Add(item);
+        //    }
+        //}
 
-        private Task FileBrowsTreeViewDirExpandAsync(string path, ItemCollection itemCollection)
-        {
-            return Task.Factory.StartNew(() => FileBrowsTreeViewDirExpand(path, itemCollection));
-        }
+        //private Task FileBrowsTreeViewDirExpandAsync(string path, ItemCollection itemCollection)
+        //{
+        //    return Task.Factory.StartNew(() => FileBrowsTreeViewDirExpand(path, itemCollection));
+        //}
 
+        //delete
+        //private void FileBrowsTreeViewDirExpand(string path, ItemCollection itemCollection)
+        //{
+        //    foreach (TreeViewItem item in itemCollection)
+        //    {
+        //        DirectoryInfo dir = GetDirectoryInfo(item, true);
 
-        private void FileBrowsTreeViewDirExpand(string path, ItemCollection itemCollection)
-        {
-            foreach (TreeViewItem item in itemCollection)
-            {
-                DirectoryInfo dir = GetDirectoryInfo(item, true);
+        //        var splittedPath = path.Split('\\').ToList();
+        //        splittedPath.RemoveAll(string.IsNullOrEmpty);
 
-                var splittedPath = path.Split('\\').ToList();
-                splittedPath.RemoveAll(string.IsNullOrEmpty);
+        //        foreach (string dirName in splittedPath)
+        //        {
+        //            if (dir.Name.PathFormatter() != dirName.PathFormatter()) continue;
+        //            Dispatcher.Invoke(new Action(() =>
+        //            {
+        //                item.IsExpanded = false;
+        //                item.IsExpanded = true;
+        //                item.IsSelected = true;
+        //            }));
+        //            FileBrowsTreeViewDirExpand(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), item.Items);
+        //            break;
+        //        }
+        //    }
+        //}
 
-                foreach (string dirName in splittedPath)
-                {
-                    if (dir.Name.PathFormatter() != dirName.PathFormatter()) continue;
-                    Dispatcher.Invoke(new Action(() =>
-                    {
-                        item.IsExpanded = false;
-                        item.IsExpanded = true;
-                        item.IsSelected = true;
-                    }));
-                    FileBrowsTreeViewDirExpand(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), item.Items);
-                    break;
-                }
-            }
-        }
+            //delete
+        //private void FillTreeViewItemWithDirectories(ref TreeViewItem treeViewItem)
+        //{
+        //    treeViewItem.Items.Clear();
+        //    DirectoryInfo dir = GetDirectoryInfo(treeViewItem, false);
+        //    try
+        //    {
+        //        foreach (DirectoryInfo subDir in dir.GetDirectories())
+        //        {
+        //            var newItem = new TreeViewItem
+        //            {
+        //                Tag = subDir,
+        //                Header = subDir.ToString()
+        //            };
+        //            newItem.Items.Add("*");
+        //            treeViewItem.Items.Add(newItem);
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        // ignored
+        //    }
+        //}
 
-        private void FillTreeViewItemWithDirectories(ref TreeViewItem treeViewItem)
-        {
-            treeViewItem.Items.Clear();
-            DirectoryInfo dir = GetDirectoryInfo(treeViewItem, false);
-            try
-            {
-                foreach (DirectoryInfo subDir in dir.GetDirectories())
-                {
-                    var newItem = new TreeViewItem
-                    {
-                        Tag = subDir,
-                        Header = subDir.ToString()
-                    };
-                    newItem.Items.Add("*");
-                    treeViewItem.Items.Add(newItem);
-                }
-            }
-            catch
-            {
-                // ignored
-            }
-        }
+        //delete
+        //private DirectoryInfo GetDirectoryInfo(TreeViewItem item, bool anotherThread)
+        //{
+        //    DirectoryInfo dir;
+        //    object tag = anotherThread ? Dispatcher.Invoke(new Func<object>(() => item.Tag)) : item.Tag;
 
-        private DirectoryInfo GetDirectoryInfo(TreeViewItem item, bool anotherThread)
-        {
-            DirectoryInfo dir;
-            object tag = anotherThread ? Dispatcher.Invoke(new Func<object>(() => item.Tag)) : item.Tag;
+        //    var info = tag as DriveInfo;
+        //    if (info != null)
+        //    {
+        //        DriveInfo drive = info;
+        //        dir = drive.RootDirectory;
+        //    }
+        //    else dir = (DirectoryInfo)tag;
 
-            var info = tag as DriveInfo;
-            if (info != null)
-            {
-                DriveInfo drive = info;
-                dir = drive.RootDirectory;
-            }
-            else dir = (DirectoryInfo)tag;
-
-            return dir;
-        }
+        //    return dir;
+        //}
 
         private DirectoryInfo CreateNewFolder(string folderName)
         {
-            if (string.IsNullOrEmpty(folderName))
-                return null;
-            var selectedItem = (TreeViewItem)(FileBrowsTreeView.SelectedItem);
-            DirectoryInfo dir = GetDirectoryInfo(selectedItem, false);
+            //if (string.IsNullOrEmpty(folderName))
+            //    return null;
+            //var selectedItem = (TreeViewItem)(FileBrowsTreeView.SelectedItem);
+            //DirectoryInfo dir = GetDirectoryInfo(selectedItem, false);
 
-            try
-            {
-                string path = dir.FullName.PathFormatter() + folderName;
-                if (!Directory.Exists(path))
-                {
-                    DirectoryInfo newDir = Directory.CreateDirectory(path);
-                    LogMaker.Log($"Создана новая папка: \"{newDir.FullName}\".", false);
-                    return newDir;
-                }
-                return new DirectoryInfo(path);
-            }
-            catch (ArgumentException ex)
-            {
-                LogMaker.Log("Имя папки содежит недопустимые символы, или содержит только пробелы. См. Error.log", true);
-                ExceptionHandler.Handle(ex, false);
-            }
+            //try
+            //{
+            //    string path = dir.FullName.PathFormatter() + folderName;
+            //    if (!Directory.Exists(path))
+            //    {
+            //        DirectoryInfo newDir = Directory.CreateDirectory(path);
+            //        LogMaker.Log($"Создана новая папка: \"{newDir.FullName}\".", false);
+            //        return newDir;
+            //    }
+            //    return new DirectoryInfo(path);
+            //}
+            //catch (ArgumentException ex)
+            //{
+            //    LogMaker.Log("Имя папки содежит недопустимые символы, или содержит только пробелы. См. Error.log", true);
+            //    ExceptionHandler.Handle(ex, false);
+            //}
             return null;
         }
 
@@ -390,27 +394,28 @@ namespace CoffeeJelly.tempa
             plotWindow = null;
         }
 
-        private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
-        {
-            var item = (TreeViewItem)e.OriginalSource;
-            FillTreeViewItemWithDirectories(ref item);
-            ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
-            scroller.ScrollToBottom();
-            item.BringIntoView();
-        }
+        //private void FileBrowsTreeView_Expanded(object sender, RoutedEventArgs e)
+        //{
+        //    var item = (TreeViewItem)e.OriginalSource;
+        //    FillTreeViewItemWithDirectories(ref item);
+        //    ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
+        //    scroller.ScrollToBottom();
+        //    item.BringIntoView();
+        //}
 
-        private void FileBrowsTreeView_LostFocus(object sender, RoutedEventArgs e)
-        {
-            IsFileBrowsTreeOnForm = false;
-        }
+        //private void FileBrowsTreeView_LostFocus(object sender, RoutedEventArgs e)
+        //{
+        //    IsFileBrowsTreeOnForm = false;
+        //}
 
         private void FileBrowsTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            int i = 0;
             String path = "";
             Stack<TreeViewItem> pathstack = Internal.GetNodes(e.NewValue as UIElement);
             if (pathstack.Count == 0)
                 return;
+
+            int i = 0;
             foreach (TreeViewItem item in pathstack)
             {
                 if (i > 0)
@@ -463,32 +468,48 @@ namespace CoffeeJelly.tempa
 
         private async void FileBrowsButt_Click(object sender, RoutedEventArgs e)
         {
-            if (IsFileBrowsTreeOnForm) return;
+            var dataContext = FileBrowsGrid.DataContext as FileBrowserViewModel;
+            if (dataContext != null && dataContext.Active) return;
+
             var button = sender as Button;
             if (button != null)
             {
-                FileBrowsTreeView.Tag = button.Tag;
-                FillTreeViewWithRootDrives(ref FileBrowsTreeView);
-                if (FileBrowsTreeView.Items.Count == 0)
-                    return;
-
                 if ((ProgramType)button.Tag == ProgramType.Agrolog)
-                    await FileBrowsTreeViewDirExpandAsync(AgrologReportsPath, FileBrowsTreeView.Items);
+                    button.DataContext = new FileBrowserViewModel(AgrologReportsPath, ProgramType.Agrolog);
+                //{
+                //    Path = AgrologReportsPath,
+                //    Type = ProgramType.Agrolog
+                //};
                 else
-                    await FileBrowsTreeViewDirExpandAsync(GrainbarReportsPath, FileBrowsTreeView.Items);
+                    button.DataContext = new FileBrowserViewModel(AgrologReportsPath, ProgramType.Grainbar);
+                    //{
+                    //    Path = AgrologReportsPath,
+                    //    Type = ProgramType.Grainbar
+                    //};
+
+                //FileBrowsTreeView.Tag = button.Tag;
+                //FillTreeViewWithRootDrives(ref FileBrowsTreeView);
+                //if (FileBrowsTreeView.Items.Count == 0)
+                //    return;
+
+                //if ((ProgramType)button.Tag == ProgramType.Agrolog)
+                //    await FileBrowsTreeViewDirExpandAsync(AgrologReportsPath, FileBrowsTreeView.Items);
+                //else
+                //    await FileBrowsTreeViewDirExpandAsync(GrainbarReportsPath, FileBrowsTreeView.Items);
             }
 
-            IsFileBrowsTreeOnForm = true;
+            //var command =(FileBrowsTreeView.DataContext as FileBrowserViewModel).ActivateCommand;
+            //command.Execute(null);
             FileBrowsTreeView.Focus();
         }
 
 
         private void FileBrowsOkButt_Click(object sender, RoutedEventArgs e)
         {
-            var programType = (ProgramType)FileBrowsTreeView.Tag;
-            SaveReportsPathToRegistry(programType);
-            StartDataCollect(programType);
-            IsFileBrowsTreeOnForm = false;
+            //var programType = (ProgramType)FileBrowsTreeView.Tag;
+            //SaveReportsPathToRegistry(programType);
+            //StartDataCollect(programType);
+            //IsFileBrowsTreeOnForm = false;
         }
 
 
@@ -516,7 +537,7 @@ namespace CoffeeJelly.tempa
             if (Equals(button, AgrologButton))
             {
                 AgrologReportPermission = false;
-                var task =WriteReport<TermometerAgrolog>(
+                var task = WriteReport<TermometerAgrolog>(
                     Constants.APPLICATION_DATA_FOLDER_PATH,
                     Constants.AGROLOG_DATA_FILE,
                     Constants.EXCEL_REPORT_FOLDER_PATH,
@@ -640,23 +661,23 @@ namespace CoffeeJelly.tempa
 
         private async void NewFolderTb_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
-            {
-                var textBox = (sender as TextBox);
-                if (textBox != null)
-                {
-                    var text = textBox.Text;
-                    DirectoryInfo newDir = CreateNewFolder(text);
-                    if (newDir == null)
-                    {
-                        textBox.Text = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
-                        textBox.SelectAll();
-                    }
-                    if (newDir != null) await FileBrowsTreeViewDirExpandAsync(newDir.FullName, FileBrowsTreeView.Items);
-                }
+            //if (e.Key == Key.Enter)
+            //{
+            //    var textBox = (sender as TextBox);
+            //    if (textBox != null)
+            //    {
+            //        var text = textBox.Text;
+            //        DirectoryInfo newDir = CreateNewFolder(text);
+            //        if (newDir == null)
+            //        {
+            //            textBox.Text = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
+            //            textBox.SelectAll();
+            //        }
+            //        if (newDir != null) await FileBrowsTreeViewDirExpandAsync(newDir.FullName, FileBrowsTreeView.Items);
+            //    }
 
-                FileBrowsTreeView.Focus();
-            }
+            //    FileBrowsTreeView.Focus();
+            //}
         }
 
         private void FilesPathTextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)

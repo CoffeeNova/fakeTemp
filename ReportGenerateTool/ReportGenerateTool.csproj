@@ -71,7 +71,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Folder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Program.Questions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

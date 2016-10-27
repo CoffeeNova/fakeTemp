@@ -150,7 +150,7 @@
     <Compile Include="CriticalTasks.cs" />
     <Compile Include="DataWorker\DataWorker.Binary.cs" />
     <Compile Include="DataWorker\DataWorker.Excel.cs" />
-    <Compile Include="DelegateCommand.cs" />
+    <Compile Include="Commands.cs" />
     <Compile Include="DwmDropShadow.cs" />
     <Compile Include="ExceptionHandler.cs" />
     <Compile Include="Exceptions.cs" />
@@ -161,6 +161,7 @@
     <Compile Include="Extensions\StringExtension.cs" />
     <Compile Include="DataWorker\DataWorker.Reports.cs" />
     <Compile Include="Extensions\TaskExtension.cs" />
+    <Compile Include="Folder.cs" />
     <Compile Include="GlobalConstants.cs" />
     <Compile Include="Internal.cs" />
     <Compile Include="LogMaker.cs" />
