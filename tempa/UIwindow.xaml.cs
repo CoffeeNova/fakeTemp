@@ -475,13 +475,27 @@ namespace CoffeeJelly.tempa
             if (button != null)
             {
                 if ((ProgramType)button.Tag == ProgramType.Agrolog)
-                    button.DataContext = new FileBrowserViewModel(AgrologReportsPath, ProgramType.Agrolog);
+                {
+
+                    FileBrowsGrid.DataContext = new FileBrowserViewModel()
+                    {
+                        //Path = AgrologReportsPath,
+                        //Type = ProgramType.Agrolog
+                    };
+
+                    (FileBrowsGrid.DataContext as FileBrowserViewModel).Path = AgrologReportsPath;
+                    (FileBrowsGrid.DataContext as FileBrowserViewModel).Type = ProgramType.Agrolog;
+                }
                 //{
                 //    Path = AgrologReportsPath,
                 //    Type = ProgramType.Agrolog
                 //};
                 else
-                    button.DataContext = new FileBrowserViewModel(AgrologReportsPath, ProgramType.Grainbar);
+                    FileBrowsGrid.DataContext = new FileBrowserViewModel()
+                    {
+                        Path = AgrologReportsPath,
+                        Type = ProgramType.Grainbar
+                    };
                     //{
                     //    Path = AgrologReportsPath,
                     //    Type = ProgramType.Grainbar
