@@ -18,6 +18,7 @@ namespace CoffeeJelly.tempa.ViewModel
         public FileBrowserViewModel()
         { 
             base.PropertyChanged += FileBrowserViewModel_PropertyChanged;
+            ExpandedCommand = new ActionCommand<RoutedEventArgs>(OnExpand);
         }
 
 
@@ -109,8 +110,6 @@ namespace CoffeeJelly.tempa.ViewModel
 
         void OnPathChanged()
         {
-            if(Folders == null)
-                Folders = new ObservableCollection<IFolder>();
             ExploreRootDrives();
             if (Folders.Count == 0)
                 return;
@@ -118,10 +117,15 @@ namespace CoffeeJelly.tempa.ViewModel
             FolderExpandByPath(Path, Folders);
         }
 
+        private void OnExpand(RoutedEventArgs e)
+        {
+            
+        }
+
         #region private fields
         private bool _active;
         private string _path;
-        private ObservableCollection<IFolder> _folders;
+        private ObservableCollection<IFolder> _folders = new ObservableCollection<IFolder>();
 
         #endregion
 
