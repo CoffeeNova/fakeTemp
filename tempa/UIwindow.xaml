@@ -617,9 +617,9 @@
 
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding SubFolders, UpdateSourceTrigger=PropertyChanged}" DataType="{x:Type tempa:IFolder}">
-                            <TreeViewItem Header="{Binding FolderName, UpdateSourceTrigger=PropertyChanged}"/>
-                                          <!--IsExpanded="{Binding Expanded, UpdateSourceTrigger=PropertyChanged}"
-                                          IsSelected="{Binding Selected, UpdateSourceTrigger=PropertyChanged}"-->
+                            <TreeViewItem Header="{Binding FolderName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                          IsExpanded="{Binding Expanded, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                          IsSelected="{Binding Selected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
 

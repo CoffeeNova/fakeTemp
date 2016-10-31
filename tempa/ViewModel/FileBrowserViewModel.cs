@@ -16,7 +16,7 @@ namespace CoffeeJelly.tempa.ViewModel
     class FileBrowserViewModel : ViewModelBase
     {
         public FileBrowserViewModel()
-        { 
+        {
             base.PropertyChanged += FileBrowserViewModel_PropertyChanged;
             ExpandedCommand = new ActionCommand<RoutedEventArgs>(OnExpand);
         }
@@ -39,6 +39,7 @@ namespace CoffeeJelly.tempa.ViewModel
 
         private void ExploreRootDrives()
         {
+            Folders.Clear();
             foreach (DriveInfo drive in DriveInfo.GetDrives())
             {
                 var folder = new Folder()
@@ -103,23 +104,31 @@ namespace CoffeeJelly.tempa.ViewModel
 
         private void FileBrowserViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(Path))
-                OnPathChanged();
+            if (e.PropertyName == nameof(Active))
+                OnActive();
 
         }
 
-        void OnPathChanged()
+        private void OnActive()
         {
-            ExploreRootDrives();
-            if (Folders.Count == 0)
-                return;
+            if (Active)
+            {
+                ExploreRootDrives();
+                if (Folders.Count == 0)
+                    return;
 
-            FolderExpandByPath(Path, Folders);
+                FolderExpandByPath(Path, Folders);
+            }
+            else
+            {
+
+            }
+
         }
 
         private void OnExpand(RoutedEventArgs e)
         {
-            
+
         }
 
         #region private fields
@@ -128,8 +137,6 @@ namespace CoffeeJelly.tempa.ViewModel
         private ObservableCollection<IFolder> _folders = new ObservableCollection<IFolder>();
 
         #endregion
-
-        public ProgramType Type { get; set; }
 
         public bool Active
         {
@@ -155,6 +162,8 @@ namespace CoffeeJelly.tempa.ViewModel
             }
         }
 
+        public bool ShowFiles { get; set; } = false;
+
         public ObservableCollection<IFolder> Folders
         {
             get { return _folders; }
@@ -164,7 +173,6 @@ namespace CoffeeJelly.tempa.ViewModel
                 NotifyPropertyChanged();
             }
         }
-
 
         public ActionCommand<RoutedEventArgs> ExpandedCommand { get; private set; }
 
@@ -202,6 +210,14 @@ namespace CoffeeJelly.tempa.ViewModel
         public ICommand BringIntoViewCommand
         {
             get; set;
+        }
+
+        public enum FileBrowserType
+        {
+            Agrolog,
+            Grainbar,
+            ArchiveAgrolog,
+            ArchiveGrainbar
         }
     }
 }

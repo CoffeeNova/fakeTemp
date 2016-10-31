@@ -16,6 +16,7 @@ namespace CoffeeJelly.tempa
         object Info { get; }
         bool Expanded { get; }
         bool Selected { get; }
+        //ObservableCollection<FileInfo> Files { get; }
         ObservableCollection<IFolder> SubFolders { get; }
     }
 
@@ -118,6 +119,8 @@ namespace CoffeeJelly.tempa
         }
 
         public bool Selected { get; set; }
+
+        public bool ExploreFile { get; set; }
 
         public ObservableCollection<IFolder> SubFolders { get; set; } = new ObservableCollection<IFolder>();
 
