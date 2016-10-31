@@ -76,10 +76,6 @@ namespace CoffeeJelly.tempa
                 AgrologDataHandlingPermission = window.AgrologDataHandlingPermission;
                 GrainbarDataHandlingPermission = window.GrainbarDataHandlingPermission;
             }));
-
-            _agrologDataContext = new FileBrowserViewModel();
-            _grainbarDataContext = new FileBrowserViewModel();
-
         }
 
         private void NewDataWatcherWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -481,13 +477,25 @@ namespace CoffeeJelly.tempa
                 if ((ProgramType)button.Tag == ProgramType.Agrolog)
                 {
                     FileBrowsTreeView.Items.Clear();
-                    FileBrowsGrid.DataContext = _agrologDataContext;
-                    _agrologDataContext.Path = AgrologReportsPath;
-                    _agrologDataContext.Active = true;
-                }
+                    //FileBrowsGrid.DataContext = new FileBrowserViewModel()
+                    //{
+                    //    //Path = AgrologReportsPath,
+                    //    //Type = ProgramType.Agrolog
+                    //};
 
+                    (FileBrowsGrid.DataContext as FileBrowserViewModel).Path = AgrologReportsPath;
+                    (FileBrowsGrid.DataContext as FileBrowserViewModel).Type = ProgramType.Agrolog;
+                }
+                //{
+                //    Path = AgrologReportsPath,
+                //    Type = ProgramType.Agrolog
+                //};
                 else
-                { }
+                    FileBrowsGrid.DataContext = new FileBrowserViewModel()
+                    {
+                        Path = AgrologReportsPath,
+                        Type = ProgramType.Grainbar
+                    };
                     //{
                     //    Path = AgrologReportsPath,
                     //    Type = ProgramType.Grainbar
@@ -858,10 +866,6 @@ namespace CoffeeJelly.tempa
         private int _logIndex = 0;
         private DateTime _logDate = DateTime.Today.AddDays(-1);
 
-        private FileBrowserViewModel _agrologDataContext;
-        private FileBrowserViewModel _grainbarDataContext;
-        private FileBrowserViewModel _archiveAgrologDataContext;
-        private FileBrowserViewModel _archiveGrainbarDataContext;
 
 
 
