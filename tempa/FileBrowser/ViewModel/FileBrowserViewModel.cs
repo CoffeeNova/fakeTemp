@@ -11,7 +11,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace CoffeeJelly.tempa.ViewModel
+namespace CoffeeJelly.tempa.FileBrowser.ViewModel
 {
     class FileBrowserViewModel : ViewModelBase
     {
@@ -48,32 +48,32 @@ namespace CoffeeJelly.tempa.ViewModel
                     FolderName = drive.ToString(),
                     FullPath = drive.RootDirectory.FullName,
                 };
-                folder.SubFolders.Add(new Folder());
-                Folders.Add(folder);
+                bool haveChildren = drive.RootDirectory.GetDirectories().Length != 0;
+                    Folders.Add(new FolderViewModel(folder, null, haveChildren));
             }
         }
 
 
-        private void FolderExpandByPath(string path, ObservableCollection<IFolder> folders)
-        {
-            foreach (Folder folder in folders)
-            {
-                var splittedPath = path.Split('\\').ToList();
-                splittedPath.RemoveAll(string.IsNullOrEmpty);
+        //private void FolderExpandByPath(string path, ObservableCollection<IFolder> folders)
+        //{
+        //    foreach (Folder folder in folders)
+        //    {
+        //        var splittedPath = path.Split('\\').ToList();
+        //        splittedPath.RemoveAll(string.IsNullOrEmpty);
 
-                foreach (string dirName in splittedPath)
-                {
-                    if (folder.FolderName.PathFormatter() != dirName.PathFormatter()) continue;
+        //        foreach (string dirName in splittedPath)
+        //        {
+        //            if (folder.FolderName.PathFormatter() != dirName.PathFormatter()) continue;
 
-                    folder.Expanded = false;
-                    folder.Expanded = true;
-                    folder.Selected = true;
+        //            folder.Expanded = false;
+        //            folder.Expanded = true;
+        //            folder.Selected = true;
 
-                    FolderExpandByPath(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), folder.SubFolders);
-                    break;
-                }
-            }
-        }
+        //            FolderExpandByPath(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), folder.SubFolders);
+        //            break;
+        //        }
+        //    }
+        //}
 
         private void OnSelectedChanged(RoutedPropertyChangedEventArgs<object> e)
         {
@@ -117,7 +117,7 @@ namespace CoffeeJelly.tempa.ViewModel
                 if (Folders.Count == 0)
                     return;
 
-                FolderExpandByPath(Path, Folders);
+                //FolderExpandByPath(Path, Folders);
             }
             else
             {
@@ -134,7 +134,7 @@ namespace CoffeeJelly.tempa.ViewModel
         #region private fields
         private bool _active;
         private string _path;
-        private ObservableCollection<IFolder> _folders = new ObservableCollection<IFolder>();
+        private ObservableCollection<FolderViewModel> _folders = new ObservableCollection<FolderViewModel>();
 
         #endregion
 
@@ -164,7 +164,7 @@ namespace CoffeeJelly.tempa.ViewModel
 
         public bool ShowFiles { get; set; } = false;
 
-        public ObservableCollection<IFolder> Folders
+        public ObservableCollection<FolderViewModel> Folders
         {
             get { return _folders; }
             set

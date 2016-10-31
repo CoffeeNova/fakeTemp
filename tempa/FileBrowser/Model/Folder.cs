@@ -14,20 +14,14 @@ namespace CoffeeJelly.tempa
         string FullPath { get; }
         string FolderName { get; }
         object Info { get; }
-        bool Expanded { get; }
-        bool Selected { get; }
+
         //ObservableCollection<FileInfo> Files { get; }
         ObservableCollection<IFolder> SubFolders { get; }
     }
 
-    public class Folder : IFolder, INotifyPropertyChanged
+    public class Folder : IFolder
     {
-        public Folder()
-        {
-            PropertyChanged += Folder_PropertyChanged;
-        }
-
-        private void ExploreSubfolders()
+        public void ExploreSubfolders()
         {
             SubFolders.Clear();
             DirectoryInfo dir = GetDirectoryInfo(this);
@@ -41,7 +35,7 @@ namespace CoffeeJelly.tempa
                         FolderName = subDir.ToString(),
                         FullPath = subDir.FullName,
                     };
-                    newfolder.SubFolders.Add(new Folder());
+                    //newfolder.SubFolders.Add(new Folder());
                     SubFolders.Add(newfolder);
                 }
             }
@@ -67,62 +61,16 @@ namespace CoffeeJelly.tempa
             return dir;
         }
 
-        private void OnExpanded()
-        {
-            ExploreSubfolders();
-        }
-
-        private void Folder_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(Expanded))
-                OnExpanded();
-        }
-
-        protected void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-
-        private bool _expanded;
-        private string _folderName;
 
         public string FullPath { get; set;}
 
-        public string FolderName
-        {
-            get { return _folderName; }
-            set
-            {
-                if (_folderName == value)
-                    return;
-                _folderName = value;
-                NotifyPropertyChanged();
-            }
-        }
+        public string FolderName { get; set; }
 
         public object Info { get; set; }
 
-
-        public bool Expanded
-        {
-            get { return _expanded; }
-            set
-            {
-                if (_expanded == value)
-                    return;
-                _expanded = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        public bool Selected { get; set; }
-
         public bool ExploreFile { get; set; }
 
-        public ObservableCollection<IFolder> SubFolders { get; set; } = new ObservableCollection<IFolder>();
+        public ObservableCollection<IFolder> SubFolders { get;} = new ObservableCollection<IFolder>();
 
 
     }

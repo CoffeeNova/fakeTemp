@@ -14,6 +14,7 @@
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
         xmlns:behaviors ="clr-namespace:CoffeeJelly.tempa.Behaviors"
+        xmlns:fbViewModel="clr-namespace:CoffeeJelly.tempa.FileBrowser.ViewModel"
         MouseLeftButtonDown="Window_MouseLeftButtonDown" x:Name="FakeTemp" Background="#444444" Loaded="FakeTemp_Loaded">
     <!--<Window.DataContext>
         <tempa:MainWindow/>
@@ -607,6 +608,27 @@
                           Height="190" VerticalAlignment="Top" Width="204" 
                           BorderBrush="{x:Null}"
                     ItemsSource="{Binding Folders, UpdateSourceTrigger=PropertyChanged}">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                            <Setter Property="FontWeight" Value="Normal" />
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+
+                    <!--<TreeView.Resources>
+                        <HierarchicalDataTemplate 
+                         DataType="{x:Type fbViewModel:FolderViewModel}" 
+                         ItemsSource="{Binding Children}">
+                        </HierarchicalDataTemplate>
+                    </TreeView.Resources>-->
+
+
                     <!--SelectedItemChanged="FileBrowsTreeView_SelectedItemChanged"-->
 
                     <!--<TreeView.ItemTemplate>
@@ -616,14 +638,12 @@
                     </TreeView.ItemTemplate>-->
 
                     <TreeView.ItemTemplate>
-                        <HierarchicalDataTemplate ItemsSource="{Binding SubFolders, UpdateSourceTrigger=PropertyChanged}" DataType="{x:Type tempa:IFolder}">
-                            <TreeViewItem Header="{Binding FolderName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                          IsExpanded="{Binding Expanded, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                          IsSelected="{Binding Selected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Children}" DataType="{x:Type fbViewModel:FolderViewModel}" >
+                            <TreeViewItem Header="{Binding FolderName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
 
-                    <TreeViewItem>
+                    <!--<TreeViewItem>
                         <i:Interaction.Behaviors>
                             <behaviors:EventToCommandBehavior Command="{Binding ExpandedCommand}" Event="Expanded" PassArguments="True"/>
                         </i:Interaction.Behaviors>
@@ -637,9 +657,9 @@
                         <i:EventTrigger EventName="LostFocus">
                             <i:InvokeCommandAction Command="{Binding DeactivateCommand}"/>
                         </i:EventTrigger>
-                    </i:Interaction.Triggers>
+                    </i:Interaction.Triggers>-->
 
-                    
+
                 </TreeView>
                 <Button x:Name="FileBrowsOkButt"  
                         Content="ВЫБРАТЬ" 

@@ -23,6 +23,7 @@ using CoffeeJelly.tempa.Extensions;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
 using CoffeeJelly.tempa.Controls;
+using CoffeeJelly.tempa.FileBrowser.ViewModel;
 using CoffeeJelly.tempa.ViewModel;
 
 namespace CoffeeJelly.tempa
