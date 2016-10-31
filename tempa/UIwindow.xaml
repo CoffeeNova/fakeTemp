@@ -605,30 +605,22 @@
                 <TreeView x:Name="FileBrowsTreeView" 
                           ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalAlignment="Left"
                           Height="190" VerticalAlignment="Top" Width="204" 
-                          BorderBrush="{x:Null}"
-                    ItemsSource="{Binding Folders, UpdateSourceTrigger=PropertyChanged}">
+                          BorderBrush="{x:Null}">
+                    <!--ItemsSource="{Binding Folders, UpdateSourceTrigger=PropertyChanged}">-->
                     <!--SelectedItemChanged="FileBrowsTreeView_SelectedItemChanged"-->
 
-                    <!--<TreeView.ItemTemplate>
+                    <TreeView.ItemTemplate>
                         <DataTemplate >
                             <TreeViewItem Header="{Binding FolderName}" Expanded="{Binding Expanded}" Selected="{Binding Selected}"/>
                         </DataTemplate>
-                    </TreeView.ItemTemplate>-->
-
-                    <TreeView.ItemTemplate>
-                        <HierarchicalDataTemplate ItemsSource="{Binding SubFolders, UpdateSourceTrigger=PropertyChanged}" DataType="{x:Type tempa:IFolder}">
-                            <TreeViewItem Header="{Binding FolderName, UpdateSourceTrigger=PropertyChanged}"/>
-                                          <!--IsExpanded="{Binding Expanded, UpdateSourceTrigger=PropertyChanged}"
-                                          IsSelected="{Binding Selected, UpdateSourceTrigger=PropertyChanged}"-->
-                        </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
 
-                    <TreeViewItem>
-                        <i:Interaction.Behaviors>
-                            <behaviors:EventToCommandBehavior Command="{Binding ExpandedCommand}" Event="Expanded" PassArguments="True"/>
-                        </i:Interaction.Behaviors>
-                    </TreeViewItem>
-                    
+                    <!--<TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Folders, UpdateSourceTrigger=PropertyChanged}" DataType="{x:Type tempa:IFolder}">
+                            <TreeViewItem Header="{Binding FolderName, UpdateSourceTrigger=PropertyChanged}" Expanded="{Binding Expanded}" Selected="{Binding Selected}"/>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>-->
+
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="SelectedItemChanged">
                             <i:InvokeCommandAction Command="{Binding SelectionChanged}"
@@ -639,7 +631,11 @@
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
 
-                    
+                    <TreeViewItem>
+                        <i:Interaction.Behaviors>
+                            <behaviors:EventToCommandBehavior Command="{Binding ExpandedCommand}" Event="Expanded" PassArguments="True"/>
+                        </i:Interaction.Behaviors>
+                    </TreeViewItem>
                 </TreeView>
                 <Button x:Name="FileBrowsOkButt"  
                         Content="ВЫБРАТЬ" 
