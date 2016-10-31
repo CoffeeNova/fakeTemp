@@ -606,21 +606,14 @@
                           ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalAlignment="Left"
                           Height="190" VerticalAlignment="Top" Width="204" 
                           BorderBrush="{x:Null}">
-                    <!--ItemsSource="{Binding Folders, UpdateSourceTrigger=PropertyChanged}">-->
                     <!--SelectedItemChanged="FileBrowsTreeView_SelectedItemChanged"-->
 
                     <TreeView.ItemTemplate>
-                        <DataTemplate >
-                            <TreeViewItem Header="{Binding FolderName}" Expanded="{Binding Expanded}" Selected="{Binding Selected}"/>
-                        </DataTemplate>
-                    </TreeView.ItemTemplate>
-
-                    <!--<TreeView.ItemTemplate>
-                        <HierarchicalDataTemplate ItemsSource="{Binding Folders, UpdateSourceTrigger=PropertyChanged}" DataType="{x:Type tempa:IFolder}">
-                            <TreeViewItem Header="{Binding FolderName, UpdateSourceTrigger=PropertyChanged}" Expanded="{Binding Expanded}" Selected="{Binding Selected}"/>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Folders}" DataType="{x:Type tempa:IFolder}">
+                            <TreeViewItem Header="{Binding FolderName}" Expanded="{Binding Expanded}"/>
                         </HierarchicalDataTemplate>
-                    </TreeView.ItemTemplate>-->
-
+                    </TreeView.ItemTemplate>
+                    
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="SelectedItemChanged">
                             <i:InvokeCommandAction Command="{Binding SelectionChanged}"

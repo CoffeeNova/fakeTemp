@@ -1,9 +1,5 @@
-﻿using CoffeeJelly.tempa.Exceptions;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -16,43 +12,42 @@ namespace CoffeeJelly.tempa
         object Info { get; }
         bool Expanded { get; }
         bool Selected { get; }
-        ObservableCollection<IFolder> SubFolders { get; }
+        List<IFolder> SubFolders { get; }
     }
 
-    public class Folder : IFolder, INotifyPropertyChanged
+    public class Folder : IFolder
     {
-        public Folder()
+        public Folder(string fullPath)
         {
-            PropertyChanged += Folder_PropertyChanged;
         }
 
-        private void ExploreSubfolders()
+        private void FillTreeViewItemWithDirectories(ref TreeViewItem treeViewItem)
         {
-            SubFolders.Clear();
-            DirectoryInfo dir = GetDirectoryInfo(this);
+            treeViewItem.Items.Clear();
+            DirectoryInfo dir = GetDirectoryInfo(treeViewItem, false);
             try
             {
                 foreach (DirectoryInfo subDir in dir.GetDirectories())
                 {
-                    var newfolder = new Folder()
+                    var newItem = new TreeViewItem
                     {
-                        Info = subDir,
-                        FolderName = subDir.ToString(),
-                        FullPath = subDir.FullName,
+                        Tag = subDir,
+                        Header = subDir.ToString()
                     };
-                    newfolder.SubFolders.Add(new Folder());
-                    SubFolders.Add(newfolder);
+                    newItem.Items.Add("*");
+                    treeViewItem.Items.Add(newItem);
                 }
             }
-            catch(Exception ex)
+            catch
             {
-                throw new FolderException("Can't get subfolders", ex);
+                // ignored
             }
         }
 
-        private DirectoryInfo GetDirectoryInfo(Folder folder)
+        private DirectoryInfo GetDirectoryInfo(Folder folder, bool anotherThread)
         {
             DirectoryInfo dir;
+            //object tag = anotherThread ? Dispatcher.Invoke(new Func<object>(() => folder.Tag)) : folder.Tag;
             object info = folder.Info;
 
             var driveInfo = info as DriveInfo;
@@ -66,61 +61,17 @@ namespace CoffeeJelly.tempa
             return dir;
         }
 
-        private void OnExpanded()
-        {
-            ExploreSubfolders();
-        }
-
-        private void Folder_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(Expanded))
-                OnExpanded();
-        }
-
-        protected void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-
-        private bool _expanded;
-        private string _folderName;
-
         public string FullPath { get; set;}
 
-        public string FolderName
-        {
-            get { return _folderName; }
-            set
-            {
-                if (_folderName == value)
-                    return;
-                _folderName = value;
-                NotifyPropertyChanged();
-            }
-        }
+        public string FolderName { get; set; }
 
         public object Info { get; set; }
 
-
-        public bool Expanded
-        {
-            get { return _expanded; }
-            set
-            {
-                if (_expanded == value)
-                    return;
-                _expanded = value;
-                NotifyPropertyChanged();
-            }
-        }
+        public bool Expanded { get; set; }
 
         public bool Selected { get; set; }
 
-        public ObservableCollection<IFolder> SubFolders { get; set; } = new ObservableCollection<IFolder>();
-
+        public List<IFolder> SubFolders { get; set; } = new List<IFolder>();
 
     }
 }

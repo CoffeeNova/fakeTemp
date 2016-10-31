@@ -32,16 +32,4 @@ namespace CoffeeJelly.tempa.Exceptions
 
         public TermometerBuildException(string message, Exception innerException) : base(message, innerException) { }
     }
-
-
-    [Serializable]
-    public class FolderException : Exception
-    {
-        public FolderException() { }
-        public FolderException(string message) : base(message) { }
-        public FolderException(string message, Exception inner) : base(message, inner) { }
-        protected FolderException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
-    }
 }

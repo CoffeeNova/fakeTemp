@@ -1,7 +1,6 @@
 ﻿using CoffeeJelly.tempa.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -13,30 +12,28 @@ using System.Windows.Threading;
 
 namespace CoffeeJelly.tempa.ViewModel
 {
-    class FileBrowserViewModel : ViewModelBase
+    class FileBrowserViewModel : INotifyPropertyChanged
     {
-        public FileBrowserViewModel()
-        { 
-            base.PropertyChanged += FileBrowserViewModel_PropertyChanged;
+        public FileBrowserViewModel(string path, ProgramType type)
+        {
+            this.ExpandedCommand = new ActionCommand<RoutedEventArgs>(OnExpanded);
+            this.SelectedChangedCommand = new ActionCommand<RoutedPropertyChangedEventArgs<object>>(OnSelectedChanged);
+
+            Path = path;
+            Type = type;
+
+            FillTreeViewWithRootDrives();
+            if (Folders.Count == 0)
+                return;
+
+            FolderExpandByPath(Path, Folders);
+            //if ((ProgramType)button.Tag == ProgramType.Agrolog)
+            //    await FileBrowsTreeViewDirExpandAsync(AgrologReportsPath, FileBrowsTreeView.Items);
+            //else
+            //    await FileBrowsTreeViewDirExpandAsync(GrainbarReportsPath, FileBrowsTreeView.Items);
         }
 
-
-        //public FileBrowserViewModel(string path, ProgramType type)
-        //{
-        //this.SelectedChangedCommand = new ActionCommand<RoutedPropertyChangedEventArgs<object>>(OnSelectedChanged);
-
-        //Path = path;
-        //Type = type;
-
-        //ExploreRootDrives();
-        //if (Folders.Count == 0)
-        //    return;
-
-        //FolderExpandByPath(Path, Folders);
-
-        //}
-
-        private void ExploreRootDrives()
+        private void FillTreeViewWithRootDrives()
         {
             foreach (DriveInfo drive in DriveInfo.GetDrives())
             {
@@ -45,23 +42,37 @@ namespace CoffeeJelly.tempa.ViewModel
                     Info = drive,
                     FolderName = drive.ToString(),
                     FullPath = drive.RootDirectory.FullName,
+                    //SubFolders = new List<IFolder>()
                 };
                 folder.SubFolders.Add(new Folder());
                 Folders.Add(folder);
             }
         }
 
+        //private Task FileBrowsTreeViewDirExpandAsync(string path, List<IFolder> folders)
+        //{
+        //    return Task.Factory.StartNew(() => FileBrowsTreeViewDirExpand(path, folders));
+        //}
 
-        private void FolderExpandByPath(string path, ObservableCollection<IFolder> folders)
+
+        private void FolderExpandByPath(string path, List<IFolder> folders)
         {
             foreach (Folder folder in folders)
             {
+                DirectoryInfo dir = GetDirectoryInfo(folder, true);
+
                 var splittedPath = path.Split('\\').ToList();
                 splittedPath.RemoveAll(string.IsNullOrEmpty);
 
                 foreach (string dirName in splittedPath)
                 {
-                    if (folder.FolderName.PathFormatter() != dirName.PathFormatter()) continue;
+                    if (dir.Name.PathFormatter() != dirName.PathFormatter()) continue;
+                    //Dispatcher.Invoke(new Action(() =>
+                    //{
+                    //    folder.IsExpanded = false;
+                    //    folder.IsExpanded = true;
+                    //    folder.IsSelected = true;
+                    //}));
 
                     folder.Expanded = false;
                     folder.Expanded = true;
@@ -71,6 +82,57 @@ namespace CoffeeJelly.tempa.ViewModel
                     break;
                 }
             }
+        }
+
+        private DirectoryInfo GetDirectoryInfo(Folder folder, bool anotherThread)
+        {
+            DirectoryInfo dir;
+            //object tag = anotherThread ? Dispatcher.Invoke(new Func<object>(() => folder.Tag)) : folder.Tag;
+            object info = folder.Info;
+
+            var driveInfo = info as DriveInfo;
+            if (driveInfo != null)
+            {
+                DriveInfo drive = driveInfo;
+                dir = drive.RootDirectory;
+            }
+            else dir = (DirectoryInfo)info;
+
+            return dir;
+        }
+
+        private void FillTreeViewItemWithDirectories(ref Folder folder)
+        {
+            folder.SubFolders.Clear();
+            DirectoryInfo dir = GetDirectoryInfo(folder, false);
+            try
+            {
+                foreach (DirectoryInfo subDir in dir.GetDirectories())
+                {
+                    var newFolder = new Folder
+                    {
+                        Info = subDir,
+                        FolderName = subDir.ToString(),
+                        FullPath = subDir.FullName
+                    };
+                    newFolder.SubFolders.Add(new Folder());
+                    folder.SubFolders.Add(newFolder);
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        private void OnExpanded(RoutedEventArgs e)
+        {
+            var folder = (Folder)e.OriginalSource;
+            FillTreeViewItemWithDirectories(ref folder);
+            folder.Expanded = true;
+            //ScrollViewer scroller = (ScrollViewer)Internal.FindVisualChildElement(this.FileBrowsTreeView, typeof(ScrollViewer));
+            //scroller.ScrollToBottom();
+            //folder.BringIntoView();
         }
 
         private void OnSelectedChanged(RoutedPropertyChangedEventArgs<object> e)
@@ -100,28 +162,17 @@ namespace CoffeeJelly.tempa.ViewModel
             //}
         }
 
-        private void FileBrowserViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
         {
-            if (e.PropertyName == nameof(Path))
-                OnPathChanged();
-
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        void OnPathChanged()
-        {
-            if(Folders == null)
-                Folders = new ObservableCollection<IFolder>();
-            ExploreRootDrives();
-            if (Folders.Count == 0)
-                return;
-
-            FolderExpandByPath(Path, Folders);
-        }
+        public event PropertyChangedEventHandler PropertyChanged;
 
         #region private fields
         private bool _active;
         private string _path;
-        private ObservableCollection<IFolder> _folders;
+        private List<IFolder> _folders = new List<IFolder>();
 
         #endregion
 
@@ -151,7 +202,7 @@ namespace CoffeeJelly.tempa.ViewModel
             }
         }
 
-        public ObservableCollection<IFolder> Folders
+        public List<IFolder> Folders
         {
             get { return _folders; }
             set
@@ -197,7 +248,7 @@ namespace CoffeeJelly.tempa.ViewModel
 
         public ICommand BringIntoViewCommand
         {
-            get; set;
+            get;set;
         }
     }
 }
