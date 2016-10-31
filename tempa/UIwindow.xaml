@@ -585,9 +585,6 @@
               Margin="33.197,36,-215.182,0" VerticalAlignment="Top" Width="204"
               Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" 
               RenderTransformOrigin="0.5,0.5">
-            <!--<Grid.DataContext>
-                <viewmodel:FileBrowserViewModel/>
-            </Grid.DataContext>-->
             <Grid.Triggers>
             </Grid.Triggers>
             <Grid.RenderTransform>
@@ -605,22 +602,16 @@
                 <TreeView x:Name="FileBrowsTreeView" 
                           ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalAlignment="Left"
                           Height="190" VerticalAlignment="Top" Width="204" 
-                          BorderBrush="{x:Null}">
-                    <!--SelectedItemChanged="FileBrowsTreeView_SelectedItemChanged"-->
-
-                    <TreeView.ItemTemplate>
-                        <HierarchicalDataTemplate ItemsSource="{Binding Folders}" DataType="{x:Type tempa:IFolder}">
-                            <TreeViewItem Header="{Binding FolderName}" Expanded="{Binding Expanded}"/>
-                        </HierarchicalDataTemplate>
-                    </TreeView.ItemTemplate>
-                    
+                          TreeViewItem.Expanded ="FileBrowsTreeView_Expanded" 
+                          SelectedItemChanged="FileBrowsTreeView_SelectedItemChanged" 
+                          LostFocus="FileBrowsTreeView_LostFocus" BorderBrush="{x:Null}">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="SelectedItemChanged">
                             <i:InvokeCommandAction Command="{Binding SelectionChanged}"
                                                    CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"/>
                         </i:EventTrigger>
                         <i:EventTrigger EventName="LostFocus">
-                            <i:InvokeCommandAction Command="{Binding DeactivateCommand}"/>
+                            <i:InvokeCommandAction Command="{Binding LostFocus}"/>
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
 
