@@ -175,7 +175,7 @@
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Converters\TreeViewItemExtensions.cs" />
     <Compile Include="ViewModel\ArchiveViewModel.cs" />
-    <Compile Include="ViewModel\FileBrowserViewModel.cs" />
+    <Compile Include="ViewModel\TestViewModel.cs" />
     <Page Include="Controls\LogViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -153,6 +153,7 @@ namespace CoffeeJelly.tempa
             }
         }
 
+
         private DirectoryInfo GetDirectoryInfo(TreeViewItem item, bool anotherThread)
         {
             DirectoryInfo dir;
