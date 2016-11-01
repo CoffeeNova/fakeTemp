@@ -33,7 +33,7 @@ namespace CoffeeJelly.tempa
                     {
                         lock (_locker)
                         {
-                            if (_uiWindow == null || _uiWindow.Dispatcher.HasShutdownFinished)
+                            if (UIWindowInstance == null || UIWindowInstance.Dispatcher.HasShutdownFinished)
                             {
                                 var hwndSources = HwndSource.CurrentSources;
                                 foreach (PresentationSource hwnd in hwndSources)
@@ -45,10 +45,10 @@ namespace CoffeeJelly.tempa
                                 OpenUIAsync();
 
                             }
-                            else if ((bool)_uiWindow.Dispatcher.Invoke(new Func<bool>(() => _uiWindow.WindowState == WindowState.Minimized)))
-                                _uiWindow.Dispatcher.Invoke(new Action(() => _uiWindow.WindowState = WindowState.Normal));
+                            else if ((bool)UIWindowInstance.Dispatcher.Invoke(new Func<bool>(() => UIWindowInstance.WindowState == WindowState.Minimized)))
+                                UIWindowInstance.Dispatcher.Invoke(new Action(() => UIWindowInstance.WindowState = WindowState.Normal));
                             else
-                                _uiWindow.Dispatcher.BeginInvoke(new Action(() => _uiWindow.Close()));
+                                UIWindowInstance.Dispatcher.BeginInvoke(new Action(() => UIWindowInstance.Close()));
 
                         }
                         //var mWindow = Application.Current.MainWindow;
@@ -72,15 +72,15 @@ namespace CoffeeJelly.tempa
             {
                 return new DelegateCommand
                 {
-                    CanExecuteFunc = () => _uiWindow != null,
+                    CanExecuteFunc = () => UIWindowInstance != null,
                     CommandAction = () =>
                     {
-                        _uiWindow.Dispatcher.Invoke(new Action(() =>
+                        UIWindowInstance.Dispatcher.Invoke(new Action(() =>
                         {
-                            _uiWindow.Visibility = Visibility.Visible;
-                            _uiWindow.WindowState = WindowState.Normal;
-                            if (!_uiWindow.IsFileBrowsTreeOnForm && !_uiWindow.IsSettingsGridOnForm && !_uiWindow.IsAboutOnForm)
-                                _uiWindow.RaiseEvent(new RoutedEventArgs(UIwindow.SettingShowEvent, _uiWindow));
+                            UIWindowInstance.Visibility = Visibility.Visible;
+                            UIWindowInstance.WindowState = WindowState.Normal;
+                            if (!UIWindowInstance.IsFileBrowsTreeOnForm && !UIWindowInstance.IsSettingsGridOnForm && !UIWindowInstance.IsAboutOnForm)
+                                UIWindowInstance.RaiseEvent(new RoutedEventArgs(UIwindow.SettingShowEvent, UIWindowInstance));
                         }));
                     }
                 };
@@ -93,15 +93,15 @@ namespace CoffeeJelly.tempa
             {
                 return new DelegateCommand
                 {
-                    CanExecuteFunc = () => _uiWindow != null,
+                    CanExecuteFunc = () => UIWindowInstance != null,
                     CommandAction = () =>
                     {
-                        _uiWindow.Dispatcher.Invoke(new Action(() =>
+                        UIWindowInstance.Dispatcher.Invoke(new Action(() =>
                         {
-                            _uiWindow.Visibility = Visibility.Visible;
-                        _uiWindow.WindowState = WindowState.Normal;
-                        if (!_uiWindow.IsFileBrowsTreeOnForm && !_uiWindow.IsSettingsGridOnForm && !_uiWindow.IsAboutOnForm)
-                            _uiWindow.RaiseEvent(new RoutedEventArgs(UIwindow.AboutShowEvent, _uiWindow));
+                            UIWindowInstance.Visibility = Visibility.Visible;
+                        UIWindowInstance.WindowState = WindowState.Normal;
+                        if (!UIWindowInstance.IsFileBrowsTreeOnForm && !UIWindowInstance.IsSettingsGridOnForm && !UIWindowInstance.IsAboutOnForm)
+                            UIWindowInstance.RaiseEvent(new RoutedEventArgs(UIwindow.AboutShowEvent, UIWindowInstance));
                         }));
                     }
                 };
@@ -137,9 +137,9 @@ namespace CoffeeJelly.tempa
 
                 catch (Exception ex)
                 {
-                    LogMaker.InvokedLog(($"Не удалось создать {nameof(UIwindow)}."), true, _uiWindow.Dispatcher);
+                    LogMaker.InvokedLog(($"Не удалось создать {nameof(UIwindow)}."), true, UIWindowInstance.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
-                    _uiWindow = null;
+                    UIWindowInstance = null;
                     IsUIWindowExist = false;
                     tcs.SetResult(null);
                 }
@@ -154,20 +154,20 @@ namespace CoffeeJelly.tempa
 
         private void OpenUICallBack()
         {
-            _uiWindow = new UIwindow();
+            UIWindowInstance = new UIwindow();
 
             try
             {
-                _uiWindow.Show();
-                _uiWindow.Closed += (sender, e) => CloseUICallback(sender, e);
+                UIWindowInstance.Show();
+                UIWindowInstance.Closed += (sender, e) => CloseUICallback(sender, e);
                 IsUIWindowExist = true;
                 System.Windows.Threading.Dispatcher.Run();
             }
             catch (ThreadAbortException ex)
             {
-                _uiWindow.Close();
-                _uiWindow.Dispatcher.InvokeShutdown();
-                _uiWindow = null;
+                UIWindowInstance.Close();
+                UIWindowInstance.Dispatcher.InvokeShutdown();
+                UIWindowInstance = null;
                 IsUIWindowExist = false;
                 throw new Exception("Abort thread Exception", ex);
             }
@@ -176,9 +176,9 @@ namespace CoffeeJelly.tempa
 
         private void CloseUICallback(object sender, EventArgs e)
         {
-            LogMaker.InvokedLog(($"Закрытие графического окна."), false, _uiWindow.Dispatcher);
-            _uiWindow.Dispatcher.InvokeShutdown();
-            _uiWindow = null;
+            LogMaker.InvokedLog(($"Закрытие графического окна."), false, UIWindowInstance.Dispatcher);
+            UIWindowInstance.Dispatcher.InvokeShutdown();
+            UIWindowInstance = null;
             IsUIWindowExist = false;
         }
 
@@ -200,7 +200,8 @@ namespace CoffeeJelly.tempa
             }
         }
 
-        public static UIwindow _uiWindow = null;
+        public static UIwindow UIWindowInstance = null;
+
         private static readonly object _locker = new object();
         private bool _isUIWindowExist = false;
     }

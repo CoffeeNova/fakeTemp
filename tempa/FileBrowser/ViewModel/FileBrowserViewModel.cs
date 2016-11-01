@@ -58,21 +58,34 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         }
 
 
+        private Task FolderExpandByPathAsync(string path, ObservableCollection<TreeViewItemViewModel> folderViewModels)
+        {
+            return Task.Factory.StartNew(new Action(() =>
+            {
+                FolderExpandByPath(path, folderViewModels);
+            }));
+        }
         private void FolderExpandByPath(string path, ObservableCollection<TreeViewItemViewModel> folderViewModels)
         {
-            foreach (FolderViewModel folderViewModel in folderViewModels)
+            foreach (var treeViewItemViewModel in folderViewModels)
             {
+
+                var folderViewModel = treeViewItemViewModel as  FolderViewModel;
+                if (folderViewModel == null) continue;
+
                 var splittedPath = path.Split('\\').ToList();
                 splittedPath.RemoveAll(string.IsNullOrEmpty);
 
                 foreach (string dirName in splittedPath)
                 {
                     if (folderViewModel.FolderName.PathFormatter() != dirName.PathFormatter()) continue;
-
-                    folderViewModel.IsExpanded = false;
-                    folderViewModel.IsExpanded = true;
-                    folderViewModel.IsSelected = true;
-
+                    smNotifyViewModel.UIWindowInstance.Dispatcher.Invoke(new Action(() =>
+                    {
+                        folderViewModel.IsExpanded = false;
+                        folderViewModel.IsExpanded = true;
+                        folderViewModel.IsSelected = true;
+                    }));
+                    
                     FolderExpandByPath(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), (folderViewModel.Children));
                     break;
                 }
@@ -113,7 +126,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
 
         }
 
-        private void OnActive()
+        private async void OnActive()
         {
             if (Active)
             {
@@ -121,7 +134,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 if (Folders.Count == 0)
                     return;
 
-                FolderExpandByPath(Path, Folders);
+                await FolderExpandByPathAsync(Path, Folders);
             }
             else
             {

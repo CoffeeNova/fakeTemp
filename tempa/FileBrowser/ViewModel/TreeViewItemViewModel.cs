@@ -75,6 +75,12 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 if (value != _isExpanded)
                 {
                     _isExpanded = value;
+                    if (value)
+                        if (this.HasDummyChild)
+                        {
+                            this.Children.Remove(DummyChild);
+                            this.LoadChildren();
+                        }
                     NotifyPropertyChanged();
                 }
 
@@ -82,12 +88,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 if (_isExpanded && _parent != null && _parent.IsExpanded == false)
                     _parent.IsExpanded = true;
 
-                // Lazy load the child items, if necessary.
-                if (this.HasDummyChild)
-                {
-                    this.Children.Remove(DummyChild);
-                    this.LoadChildren();
-                }
+
             }
         }
 

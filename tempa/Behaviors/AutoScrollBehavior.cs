@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 namespace CoffeeJelly.tempa.Behaviors
@@ -13,7 +8,7 @@ namespace CoffeeJelly.tempa.Behaviors
         private static bool _autoScroll = true;
 
         public static readonly DependencyProperty AutoScrollProperty =
-            DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(AutoScrollBehavior), 
+            DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(AutoScrollBehavior),
                 new PropertyMetadata(false, AutoScrollPropertyChanged));
 
 
@@ -24,7 +19,7 @@ namespace CoffeeJelly.tempa.Behaviors
                 return;
             if ((bool)args.NewValue)
                 scrollViewer.ScrollChanged += scrollViewer_ScrollChanged;
-            else 
+            else
                 scrollViewer.ScrollChanged -= scrollViewer_ScrollChanged;
         }
 
@@ -34,7 +29,7 @@ namespace CoffeeJelly.tempa.Behaviors
         {
             var scrollViewer = sender as ScrollViewer;
             if (e.ExtentHeightChange == 0)
-            {   
+            {
                 if (scrollViewer.VerticalOffset == scrollViewer.ScrollableHeight)
                     _autoScroll = true;
                 else
@@ -58,7 +53,7 @@ namespace CoffeeJelly.tempa.Behaviors
     public static class TextBoxAutoScrollBehavior
     {
         public static readonly DependencyProperty AutoScrollProperty =
-            DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(TextBoxAutoScrollBehavior), 
+            DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(TextBoxAutoScrollBehavior),
                 new PropertyMetadata(false, AutoScrollPropertyChanged));
 
         public static void AutoScrollPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
@@ -97,7 +92,7 @@ namespace CoffeeJelly.tempa.Behaviors
         {
             obj.SetValue(AutoScrollProperty, value);
         }
- 
+
     }
 
     public static class TreeViewAutoScrollBehavior
@@ -126,8 +121,7 @@ namespace CoffeeJelly.tempa.Behaviors
                 (ScrollViewer)Internal.FindVisualChildElement(treeView, typeof(ScrollViewer));
             scroller.ScrollToBottom();
             treeViewItem.BringIntoView();
-            Debug.WriteLine((sender as TreeViewItem).Header);
-            e.Handled =true;
+            e.Handled = true;
         }
 
         static int _count = 0;
