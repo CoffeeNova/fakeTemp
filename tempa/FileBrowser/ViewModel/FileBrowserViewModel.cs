@@ -48,8 +48,12 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                     FolderName = drive.ToString(),
                     FullPath = drive.RootDirectory.FullName,
                 };
-                bool haveChildren = drive.RootDirectory.GetDirectories().Length != 0;
+                try
+                {
+                    bool haveChildren = drive.RootDirectory.GetDirectories().Length != 0;
                     Folders.Add(new FolderViewModel(folder, null, haveChildren));
+                }
+                catch { }
             }
         }
 
