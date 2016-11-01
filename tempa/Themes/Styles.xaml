@@ -3,6 +3,7 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:darkBlendTheme="clr-namespace:DarkBlendTheme"
+                    xmlns:behaviors ="clr-namespace:CoffeeJelly.tempa.Behaviors"
                     mc:Ignorable="d">
 
     <!--Converters-->
@@ -2209,6 +2210,10 @@
         <Setter Property="Padding" Value="2,4,2,3"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}"/>
+        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+        <Setter Property ="Header" Value="{Binding FolderName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/>
+        <Setter Property="behaviors:TreeViewAutoScrollBehavior.AutoScroll" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TreeViewItem}">

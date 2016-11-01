@@ -181,7 +181,7 @@ namespace CoffeeJelly.tempa
             }
             return keyValue;
         }
-         
+
         /// <summary>
         /// 
         /// </summary>
@@ -221,7 +221,7 @@ namespace CoffeeJelly.tempa
 
             while ((element != null))
             {
-               var container = element as TreeViewItem;
+                var container = element as TreeViewItem;
                 if (container != null)
                     tempNodePath.Push(container);
                 element = VisualTreeHelper.GetParent(element) as UIElement;
@@ -253,6 +253,19 @@ namespace CoffeeJelly.tempa
             }
 
             return null;
+        }
+
+        internal static FrameworkElement FindVisualParentElement(DependencyObject element, Type parentType)
+        {
+            ItemsControl ic = ItemsControl.ItemsControlFromItemContainer(element);
+
+            if (ic == null) return null;
+
+            if (ic.GetType() == parentType)
+                return ic;
+            else
+                return FindVisualParentElement(ic, parentType);
+
         }
 
         /// <summary>

@@ -8,7 +8,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
     /// Base class for all ViewModel classes displayed by TreeViewItems.  
     /// This acts as an adapter between a raw data object and a TreeViewItem.
     /// </summary>
-    public class TreeViewItemViewModel : ViewModelBase
+    public abstract class TreeViewItemViewModel : ViewModelBase
     {
 
         #region Constructors
@@ -34,14 +34,13 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         /// Invoked when the child items need to be loaded on demand.
         /// Subclasses can override this to populate the Children collection.
         /// </summary>
-        protected virtual void LoadChildren()
-        {
-        }
+        protected abstract void LoadChildren();
 
+        //protected abstract void OnSelected();
 
         #region private fields
 
-        private static readonly TreeViewItemViewModel DummyChild = new TreeViewItemViewModel();
+        private static readonly TreeViewItemViewModel DummyChild = new DummyViewModel();
 
         readonly ObservableCollection<TreeViewItemViewModel> _children;
         private readonly TreeViewItemViewModel _parent;
@@ -80,7 +79,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 }
 
                 // Expand all the way up to the root.
-                if (_isExpanded && _parent != null)
+                if (_isExpanded && _parent != null && _parent.IsExpanded == false)
                     _parent.IsExpanded = true;
 
                 // Lazy load the child items, if necessary.
@@ -106,8 +105,16 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                     _isSelected = value;
                     NotifyPropertyChanged();
                 }
+
+
             }
         }
 
+        private class DummyViewModel : TreeViewItemViewModel
+        {
+            protected override void LoadChildren()
+            {
+            }
+        }
     }
 }

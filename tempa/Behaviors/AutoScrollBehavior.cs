@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -12,7 +13,8 @@ namespace CoffeeJelly.tempa.Behaviors
         private static bool _autoScroll = true;
 
         public static readonly DependencyProperty AutoScrollProperty =
-            DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(AutoScrollBehavior), new PropertyMetadata(false, AutoScrollPropertyChanged));
+            DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(AutoScrollBehavior), 
+                new PropertyMetadata(false, AutoScrollPropertyChanged));
 
 
         public static void AutoScrollPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
@@ -56,7 +58,8 @@ namespace CoffeeJelly.tempa.Behaviors
     public static class TextBoxAutoScrollBehavior
     {
         public static readonly DependencyProperty AutoScrollProperty =
-            DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(TextBoxAutoScrollBehavior), new PropertyMetadata(false, AutoScrollPropertyChanged));
+            DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(TextBoxAutoScrollBehavior), 
+                new PropertyMetadata(false, AutoScrollPropertyChanged));
 
         public static void AutoScrollPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
         {
@@ -95,6 +98,49 @@ namespace CoffeeJelly.tempa.Behaviors
             obj.SetValue(AutoScrollProperty, value);
         }
  
+    }
+
+    public static class TreeViewAutoScrollBehavior
+    {
+        public static readonly DependencyProperty AutoScrollProperty =
+            DependencyProperty.RegisterAttached("AutoScroll", typeof(bool), typeof(TreeViewAutoScrollBehavior),
+                new PropertyMetadata(false, AutoScrollPropertyChanged));
+
+        public static void AutoScrollPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+        {
+            var treeViewItem = obj as TreeViewItem;
+            if (treeViewItem != null && (bool)args.NewValue)
+                treeViewItem.Expanded += TreeViewItem_Expanded;
+            else
+                treeViewItem.Expanded -= TreeViewItem_Expanded;
+        }
+
+        private static void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
+        {
+            var treeViewItem = e.OriginalSource as TreeViewItem;
+            if (treeViewItem == null) return;
+
+            var treeView = Internal.FindVisualParentElement(treeViewItem, typeof(TreeView));
+
+            ScrollViewer scroller =
+                (ScrollViewer)Internal.FindVisualChildElement(treeView, typeof(ScrollViewer));
+            scroller.ScrollToBottom();
+            treeViewItem.BringIntoView();
+            Debug.WriteLine((sender as TreeViewItem).Header);
+            e.Handled =true;
+        }
+
+        static int _count = 0;
+        public static bool GetAutoScroll(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(AutoScrollProperty);
+        }
+
+        public static void SetAutoScroll(DependencyObject obj, bool value)
+        {
+            obj.SetValue(AutoScrollProperty, value);
+        }
+
     }
 
 }
