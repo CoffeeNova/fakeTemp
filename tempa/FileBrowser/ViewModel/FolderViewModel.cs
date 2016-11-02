@@ -11,13 +11,16 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         public FolderViewModel(Folder folder, FolderViewModel parent, bool haveChildren)
             : base(parent, haveChildren)
         {
+            base.PropertyChanged += FolderViewModel_PropertyChanged;
             _folder = folder;
         }
 
-
         private readonly Folder _folder;
 
+
         public string FolderName => _folder.FolderName;
+
+        public string FolderPath => _folder.FullPath;
 
         protected override void LoadChildren()
         {
@@ -44,5 +47,15 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 base.Children.Add(new FolderViewModel(folder, this, haveChildren));
             }
         }
+
+        private void FolderViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(base.IsSelected) && (sender as FolderViewModel).IsSelected)
+                SelectedFolderViewPathChanged?.Invoke((sender as FolderViewModel).FolderPath);
+        }
+
+        public delegate void SelectedFolderViewPathChangedHandler(string selectedFolderViewPath);
+        public static event SelectedFolderViewPathChangedHandler SelectedFolderViewPathChanged;
+
     }
 }

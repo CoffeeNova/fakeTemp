@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,25 +19,9 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
     {
         public FileBrowserViewModel()
         {
-            base.PropertyChanged += FileBrowserViewModel_PropertyChanged;
-            ExpandedCommand = new ActionCommand<RoutedEventArgs>(OnExpand);
+                base.PropertyChanged += FileBrowserViewModel_PropertyChanged;
+
         }
-
-
-        //public FileBrowserViewModel(string path, ProgramType type)
-        //{
-        //this.SelectedChangedCommand = new ActionCommand<RoutedPropertyChangedEventArgs<object>>(OnSelectedChanged);
-
-        //Path = path;
-        //Type = type;
-
-        //ExploreRootDrives();
-        //if (Folders.Count == 0)
-        //    return;
-
-        //FolderExpandByPath(Path, Folders);
-
-        //}
 
         private void ExploreRootDrives()
         {
@@ -52,11 +38,11 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 {
                     bool haveChildren = drive.RootDirectory.GetDirectories().Length != 0;
                     Folders.Add(new FolderViewModel(folder, null, haveChildren));
+                    
                 }
                 catch { }
             }
         }
-
 
         private Task FolderExpandByPathAsync(string path, ObservableCollection<TreeViewItemViewModel> folderViewModels)
         {
@@ -70,7 +56,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
             foreach (var treeViewItemViewModel in folderViewModels)
             {
 
-                var folderViewModel = treeViewItemViewModel as  FolderViewModel;
+                var folderViewModel = treeViewItemViewModel as FolderViewModel;
                 if (folderViewModel == null) continue;
 
                 var splittedPath = path.Split('\\').ToList();
@@ -79,15 +65,15 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 foreach (string dirName in splittedPath)
                 {
                     if (folderViewModel.FolderName.PathFormatter() != dirName.PathFormatter()) continue;
+
                     smNotifyViewModel.UIWindowInstance.Dispatcher.Invoke(new Action(() =>
                     {
                         folderViewModel.IsExpanded = false;
                         folderViewModel.IsExpanded = true;
                         folderViewModel.IsSelected = true;
                     }));
-                    
-                    FolderExpandByPath(path.ReplaceFirst(dirName.PathFormatter(), string.Empty), (folderViewModel.Children));
-                    break;
+                    FolderExpandByPath(path.PathFormatter().ReplaceFirst(dirName.PathFormatter(), string.Empty), (folderViewModel.Children));
+                    return;
                 }
             }
         }
@@ -123,13 +109,14 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         {
             if (e.PropertyName == nameof(Active))
                 OnActive();
-
         }
 
         private async void OnActive()
         {
             if (Active)
             {
+                FolderViewModel.SelectedFolderViewPathChanged += FolderViewModel_SelectedFolderViewPathChanged;
+
                 ExploreRootDrives();
                 if (Folders.Count == 0)
                     return;
@@ -138,21 +125,21 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
             }
             else
             {
-
+                FolderViewModel.SelectedFolderViewPathChanged -= FolderViewModel_SelectedFolderViewPathChanged;
             }
 
         }
 
-        private void OnExpand(RoutedEventArgs e)
+        private void FolderViewModel_SelectedFolderViewPathChanged(string selectedFolderViewPath)
         {
-
+            Path = selectedFolderViewPath;
         }
 
         #region private fields
         private bool _active;
         private string _path;
         private ObservableCollection<TreeViewItemViewModel> _folders = new ObservableCollection<TreeViewItemViewModel>();
-
+        private static readonly object _locker = new object();
         #endregion
 
         public bool Active
@@ -191,9 +178,9 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
             }
         }
 
-        public ActionCommand<RoutedEventArgs> ExpandedCommand { get; private set; }
+        //public ActionCommand<RoutedEventArgs> ExpandedCommand { get; private set; }
 
-        public ActionCommand<RoutedPropertyChangedEventArgs<object>> SelectedChangedCommand { get; private set; }
+        //public ActionCommand<RoutedPropertyChangedEventArgs<object>> SelectedChangedCommand { get; private set; }
 
 
         public ICommand ActivateCommand

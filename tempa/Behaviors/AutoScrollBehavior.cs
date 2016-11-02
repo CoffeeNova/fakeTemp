@@ -122,9 +122,9 @@ namespace CoffeeJelly.tempa.Behaviors
             scroller.ScrollToBottom();
             treeViewItem.BringIntoView();
             e.Handled = true;
+
         }
 
-        static int _count = 0;
         public static bool GetAutoScroll(DependencyObject obj)
         {
             return (bool)obj.GetValue(AutoScrollProperty);

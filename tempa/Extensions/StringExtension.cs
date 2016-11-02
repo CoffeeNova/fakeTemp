@@ -78,7 +78,7 @@ namespace CoffeeJelly.tempa.Extensions
         public static string ReplaceFirst(this string text, string pattern, string value)
         {
             var regex = new Regex(Regex.Escape(pattern));
-            return regex.Replace(text, value, 1);
+            return regex.Replace(text, value, 1, 0);
         }
 
         public static int ParseNumber(this string str)

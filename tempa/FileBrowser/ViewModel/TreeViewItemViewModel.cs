@@ -32,7 +32,6 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
 
         /// <summary>
         /// Invoked when the child items need to be loaded on demand.
-        /// Subclasses can override this to populate the Children collection.
         /// </summary>
         protected abstract void LoadChildren();
 
@@ -75,19 +74,18 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 if (value != _isExpanded)
                 {
                     _isExpanded = value;
-                    if (value)
-                        if (this.HasDummyChild)
-                        {
-                            this.Children.Remove(DummyChild);
-                            this.LoadChildren();
-                        }
                     NotifyPropertyChanged();
                 }
-
+                
                 // Expand all the way up to the root.
                 if (_isExpanded && _parent != null && _parent.IsExpanded == false)
                     _parent.IsExpanded = true;
 
+                if (this.HasDummyChild && value)
+                {
+                    this.Children.Remove(DummyChild);
+                    this.LoadChildren();
+                }
 
             }
         }
@@ -106,8 +104,6 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                     _isSelected = value;
                     NotifyPropertyChanged();
                 }
-
-
             }
         }
 
