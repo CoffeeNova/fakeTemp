@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace CoffeeJelly.tempa.Behaviors
@@ -104,7 +105,9 @@ namespace CoffeeJelly.tempa.Behaviors
         public static void AutoScrollPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
         {
             var treeViewItem = obj as TreeViewItem;
-            if (treeViewItem != null && (bool)args.NewValue)
+            if (treeViewItem == null) return;
+
+            if ((bool)args.NewValue)
                 treeViewItem.Expanded += TreeViewItem_Expanded;
             else
                 treeViewItem.Expanded -= TreeViewItem_Expanded;
@@ -122,7 +125,7 @@ namespace CoffeeJelly.tempa.Behaviors
             scroller.ScrollToBottom();
             treeViewItem.BringIntoView();
             e.Handled = true;
-
+            Debug.WriteLine((sender as TreeViewItem).Header);
         }
 
         public static bool GetAutoScroll(DependencyObject obj)

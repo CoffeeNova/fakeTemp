@@ -44,8 +44,8 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         readonly ObservableCollection<TreeViewItemViewModel> _children;
         private readonly TreeViewItemViewModel _parent;
 
-        private bool _isExpanded;
-        private bool _isSelected;
+        private bool _expanded;
+        private bool _selected;
 
         #endregion // Data
 
@@ -68,24 +68,24 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         /// </summary>
         public bool IsExpanded
         {
-            get { return _isExpanded; }
+            get { return _expanded; }
             set
             {
-                if (value != _isExpanded)
-                {
-                    _isExpanded = value;
-                    NotifyPropertyChanged();
-                }
-                
-                // Expand all the way up to the root.
-                if (_isExpanded && _parent != null && _parent.IsExpanded == false)
-                    _parent.IsExpanded = true;
-
                 if (this.HasDummyChild && value)
                 {
                     this.Children.Remove(DummyChild);
                     this.LoadChildren();
                 }
+
+                if (value != _expanded)
+                {
+                    _expanded = value;
+                    NotifyPropertyChanged();
+                }
+                
+                // Expand all the way up to the root.
+                if (_expanded && _parent != null && _parent.IsExpanded == false)
+                    _parent.IsExpanded = true;
 
             }
         }
@@ -96,12 +96,12 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         /// </summary>
         public bool IsSelected
         {
-            get { return _isSelected; }
+            get { return _selected; }
             set
             {
-                if (value != _isSelected)
+                if (value != _selected)
                 {
-                    _isSelected = value;
+                    _selected = value;
                     NotifyPropertyChanged();
                 }
             }

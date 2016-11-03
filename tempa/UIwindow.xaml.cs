@@ -78,23 +78,15 @@ namespace CoffeeJelly.tempa
                 GrainbarDataHandlingPermission = window.GrainbarDataHandlingPermission;
             }));
 
-            _agrologFileBrowserViewModel = new FileBrowserViewModel();
-            _grainbarFileBrowserViewModel = new FileBrowserViewModel();
+            _agrologFileBrowserViewModel = new FileBrowserViewModel(FileBrowserType.Agrolog);
+            _grainbarFileBrowserViewModel = new FileBrowserViewModel(FileBrowserType.Grainbar);
             AgrologFilesPathTextBox.DataContext = _agrologFileBrowserViewModel;
             GrainbarFilesPathTextBox.DataContext = _grainbarFileBrowserViewModel;
 
-            _agrologFileBrowserViewModel.PropertyChanged += _fileBrowserViewModel_PropertyChanged;
-            _grainbarFileBrowserViewModel.PropertyChanged += _fileBrowserViewModel_PropertyChanged;
+            _agrologFileBrowserViewModel.PropertyChanged += FileBrowserViewModel_PropertyChanged;
+            _grainbarFileBrowserViewModel.PropertyChanged += FileBrowserViewModel_PropertyChanged;
             FileBrowsTreeView.Items.Clear();
 
-        }
-
-        private void NewDataWatcherWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(AgrologDataHandlingPermission))
-                AgrologDataHandlingPermission = (sender as NewDataWatcherWindow).AgrologDataHandlingPermission;
-            if (e.PropertyName == nameof(GrainbarDataHandlingPermission))
-                GrainbarDataHandlingPermission = (sender as NewDataWatcherWindow).GrainbarDataHandlingPermission;
         }
 
         //delete
@@ -143,7 +135,7 @@ namespace CoffeeJelly.tempa
         //    }
         //}
 
-            //delete
+        //delete
         //private void FillTreeViewItemWithDirectories(ref TreeViewItem treeViewItem)
         //{
         //    treeViewItem.Items.Clear();
@@ -494,17 +486,17 @@ namespace CoffeeJelly.tempa
                     _agrologFileBrowserViewModel.Active = true;
                 }
 
-                else if((ProgramType)button.Tag == ProgramType.Grainbar)
+                else if ((ProgramType)button.Tag == ProgramType.Grainbar)
                 {
                     FileBrowsTreeView.Items.Clear();
                     FileBrowsGrid.DataContext = _grainbarFileBrowserViewModel;
                     _grainbarFileBrowserViewModel.Active = true;
                 }
 
-                    //{
-                    //    Path = AgrologReportsPath,
-                    //    Type = ProgramType.Grainbar
-                    //};
+                //{
+                //    Path = AgrologReportsPath,
+                //    Type = ProgramType.Grainbar
+                //};
 
                 //FileBrowsTreeView.Tag = button.Tag;
                 //FillTreeViewWithRootDrives(ref FileBrowsTreeView);
@@ -519,8 +511,6 @@ namespace CoffeeJelly.tempa
 
             //var command =(FileBrowsTreeView.DataContext as FileBrowserViewModel).ActivateCommand;
             //command.Execute(null);
-            RaiseEvent(new RoutedEventArgs(UIwindow.FileBrowserShowEvent, this));
-            FileBrowsTreeView.Focus();
         }
 
 
@@ -704,12 +694,21 @@ namespace CoffeeJelly.tempa
             var textBox = sender as TextBox;
             if (textBox == null) return;
             var programType = textBox.Name == "AgrologFilesPathTextBox" ? ProgramType.Agrolog : ProgramType.Grainbar;
-            var propertyName = textBox.Name == "AgrologFilesPathTextBox" ? "AgrologReportsPath" : "GrainbarReportsPath";
+            //var propertyName = textBox.Name == "AgrologFilesPathTextBox" ? "AgrologReportsPath" : "GrainbarReportsPath";
 
-            if (textBox.Text == (string)this.GetPropertyValue(propertyName))
-                return;
+            if (programType == ProgramType.Agrolog)
+            {
+                if (textBox.Text == _agrologFileBrowserViewModel.Path)
+                    return;
+                _agrologFileBrowserViewModel.Path = textBox.Text;
+            }
+            else
+            {
+                if (textBox.Text == _grainbarFileBrowserViewModel.Path)
+                    return;
+                _grainbarFileBrowserViewModel.Path = textBox.Text;
+            }
 
-            this.SetPropertyValue(propertyName, textBox.Text);
 
             SaveReportsPathToRegistry(programType);
             StartDataCollect(programType);
@@ -782,15 +781,34 @@ namespace CoffeeJelly.tempa
             }));
         }
 
+        private void NewDataWatcherWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AgrologDataHandlingPermission))
+                AgrologDataHandlingPermission = (sender as NewDataWatcherWindow).AgrologDataHandlingPermission;
+            if (e.PropertyName == nameof(GrainbarDataHandlingPermission))
+                GrainbarDataHandlingPermission = (sender as NewDataWatcherWindow).GrainbarDataHandlingPermission;
+        }
+
+        private void FileBrowserViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var fileBrowserViewModel = sender as FileBrowserViewModel;
+            if (fileBrowserViewModel == null) return;
+
+            if (e.PropertyName == "Active")
+            {
+                IsFileBrowsTreeOnForm = _agrologFileBrowserViewModel.Active || _grainbarFileBrowserViewModel.Active;
+                if (fileBrowserViewModel.Active) return;
+
+                if (fileBrowserViewModel.Type == FileBrowserType.Agrolog)
+                    StartDataCollect(ProgramType.Agrolog);
+                else if (fileBrowserViewModel.Type == FileBrowserType.Grainbar)
+                    StartDataCollect(ProgramType.Grainbar);
+            }
+        }
+
         private void LogCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             NotifyPropertyChanged(propertyName: nameof(LogCollection));
-        }
-
-        private void _fileBrowserViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if(e.PropertyName == "Active")
-                IsFileBrowsTreeOnForm = _agrologFileBrowserViewModel.Active || _grainbarFileBrowserViewModel.Active;
         }
 
         #endregion
@@ -858,13 +876,14 @@ namespace CoffeeJelly.tempa
 
         #region fields
 
-        public bool IsFileBrowsTreeOnForm;                 //на форме ли окно выбора файлов
+        //на форме ли окно выбора файлов
         public bool IsSettingsGridOnForm;
         public bool IsCreateReportWindowShow;
         public bool IsAboutOnForm;
 
-        private string _agrologReportsPath;
-        private string _grainbarReportsPath;
+        private bool _isFileBrowsTreeOnForm;
+        //private string _agrologReportsPath;
+        //private string _grainbarReportsPath;
         private readonly ManualResetEvent _createReportResetEvent = new ManualResetEvent(false);
         private CancellationTokenSource _createReportCancellationToken;
         private MainPlotWindow _agrologPlot;
@@ -896,25 +915,23 @@ namespace CoffeeJelly.tempa
 
         #region properties
 
-        //public string AgrologReportsPath
-        //{
-        //    get { return _agrologReportsPath; }
-        //    private set
-        //    {
-        //        _agrologReportsPath = string.IsNullOrEmpty(value) ? Constants.AGROLOG_REPORTS_FOLDER_PATH : value;
-        //        NotifyPropertyChanged();
-        //    }
-        //}
+        public bool IsFileBrowsTreeOnForm
+        {
+            get { return _isFileBrowsTreeOnForm; }
 
-        //public string GrainbarReportsPath
-        //{
-        //    get { return _grainbarReportsPath; }
-        //    private set
-        //    {
-        //        _grainbarReportsPath = string.IsNullOrEmpty(value) ? Constants.AGROLOG_REPORTS_FOLDER_PATH : value;
-        //        NotifyPropertyChanged();
-        //    }
-        //}
+            set
+            {
+                if (_isFileBrowsTreeOnForm != value)
+                {
+                    _isFileBrowsTreeOnForm = value;
+                    if (value)
+                    {
+                        RaiseEvent(new RoutedEventArgs(UIwindow.FileBrowserShowEvent, this));
+                        FileBrowsTreeView.Focus();
+                    }
+                }
+            }
+        }
 
         public bool IsAgrologDataCollect
         {
@@ -1096,5 +1113,13 @@ namespace CoffeeJelly.tempa
 
         #endregion
 
+        private void FileBrowserShowCompleted(object sender, EventArgs e)
+        {
+
+            var viewModel = FileBrowsGrid.DataContext as FileBrowserViewModel;
+            if (viewModel == null || !viewModel.Active) return;
+            if (viewModel.ContinueExploreCommand.CanExecute(null))
+                viewModel.ContinueExploreCommand.Execute(null);
+        }
     }
 }

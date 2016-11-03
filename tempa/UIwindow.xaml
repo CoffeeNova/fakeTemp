@@ -44,7 +44,7 @@
             <Setter Property="TextBlock.Foreground" Value="{DynamicResource darkBlueSolidBrush}"/>
             <Setter Property="TextBlock.Background" Value="{DynamicResource lightBlueSolidBrush}"/>
         </Style>
-        <Storyboard x:Key="OnClick1">
+        <Storyboard x:Key="FileBrowserShow" Completed="FileBrowserShowCompleted">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="FileBrowsGrid">
                 <SplineDoubleKeyFrame KeyTime="0" Value="0"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="-236.917"/>
@@ -66,7 +66,7 @@
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Hidden}"/>
             </ObjectAnimationUsingKeyFrames>
         </Storyboard>
-        <Storyboard x:Key="OnClick1_reverse">
+        <Storyboard x:Key="FileBrowserHide">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="FileBrowsGrid">
                 <SplineDoubleKeyFrame KeyTime="0" Value="-236.917"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0"/>
@@ -279,11 +279,11 @@
     </Window.Resources>
     <Window.Triggers>
         <EventTrigger RoutedEvent="tempa:UIwindow.FileBrowserShow">
-            <BeginStoryboard x:Name="OnClick1BeginStoryboard" Storyboard="{StaticResource OnClick1}"/>
+            <BeginStoryboard x:Name="FileBrowserShowBeginStoryboard" Storyboard="{StaticResource FileBrowserShow}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FileBrowsOkButt">
-            <RemoveStoryboard BeginStoryboardName="OnClick1BeginStoryboard"/>
-            <BeginStoryboard x:Name="OnClick1ReverseBeginStoryboard" Storyboard="{StaticResource OnClick1_reverse}"/>
+            <RemoveStoryboard BeginStoryboardName="FileBrowserShowBeginStoryboard"/>
+            <BeginStoryboard x:Name="FileBrowserHideBeginStoryboard" Storyboard="{StaticResource FileBrowserHide}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="tempa:UIwindow.SettingsShow">
             <BeginStoryboard x:Name="ShowSettingsBeginStoryboard" Storyboard="{StaticResource ShowSettings}"/>
@@ -293,7 +293,7 @@
             <BeginStoryboard x:Name="HideSettingsBeginStoryboard" Storyboard="{StaticResource HideSettings}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FileBrowsPlusButt">
-            <BeginStoryboard x:Name="OnClick1BeginStoryboard2" Storyboard="{StaticResource NewFolderTbShow}"/>
+            <BeginStoryboard x:Name="FileBrowserShowBeginStoryboard2" Storyboard="{StaticResource NewFolderTbShow}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="tempa:UIwindow.CreateReportShow">
             <BeginStoryboard x:Name="CreateReportShowBeginStoryboard" Storyboard="{StaticResource CreateReportShow}"/>

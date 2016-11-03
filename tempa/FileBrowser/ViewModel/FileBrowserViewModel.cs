@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -17,10 +18,10 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
 {
     class FileBrowserViewModel : ViewModelBase
     {
-        public FileBrowserViewModel()
+        public FileBrowserViewModel(FileBrowserType type)
         {
+            Type = type;
                 base.PropertyChanged += FileBrowserViewModel_PropertyChanged;
-
         }
 
         private void ExploreRootDrives()
@@ -48,6 +49,8 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         {
             return Task.Factory.StartNew(new Action(() =>
             {
+                 _continueExploreResetEvent.WaitOne();
+                //await TaskEx.Delay(500);
                 FolderExpandByPath(path, folderViewModels);
             }));
         }
@@ -55,7 +58,6 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         {
             foreach (var treeViewItemViewModel in folderViewModels)
             {
-
                 var folderViewModel = treeViewItemViewModel as FolderViewModel;
                 if (folderViewModel == null) continue;
 
@@ -121,11 +123,15 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 if (Folders.Count == 0)
                     return;
 
+                //await TaskEx.Delay(Timeout.Infinite, _continuationPermissionSource.Token);
                 await FolderExpandByPathAsync(Path, Folders);
             }
             else
             {
                 FolderViewModel.SelectedFolderViewPathChanged -= FolderViewModel_SelectedFolderViewPathChanged;
+                _continueExploreResetEvent.Reset();
+                Folders.Clear();
+
             }
 
         }
@@ -140,7 +146,11 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         private string _path;
         private ObservableCollection<TreeViewItemViewModel> _folders = new ObservableCollection<TreeViewItemViewModel>();
         private static readonly object _locker = new object();
+        private readonly ManualResetEvent _continueExploreResetEvent = new ManualResetEvent(false);
+
         #endregion
+
+        public FileBrowserType Type { get;}
 
         public bool Active
         {
@@ -211,17 +221,31 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
             }
         }
 
+        public ICommand ContinueExploreCommand
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CommandAction = () =>
+                    {
+                        _continueExploreResetEvent.Set();
+                    }
+                };
+            }
+        }
+
         public ICommand BringIntoViewCommand
         {
             get; set;
         }
+    }
 
-        public enum FileBrowserType
-        {
-            Agrolog,
-            Grainbar,
-            ArchiveAgrolog,
-            ArchiveGrainbar
-        }
+    public enum FileBrowserType
+    {
+        Agrolog,
+        Grainbar,
+        ArchiveAgrolog,
+        ArchiveGrainbar
     }
 }

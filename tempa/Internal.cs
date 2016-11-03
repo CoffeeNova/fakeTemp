@@ -10,6 +10,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using NWTweak;
+using System.Threading.Tasks;
 
 namespace CoffeeJelly.tempa
 {
@@ -434,6 +435,20 @@ namespace CoffeeJelly.tempa
             if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
             if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
             return Encoding.ASCII;
+        }
+
+        public static Task Delay(double milliseconds)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            System.Timers.Timer timer = new System.Timers.Timer();
+            timer.Elapsed += (obj, args) =>
+            {
+                tcs.TrySetResult(true);
+            };
+            timer.Interval = milliseconds;
+            timer.AutoReset = false;
+            timer.Start();
+            return tcs.Task;
         }
 
         internal delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);

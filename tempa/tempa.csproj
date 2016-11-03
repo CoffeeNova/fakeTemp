@@ -141,6 +141,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Behaviors\EventToCommandBehavior.cs" />
+    <Compile Include="Behaviors\CommandFakeAnimation.cs" />
     <Compile Include="Controls\LogTextBlock.cs" />
     <Compile Include="Controls\LogTextBox2.cs" />
     <Compile Include="Controls\LogViewer.xaml.cs">
