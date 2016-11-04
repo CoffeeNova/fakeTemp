@@ -664,8 +664,8 @@ namespace CoffeeJelly.tempa
 
         private void FileBrowsPlusButt_Click(object sender, RoutedEventArgs e)
         {
-            NewFolderBox.Text = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
-            NewFolderBox.Focus();
+            //NewFolderBox.Text = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
+            //NewFolderBox.Focus();
         }
 
         private async void NewFolderTb_KeyDown(object sender, KeyEventArgs e)
@@ -810,6 +810,15 @@ namespace CoffeeJelly.tempa
         {
             NotifyPropertyChanged(propertyName: nameof(LogCollection));
         }
+
+        private void FileBrowserShowCompleted(object sender, EventArgs e)
+        {
+            var viewModel = FileBrowsGrid.DataContext as FileBrowserViewModel;
+            if (viewModel == null || !viewModel.Active) return;
+            if (viewModel.ContinueExploreCommand.CanExecute(null))
+                viewModel.ContinueExploreCommand.Execute(null);
+        }
+
 
         #endregion
         //------------------------------------------------------------------------------
@@ -1113,13 +1122,5 @@ namespace CoffeeJelly.tempa
 
         #endregion
 
-        private void FileBrowserShowCompleted(object sender, EventArgs e)
-        {
-
-            var viewModel = FileBrowsGrid.DataContext as FileBrowserViewModel;
-            if (viewModel == null || !viewModel.Active) return;
-            if (viewModel.ContinueExploreCommand.CanExecute(null))
-                viewModel.ContinueExploreCommand.Execute(null);
-        }
     }
 }

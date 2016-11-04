@@ -21,7 +21,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         public FileBrowserViewModel(FileBrowserType type)
         {
             Type = type;
-                base.PropertyChanged += FileBrowserViewModel_PropertyChanged;
+            base.PropertyChanged += FileBrowserViewModel_PropertyChanged;
         }
 
         private void ExploreRootDrives()
@@ -39,7 +39,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                 {
                     bool haveChildren = drive.RootDirectory.GetDirectories().Length != 0;
                     Folders.Add(new FolderViewModel(folder, null, haveChildren));
-                    
+
                 }
                 catch { }
             }
@@ -49,7 +49,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         {
             return Task.Factory.StartNew(new Action(() =>
             {
-                 _continueExploreResetEvent.WaitOne();
+                _continueExploreResetEvent.WaitOne();
                 //await TaskEx.Delay(500);
                 FolderExpandByPath(path, folderViewModels);
             }));
@@ -144,13 +144,14 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         #region private fields
         private bool _active;
         private string _path;
+        private string _newFolderName = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
         private ObservableCollection<TreeViewItemViewModel> _folders = new ObservableCollection<TreeViewItemViewModel>();
         private static readonly object _locker = new object();
         private readonly ManualResetEvent _continueExploreResetEvent = new ManualResetEvent(false);
 
         #endregion
 
-        public FileBrowserType Type { get;}
+        public FileBrowserType Type { get; }
 
         public bool Active
         {
@@ -184,6 +185,18 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
             set
             {
                 _folders = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public string NewFolderName
+        {
+            get { return _newFolderName; }
+            set
+            {
+                if (_newFolderName == value)
+                    return;
+                _newFolderName = value;
                 NotifyPropertyChanged();
             }
         }
@@ -230,6 +243,34 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
                     CommandAction = () =>
                     {
                         _continueExploreResetEvent.Set();
+                    }
+                };
+            }
+        }
+
+        //public ICommand NewFolderNameRegistrationCommand
+        //{
+        //    get
+        //    {
+        //        return new DelegateCommand
+        //        {
+        //            CommandAction = () =>
+        //            {
+        //                NewFolderName = Constants.NEW_FOLDER_TEXT_BOX_INITIAL_TEXT;
+        //            }
+        //        };
+        //    }
+        //}
+
+        public ICommand CreateNewFolderCommand
+        {
+            get
+            {
+                return new DelegateCommand
+                {
+                    CommandAction = () =>
+                    {
+                        //_continueExploreResetEvent.Set();
                     }
                 };
             }

@@ -142,6 +142,8 @@
     </ApplicationDefinition>
     <Compile Include="Behaviors\EventToCommandBehavior.cs" />
     <Compile Include="Behaviors\CommandFakeAnimation.cs" />
+    <Compile Include="Behaviors\FocusAdvancement.cs" />
+    <Compile Include="Behaviors\TextBoxEnterKeyFocusNextBehavior.cs" />
     <Compile Include="Controls\LogTextBlock.cs" />
     <Compile Include="Controls\LogTextBox2.cs" />
     <Compile Include="Controls\LogViewer.xaml.cs">

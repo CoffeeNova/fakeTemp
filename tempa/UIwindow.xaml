@@ -28,7 +28,7 @@
         <conv:NotAllIsTrueConvertor x:Key="NotAllIsTrueConvertor"/>
         <conv:AllIsTrueEqualsHiddenConvertor x:Key="AllIsTrueEqualsHiddenConvertor"/>
         <tempa:NewDataWatcherWindow x:Key="NewDataWatcherWindow"/>
-        <fbViewModel:FileBrowserViewModel x:Key="FileBrowserViewModel"/>
+        <!--<fbViewModel:FileBrowserViewModel x:Key="FileBrowserViewModel"/>-->
         <Style x:Key="DatePickerStyle" TargetType="{x:Type DatePicker}">
             <Setter Property="Height" Value="32"/>
             <Setter Property="Width" Value="148"/>
@@ -342,9 +342,10 @@
                 Width="243" Height="23"   />
         <TextBox x:Name="AgrologFilesPathTextBox" Text="{Binding Path=Path, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                  HorizontalAlignment="Left" Height="23" Margin="15,4,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="220" 
-                 VerticalContentAlignment="Center" HorizontalContentAlignment="Left"   LostKeyboardFocus="FilesPathTextBox_LostKeyboardFocus" 
+                 VerticalContentAlignment="Center" HorizontalContentAlignment="Left"   LostKeyboardFocus="FilesPathTextBox_LostKeyboardFocus"
                  ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Grid.Row="1" Grid.Column="0"
-                 behaviors:TextBoxAutoScrollBehavior.AutoScroll="True"/>
+                 behaviors:TextBoxAutoScrollBehavior.AutoScroll="True"
+                 behaviors:FocusAdvancement.AdvancesByEnterKey="True"/>
         <Label x:Name="AgroloFilesPathLabel" 
                Content="ПУТЬ К ДАННЫМ AGROLOG:" HorizontalAlignment="Left" Margin="15,28.674,0,0" VerticalAlignment="Top" Width="191" FontSize="14"
                Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" />
@@ -362,7 +363,9 @@
                  Width="220" Height="23"  TextWrapping="NoWrap" 
                  LostKeyboardFocus="FilesPathTextBox_LostKeyboardFocus"
                  VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
-                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" behaviors:TextBoxAutoScrollBehavior.AutoScroll="True"/>
+                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" 
+                 behaviors:TextBoxAutoScrollBehavior.AutoScroll="True"
+                 behaviors:FocusAdvancement.AdvancesByEnterKey="True"/>
         <Grid Margin="13,87,244,189" Grid.Row="1" Grid.Column="0">
             <Button x:Name="GrainbarButton" Margin="112,34,0,0"
                     Content="ГРЕЙНБАР" FontSize="14"
@@ -629,10 +632,23 @@
                 <Button x:Name="FileBrowsPlusButt" 
                         Content="ПАПКА"  
                         HorizontalAlignment="Left" VerticalAlignment="Top" Width="64" Height="22.372" 
-                        Click="FileBrowsPlusButt_Click"  FontSize="14" Margin="10,195,0,0"/>
+                        FontSize="14" Margin="10,195,0,0"
+                        FocusManager.FocusedElement="{Binding ElementName=FileBrowsTreeView}">
+                </Button>
                 <TextBox x:Name="NewFolderBox" 
-                         Text="Новая папка" TextWrapping="Wrap" Margin="226.5,149,-117.5,48.372" 
-                         RenderTransformOrigin="0.5,0.5" KeyDown="NewFolderTb_KeyDown">
+                         Text="{Binding NewFolderName, Mode=TwoWay}" 
+                         TextWrapping="Wrap" Margin="226.5,149,-117.5,48.372" 
+                         RenderTransformOrigin="0.5,0.5">
+                    
+                    <i:Interaction.Behaviors>
+                        <behaviors:TextBoxEnterKeyFocusNextBehavior/>
+                    </i:Interaction.Behaviors>
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter"
+                                    Command="{Binding CreateNewFolderCommand}">
+                        </KeyBinding>
+                    </TextBox.InputBindings>
+                    
                     <TextBox.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform/>
