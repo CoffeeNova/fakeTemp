@@ -268,6 +268,10 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
             {
                 return new DelegateCommand
                 {
+                    CanExecuteFunc = () =>
+                    {
+                        
+                    },
                     CommandAction = () =>
                     {
                         //_continueExploreResetEvent.Set();

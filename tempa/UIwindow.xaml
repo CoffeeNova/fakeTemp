@@ -633,7 +633,7 @@
                         Content="ПАПКА"  
                         HorizontalAlignment="Left" VerticalAlignment="Top" Width="64" Height="22.372" 
                         FontSize="14" Margin="10,195,0,0"
-                        FocusManager.FocusedElement="{Binding ElementName=FileBrowsTreeView}">
+                        FocusManager.FocusedElement="{Binding ElementName=NewFolderBox}">
                 </Button>
                 <TextBox x:Name="NewFolderBox" 
                          Text="{Binding NewFolderName, Mode=TwoWay}" 
@@ -643,11 +643,11 @@
                     <i:Interaction.Behaviors>
                         <behaviors:TextBoxEnterKeyFocusNextBehavior/>
                     </i:Interaction.Behaviors>
-                    <TextBox.InputBindings>
+                    <!--<TextBox.InputBindings>
                         <KeyBinding Key="Enter"
-                                    Command="{Binding CreateNewFolderCommand}">
+                                    Command="{Binding CreateNewFolderCommand}" >
                         </KeyBinding>
-                    </TextBox.InputBindings>
+                    </TextBox.InputBindings>-->
                     
                     <TextBox.RenderTransform>
                         <TransformGroup>

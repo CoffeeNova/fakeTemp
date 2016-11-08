@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interactivity;
+using CoffeeJelly.tempa.FileBrowser.ViewModel;
 
 namespace CoffeeJelly.tempa.Behaviors
 {
@@ -32,15 +34,18 @@ namespace CoffeeJelly.tempa.Behaviors
         {
             TextBox textBox = sender as TextBox;
             if (textBox != null)
-            {
                 if (e.Key == Key.Return)
-                {
                     if (e.Key == Key.Enter)
                     {
+                        var viewModel = textBox.DataContext as FileBrowserViewModel;
+                        if (viewModel == null) return;
+
+                        if (viewModel.CreateNewFolderCommand.CanExecute(null))
+                            viewModel.CreateNewFolderCommand.Execute(null);
                         textBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                        
                     }
-                }
-            }
+
         }
     }
 }
