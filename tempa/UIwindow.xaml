@@ -14,7 +14,7 @@
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
         xmlns:behaviors ="clr-namespace:CoffeeJelly.tempa.Behaviors"
-        xmlns:fbViewModel="clr-namespace:CoffeeJelly.tempa.FileBrowser.ViewModel"
+        xmlns:fbViewModel="clr-namespace:CoffeeJelly.tempa.FolderBrowser.ViewModel"
         MouseLeftButtonDown="Window_MouseLeftButtonDown" x:Name="FakeTemp" Background="#444444" Loaded="FakeTemp_Loaded">
     <!--<Window.DataContext>
         <tempa:MainWindow/>
@@ -27,7 +27,10 @@
         <conv:AllIsFalseConvertor x:Key="AllIsFalseConvertor"/>
         <conv:NotAllIsTrueConvertor x:Key="NotAllIsTrueConvertor"/>
         <conv:AllIsTrueEqualsHiddenConvertor x:Key="AllIsTrueEqualsHiddenConvertor"/>
+        <conv:CurrentDataFromFilePathConverter x:Key="CurrentDataFromFilePathConverter"/>
         <tempa:NewDataWatcherWindow x:Key="NewDataWatcherWindow"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
         <!--<fbViewModel:FileBrowserViewModel x:Key="FileBrowserViewModel"/>-->
         <Style x:Key="DatePickerStyle" TargetType="{x:Type DatePicker}">
             <Setter Property="Height" Value="32"/>
@@ -44,19 +47,19 @@
             <Setter Property="TextBlock.Foreground" Value="{DynamicResource darkBlueSolidBrush}"/>
             <Setter Property="TextBlock.Background" Value="{DynamicResource lightBlueSolidBrush}"/>
         </Style>
-        <Storyboard x:Key="FileBrowserShow" Completed="FileBrowserShowCompleted">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="FileBrowsGrid">
+        <Storyboard x:Key="FolderBrowserShow" Completed="FolderBrowserShowCompleted">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="FolderBrowsGrid">
                 <SplineDoubleKeyFrame KeyTime="0" Value="0"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="-236.917"/>
             </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)" Storyboard.TargetName="FileBrowsGrid">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)" Storyboard.TargetName="FolderBrowsGrid">
                 <SplineDoubleKeyFrame KeyTime="0" Value="0"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0.958"/>
             </DoubleAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Hidden}"/>
             </ObjectAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Hidden}"/>
             </ObjectAnimationUsingKeyFrames>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="Border">
@@ -66,20 +69,20 @@
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Hidden}"/>
             </ObjectAnimationUsingKeyFrames>
         </Storyboard>
-        <Storyboard x:Key="FileBrowserHide">
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="FileBrowsGrid">
+        <Storyboard x:Key="FolderBrowserHide">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="FolderBrowsGrid">
                 <SplineDoubleKeyFrame KeyTime="0" Value="-236.917"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0"/>
             </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)" Storyboard.TargetName="FileBrowsGrid">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)" Storyboard.TargetName="FolderBrowsGrid">
                 <SplineDoubleKeyFrame KeyTime="0" Value="0.958"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0"/>
             </DoubleAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
@@ -101,10 +104,10 @@
                 <SplineDoubleKeyFrame KeyTime="0" Value="0"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0.958"/>
             </DoubleAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Hidden}"/>
             </ObjectAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Hidden}"/>
             </ObjectAnimationUsingKeyFrames>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="Border">
@@ -123,11 +126,11 @@
                 <SplineDoubleKeyFrame KeyTime="0" Value="0.958"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0"/>
             </DoubleAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
@@ -150,10 +153,10 @@
                 <SplineDoubleKeyFrame KeyTime="0" Value="0"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0.958"/>
             </DoubleAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Hidden}"/>
             </ObjectAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Hidden}"/>
             </ObjectAnimationUsingKeyFrames>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="Border">
@@ -172,11 +175,11 @@
                 <SplineDoubleKeyFrame KeyTime="0" Value="0.958"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0"/>
             </DoubleAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="AgrologFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFileBrowsButt">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="GrainbarFolderBrowsButt">
                 <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
@@ -190,7 +193,7 @@
             </ObjectAnimationUsingKeyFrames>
         </Storyboard>
 
-        <Style x:Key="DisabledFileBrowsButtStyle" TargetType="{x:Type Button}">
+        <Style x:Key="DisabledFolderBrowsButtStyle" TargetType="{x:Type Button}">
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="False">
                     <Setter Property="Background" Value="#FF272424"/>
@@ -204,10 +207,10 @@
                 <EasingDoubleKeyFrame KeyTime="0" Value="-1.5"/>
                 <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="-215"/>
             </DoubleAnimationUsingKeyFrames>
-            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="FileBrowsPlusButt">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="FolderBrowsPlusButt">
                 <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
             </BooleanAnimationUsingKeyFrames>
-            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="FileBrowsOkButt">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="FolderBrowsOkButt">
                 <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
             </BooleanAnimationUsingKeyFrames>
         </Storyboard>
@@ -216,10 +219,10 @@
                 <SplineDoubleKeyFrame KeyTime="0" Value="-215"/>
                 <SplineDoubleKeyFrame KeyTime="0:0:0.3" Value="-1.5"/>
             </DoubleAnimationUsingKeyFrames>
-            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="FileBrowsPlusButt">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="FolderBrowsPlusButt">
                 <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
             </BooleanAnimationUsingKeyFrames>
-            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="FileBrowsOkButt">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="FolderBrowsOkButt">
                 <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
             </BooleanAnimationUsingKeyFrames>
         </Storyboard>
@@ -233,10 +236,10 @@
             <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="GrainbarFilesPathTextBox">
                 <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
             </BooleanAnimationUsingKeyFrames>
-            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="AgrologFileBrowsButt">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="AgrologFolderBrowsButt">
                 <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
             </BooleanAnimationUsingKeyFrames>
-            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="GrainbarFileBrowsButt">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="GrainbarFolderBrowsButt">
                 <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
             </BooleanAnimationUsingKeyFrames>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="Border">
@@ -245,6 +248,9 @@
             <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="Border1">
                 <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
             </ObjectAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="MainGrid">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+            </BooleanAnimationUsingKeyFrames>
         </Storyboard>
         <Storyboard x:Key="CreateReportHide">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="CreateReportGrid">
@@ -259,11 +265,11 @@
                 <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
                 <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
             </BooleanAnimationUsingKeyFrames>
-            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="AgrologFileBrowsButt">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="AgrologFolderBrowsButt">
                 <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
                 <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
             </BooleanAnimationUsingKeyFrames>
-            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="GrainbarFileBrowsButt">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="GrainbarFolderBrowsButt">
                 <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
                 <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
             </BooleanAnimationUsingKeyFrames>
@@ -275,15 +281,81 @@
                 <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.3" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="MainGrid">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+            </BooleanAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="MainGrid">
+                <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
+            </BooleanAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="ChooseDataForArchiveShow">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="AgrologFilesPathTextBox">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+            </BooleanAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="GrainbarFilesPathTextBox">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+            </BooleanAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="AgrologFolderBrowsButt">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+            </BooleanAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="GrainbarFolderBrowsButt">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+            </BooleanAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="Border">
+                <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
+            </ObjectAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="Border1">
+                <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
+            </ObjectAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="ArchiveGrid">
+                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="363"/>
+            </DoubleAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="MainGrid">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+            </BooleanAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="ChooseDataForArchiveHide">
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="AgrologFilesPathTextBox">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+                <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
+            </BooleanAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="GrainbarFilesPathTextBox">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+                <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
+            </BooleanAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="AgrologFolderBrowsButt">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+                <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
+            </BooleanAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="GrainbarFolderBrowsButt">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+                <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
+            </BooleanAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="Border">
+                <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
+                <DiscreteObjectKeyFrame KeyTime="0:0:0.3" Value="{x:Static Visibility.Visible}"/>
+            </ObjectAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="Border1">
+                <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Hidden}"/>
+                <DiscreteObjectKeyFrame KeyTime="0:0:0.3" Value="{x:Static Visibility.Visible}"/>
+            </ObjectAnimationUsingKeyFrames>
+            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.IsEnabled)" Storyboard.TargetName="MainGrid">
+                <DiscreteBooleanKeyFrame KeyTime="0" Value="False"/>
+                <DiscreteBooleanKeyFrame KeyTime="0:0:0.3" Value="True"/>
+            </BooleanAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" Storyboard.TargetName="ArchiveGrid">
+                <EasingDoubleKeyFrame KeyTime="0" Value="363"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="0"/>
+            </DoubleAnimationUsingKeyFrames>
         </Storyboard>
     </Window.Resources>
     <Window.Triggers>
-        <EventTrigger RoutedEvent="tempa:UIwindow.FileBrowserShow">
-            <BeginStoryboard x:Name="FileBrowserShowBeginStoryboard" Storyboard="{StaticResource FileBrowserShow}"/>
+        <EventTrigger RoutedEvent="tempa:UIwindow.FolderBrowserShow">
+            <BeginStoryboard x:Name="FolderBrowserShowBeginStoryboard" Storyboard="{StaticResource FolderBrowserShow}"/>
         </EventTrigger>
-        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FileBrowsOkButt">
-            <RemoveStoryboard BeginStoryboardName="FileBrowserShowBeginStoryboard"/>
-            <BeginStoryboard x:Name="FileBrowserHideBeginStoryboard" Storyboard="{StaticResource FileBrowserHide}"/>
+        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FolderBrowsOkButt">
+            <RemoveStoryboard BeginStoryboardName="FolderBrowserShowBeginStoryboard"/>
+            <BeginStoryboard x:Name="FolderBrowserHideBeginStoryboard" Storyboard="{StaticResource FolderBrowserHide}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="tempa:UIwindow.SettingsShow">
             <BeginStoryboard x:Name="ShowSettingsBeginStoryboard" Storyboard="{StaticResource ShowSettings}"/>
@@ -292,8 +364,8 @@
             <RemoveStoryboard BeginStoryboardName="ShowSettingsBeginStoryboard"/>
             <BeginStoryboard x:Name="HideSettingsBeginStoryboard" Storyboard="{StaticResource HideSettings}"/>
         </EventTrigger>
-        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FileBrowsPlusButt">
-            <BeginStoryboard x:Name="FileBrowserShowBeginStoryboard2" Storyboard="{StaticResource NewFolderTbShow}"/>
+        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="FolderBrowsPlusButt">
+            <BeginStoryboard x:Name="FolderBrowserShowBeginStoryboard2" Storyboard="{StaticResource NewFolderTbShow}"/>
         </EventTrigger>
         <EventTrigger RoutedEvent="tempa:UIwindow.CreateReportShow">
             <BeginStoryboard x:Name="CreateReportShowBeginStoryboard" Storyboard="{StaticResource CreateReportShow}"/>
@@ -311,53 +383,82 @@
         <EventTrigger RoutedEvent="UIElement.LostFocus" SourceName="NewFolderBox">
             <BeginStoryboard x:Name="NewFolderTbHideBeginStoryboard" Storyboard="{StaticResource NewFolderTbHide}"/>
         </EventTrigger>
+        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="ArchiveButton">
+            <BeginStoryboard x:Name="ChooseDataForArchiveShow_BeginStoryboard" Storyboard="{StaticResource ChooseDataForArchiveShow}"/>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="tempa:UIwindow.ChooseDataForArchiveHide">
+            <!--<RemoveStoryboard BeginStoryboardName="ChooseDataForArchiveShow"/>-->
+            <BeginStoryboard x:Name="ChooseDataForArchiveHideStoryboard" Storyboard="{StaticResource ChooseDataForArchiveHide}"/>
+        </EventTrigger>
     </Window.Triggers>
-    <Grid >
-        <Grid.Effect>
-            <DropShadowEffect BlurRadius="10" Direction="-90" RenderingBias="Quality" ShadowDepth="1"/>
-        </Grid.Effect>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="37*"/>
-            <RowDefinition Height="268*"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="21*"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-            <StackPanel  Orientation="Horizontal" >
-                <Label Content="Период Agrolog:" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
-                <TextBox Margin="2,0,0,0" IsReadOnly="False"
-                    Text="текущий" FontSize="8" 
-                    VerticalContentAlignment="Center" />
-                <Label Content="Период Грейнбар:" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
-                <TextBox Margin="2,0,0,0" IsReadOnly="False"
-                         Text="текущий" FontSize="10"
-                         VerticalContentAlignment="Center"/>
-            </StackPanel>
-        </Grid>
-        <Border x:Name="Border" Grid.Row="1" Margin="15,4,0,0"
+    <Grid x:Name="ContentGrid">
+        <Grid x:Name="MainGrid" IsEnabled="True">
+            <Grid.Effect>
+                <DropShadowEffect BlurRadius="10" Direction="-90" RenderingBias="Quality" ShadowDepth="1"/>
+            </Grid.Effect>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="37*"/>
+                <RowDefinition Height="268*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="21*"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <StackPanel  Orientation="Horizontal" >
+                    <Label Content="Период Agrolog:" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
+                    <Button x:Name="AgrologPeriodButton"
+                         Margin="2,0,0,0"
+                    Content="{Binding Path, Converter={StaticResource CurrentDataFromFilePathConverter}, 
+                           Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontSize="8"
+                    VerticalContentAlignment="Center" 
+                    IsTabStop="False" AllowDrop="False"
+                        Click="PeriodButton_Click">
+                        <!--<i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseLeftButtonUp">
+                            <i:InvokeCommandAction Command="{Binding ActivateCommand}"/>
+                    </i:EventTrigger>
+                    </i:Interaction.Triggers> -->
+                    </Button>
+
+                    <Label Content="Период Грейнбар:" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
+                    <Button x:Name="GrainbarPeriodButton"
+                    Margin="2,0,0,0"
+                         Content="{Binding Path, Converter={StaticResource CurrentDataFromFilePathConverter},
+                                Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontSize="10"
+                         VerticalContentAlignment="Center"
+                         Focusable="False" IsTabStop="False" AllowDrop="False"
+                        Click="PeriodButton_Click">
+                        <!--<i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseLeftButtonUp">
+                            <i:InvokeCommandAction Command="{Binding ActivateCommand}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>-->
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <Border x:Name="Border" Grid.Row="1" Margin="15,4,0,0"
                 CornerRadius="3" Background="#333333" BorderBrush="#333333" BorderThickness="1" 
                 HorizontalAlignment="Left" VerticalAlignment="Top" 
-                Width="243" Height="23"   />
-        <TextBox x:Name="AgrologFilesPathTextBox" Text="{Binding Path=Path, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                Width="243" Height="23" d:IsHidden="True"   />
+            <TextBox x:Name="AgrologFilesPathTextBox" Text="{Binding Path=Path, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                  HorizontalAlignment="Left" Height="23" Margin="15,4,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="220" 
                  VerticalContentAlignment="Center" HorizontalContentAlignment="Left"   LostKeyboardFocus="FilesPathTextBox_LostKeyboardFocus"
                  ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Grid.Row="1" Grid.Column="0"
                  behaviors:TextBoxAutoScrollBehavior.AutoScroll="True"
                  behaviors:FocusAdvancement.AdvancesByEnterKey="True"/>
-        <Label x:Name="AgroloFilesPathLabel" 
+            <Label x:Name="AgroloFilesPathLabel" 
                Content="ПУТЬ К ДАННЫМ AGROLOG:" HorizontalAlignment="Left" Margin="15,28.674,0,0" VerticalAlignment="Top" Width="191" FontSize="14"
                Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" />
-        <Label x:Name="GrainbarFilesPathLabel" Grid.Row="1" Grid.Column="0" Margin="15,23.668,0,0"
+            <Label x:Name="GrainbarFilesPathLabel" Grid.Row="1" Grid.Column="0" Margin="15,23.668,0,0"
                Content="ПУТЬ К ДАННЫМ ГРЕЙНБАР:" 
                HorizontalAlignment="Left"  VerticalAlignment="Top" Width="220"  FontSize="14"/>
-        <Border x:Name="Border1" Grid.Row="1" Grid.Column="0" Margin="15,50,0,0" 
+            <Border x:Name="Border1" Grid.Row="1" Grid.Column="0" Margin="15,50,0,0" 
                 CornerRadius="3" Background="#333333" BorderBrush="#333333" BorderThickness="1" 
                 HorizontalAlignment="Left" VerticalAlignment="Top"
                 Height="23" Width="243"/>
 
-        <TextBox x:Name="GrainbarFilesPathTextBox" Grid.Row="1" Grid.Column="0" Margin="15,49.674,0,0"
+            <TextBox x:Name="GrainbarFilesPathTextBox" Grid.Row="1" Grid.Column="0" Margin="15,49.674,0,0"
                  Text="{Binding Path=Path, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                  HorizontalAlignment="Left" VerticalAlignment="Top" 
                  Width="220" Height="23"  TextWrapping="NoWrap" 
@@ -366,84 +467,84 @@
                  ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" 
                  behaviors:TextBoxAutoScrollBehavior.AutoScroll="True"
                  behaviors:FocusAdvancement.AdvancesByEnterKey="True"/>
-        <Grid Margin="13,87,244,189" Grid.Row="1" Grid.Column="0">
-            <Button x:Name="GrainbarButton" Margin="112,34,0,0"
+            <Grid Margin="13,87,244,189" Grid.Row="1" Grid.Column="0">
+                <Button x:Name="GrainbarButton" Margin="112,34,0,0"
                     Content="ГРЕЙНБАР" FontSize="14"
                     HorizontalAlignment="Left" VerticalAlignment="Top" 
                     Width="83"  Height="26"   
                     Click="ReportButton_Click">
-                <Button.IsEnabled>
-                    <MultiBinding Converter="{StaticResource AllIsTrueConvertor}">
-                        <Binding Path="GrainbarDataHandlingPermission" ElementName="FakeTemp" 
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource AllIsTrueConvertor}">
+                            <Binding Path="GrainbarDataHandlingPermission" ElementName="FakeTemp" 
                                  Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
-                        <Binding Path="GrainbarReportPermission" ElementName="FakeTemp" 
+                            <Binding Path="GrainbarReportPermission" ElementName="FakeTemp" 
                                  Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
-                    </MultiBinding>
-                </Button.IsEnabled>
-            </Button>
-            <Label x:Name="LabelR" FontSize="14"
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                </Button>
+                <Label x:Name="LabelR" FontSize="14"
                    Content="СОЗДАТЬ ОТЧЕТ:" 
                    HorizontalAlignment="Left" VerticalAlignment="Top"
                    Width="205"  />
-            <Button x:Name="AgrologButton" Margin="10,34,0,0"
+                <Button x:Name="AgrologButton" Margin="10,34,0,0"
                     Content="AGROLOG" FontSize="14"
                     HorizontalAlignment="Left"  VerticalAlignment="Top" 
                     Width="83" Height="26" 
                     Click="ReportButton_Click">
-                <Button.IsEnabled>
-                    <MultiBinding Converter="{StaticResource AllIsTrueConvertor}">
-                        <Binding Path="AgrologDataHandlingPermission" ElementName="FakeTemp" 
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource AllIsTrueConvertor}">
+                            <Binding Path="AgrologDataHandlingPermission" ElementName="FakeTemp" 
                                  Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
-                        <Binding Path="AgrologReportPermission" ElementName="FakeTemp" 
+                            <Binding Path="AgrologReportPermission" ElementName="FakeTemp" 
                                  Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
-                    </MultiBinding>
-                </Button.IsEnabled>
-            </Button>
-            <!--Converter={StaticResource ReverseBoolConvertor},-->
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                </Button>
+                <!--Converter={StaticResource ReverseBoolConvertor},-->
 
-        </Grid>
-        <Grid Margin="266,87,13,189" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="1">
-            <Button x:Name="AShowExcelBut" Margin="10,34,112,0"
+            </Grid>
+            <Grid Margin="266,87,13,189" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="1">
+                <Button x:Name="AShowExcelBut" Margin="10,34,112,0"
                     Content="AGROLOG" FontSize="14" 
                     IsEnabled="{Binding IsEnabled, ElementName=AgrologButton}"  
                     VerticalAlignment="Top" Height="26" Width="83" 
                     Click="OpenExcelButton_Click"   />
-            <Button x:Name="GShowExcelBut" IsEnabled="{Binding IsEnabled, ElementName=GrainbarButton}" Content="ГРЕЙНБАР"  VerticalAlignment="Top" Click="OpenExcelButton_Click" Height="26" Width="83" FontSize="14" Margin="112,34,10,0"/>
-            <Label x:Name="ShowExcelLabel"  Content="ОТКРЫТЬ ОТЧЕТ:" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="181"  FontSize="14" />
-        </Grid>
-        <Grid Margin="266,29,13,297" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Grid.Column="0">
-            <Button x:Name="AgrologPlotButton"  
+                <Button x:Name="GShowExcelBut" IsEnabled="{Binding IsEnabled, ElementName=GrainbarButton}" Content="ГРЕЙНБАР"  VerticalAlignment="Top" Click="OpenExcelButton_Click" Height="26" Width="83" FontSize="14" Margin="112,34,10,0"/>
+                <Label x:Name="ShowExcelLabel"  Content="ОТКРЫТЬ ОТЧЕТ:" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="181"  FontSize="14" />
+            </Grid>
+            <Grid Margin="266,29,13,297" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Grid.Column="0">
+                <Button x:Name="AgrologPlotButton"  
                     Click="PlotButton_Click" Content="AGROLOG" FontSize="14" 
                     HorizontalAlignment="Left" VerticalAlignment="Top" Width="83" 
                     Height="26" Margin="10,35,0,0">
-                <Button.IsEnabled>
-                    <MultiBinding Converter="{StaticResource AllIsTrueConvertor}">
-                        <Binding Path="AgrologDataHandlingPermission" ElementName="FakeTemp" 
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource AllIsTrueConvertor}">
+                            <Binding Path="AgrologDataHandlingPermission" ElementName="FakeTemp" 
                                  Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
-                        <Binding Path="AgrologPlotPermission" ElementName="FakeTemp" 
+                            <Binding Path="AgrologPlotPermission" ElementName="FakeTemp" 
                                  Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
-                    </MultiBinding>
-                </Button.IsEnabled>
-            </Button>
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                </Button>
 
-            <Button x:Name="GrainbarPlotButton" Click="PlotButton_Click" 
+                <Button x:Name="GrainbarPlotButton" Click="PlotButton_Click" 
                     Content="ГРЕЙНБАР" FontSize="14" VerticalAlignment="Top" 
                     Height="26" Width="83" Margin="112,35,10,0">
-                <Button.IsEnabled>
-                    <MultiBinding Converter="{StaticResource AllIsTrueConvertor}">
-                        <Binding Path="GrainbarDataHandlingPermission" ElementName="FakeTemp" 
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource AllIsTrueConvertor}">
+                            <Binding Path="GrainbarDataHandlingPermission" ElementName="FakeTemp" 
                                  Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
-                        <Binding Path="GrainbarPlotPermission" ElementName="FakeTemp" 
+                            <Binding Path="GrainbarPlotPermission" ElementName="FakeTemp" 
                                  Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
-                    </MultiBinding>
-                </Button.IsEnabled>
-            </Button>
-            <!--Converter={StaticResource ReverseBoolConvertor},-->
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                </Button>
+                <!--Converter={StaticResource ReverseBoolConvertor},-->
 
-            <Label x:Name="PlotLabelCopy"  Content="ГРАФИК:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="181"  FontSize="14"/>
-        </Grid>
+                <Label x:Name="PlotLabelCopy"  Content="ГРАФИК:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="181"  FontSize="14"/>
+            </Grid>
 
-        <!--<ScrollViewer x:Name="LogScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Auto" 
+            <!--<ScrollViewer x:Name="LogScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Auto" 
                       extensions:AutoScrollBehavior.AutoScroll="True" 
                       HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom"
                       Width="464" RenderTransformOrigin="1.067,0.385" Height="145" Grid.Row="1" 
@@ -451,219 +552,263 @@
             <TextBlock x:Name="LogTextBlock" Padding="5"  TextWrapping="Wrap" 
                            ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" />
         </ScrollViewer>-->
-        <Grid  Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" Margin="10,0,0,10"
+            <Grid  Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" Margin="10,0,0,10"
                 HorizontalAlignment="Left"  VerticalAlignment="Bottom"
             Width="464"  Height="174" 
                RenderTransformOrigin="1.067,0.385" >
 
-            <StackPanel  Width="120" Height="21"
+                <StackPanel  Width="120" Height="21"
                          HorizontalAlignment="Left" VerticalAlignment="Top"
                          Orientation="Horizontal" Margin="0,-2,0,0" d:DataContext="{StaticResource NewDataWatcherWindow}">
-                <Label Content="A" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
-                <TextBox Margin="2,0,0,0"  IsReadOnly="False"
+                    <Label Content="A" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
+                    <TextBox Margin="2,0,0,0"  IsReadOnly="False"
                          Text="{Binding Path=TotalReportsProcessedA, Mode=OneWay,
                              UpdateSourceTrigger=PropertyChanged}" FontSize="10" 
                          VerticalContentAlignment="Center"  />
-                <Label Content="Г" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
-                <TextBox Margin="2,0,0,0" IsReadOnly="False"
+                    <Label Content="Г" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
+                    <TextBox Margin="2,0,0,0" IsReadOnly="False"
                          Text="{Binding Path=TotalReportsProcessedG, Mode=OneWay,
                              UpdateSourceTrigger=PropertyChanged}" FontSize="10" 
                          VerticalContentAlignment="Center"/>
-            </StackPanel>
+                </StackPanel>
 
-            <controls:LogViewer x:Name="LogScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                <controls:LogViewer x:Name="LogScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Auto"
                            
                             DataContext="{Binding LogCollection, ElementName=FakeTemp, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,19,0,0">
 
-            </controls:LogViewer>
-            <StackPanel Grid.Column="0" Margin="199,-2,0,155"
+                </controls:LogViewer>
+                <StackPanel Grid.Column="0" Margin="199,-2,0,155"
              HorizontalAlignment="Left">
-                <ProgressBar x:Name="ProgressB" Margin="0,0,0,16"
+                    <ProgressBar x:Name="ProgressB" Margin="0,0,0,16"
                              Width="240" Height="20"
                          Minimum="0" Maximum="1" IsEnabled="True"
                          Visibility="{Binding ProgressBarVisibility, ElementName=FakeTemp, Mode=Oneway, UpdateSourceTrigger=PropertyChanged}">
-                    <ProgressBar.IsIndeterminate>
-                        <MultiBinding Converter="{StaticResource NotAllIsTrueConvertor}">
-                            <Binding Path="AgrologDataHandlingPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
-                            <Binding Path="GrainbarDataHandlingPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
-                            <Binding Path="AgrologReportPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
-                            <Binding Path="GrainbarReportPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
-                        </MultiBinding>
-                    </ProgressBar.IsIndeterminate>
-                </ProgressBar>
-            </StackPanel>
-        </Grid>
-        <Button x:Name="AgrologFileBrowsButt" Grid.Row="1" Grid.Column="0"
+                        <ProgressBar.IsIndeterminate>
+                            <MultiBinding Converter="{StaticResource NotAllIsTrueConvertor}">
+                                <Binding Path="AgrologDataHandlingPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
+                                <Binding Path="GrainbarDataHandlingPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
+                                <Binding Path="AgrologReportPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
+                                <Binding Path="GrainbarReportPermission" ElementName="FakeTemp" Mode="Oneway" UpdateSourceTrigger="PropertyChanged"/>
+                            </MultiBinding>
+                        </ProgressBar.IsIndeterminate>
+                    </ProgressBar>
+                </StackPanel>
+            </Grid>
+            <Button x:Name="AgrologFolderBrowsButt" Grid.Row="1" Grid.Column="0"
                 Margin="235,4,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" 
                 VerticalContentAlignment="Top"  HorizontalContentAlignment="Center"
                 Height="23" Width="23"
                 RenderTransformOrigin="0.565,0.696" FontSize="24" FontFamily="Stencil"
-                Click="FileBrowsButt_Click">
-            <!--<Button.DataContext>
+                Click="FolderBrowsButt_Click">
+                <!--<Button.DataContext>
                 <viewmodel:FileBrowserViewModel/>
             </Button.DataContext>-->
-            <!--<i:Interaction.Behaviors>
+                <!--<i:Interaction.Behaviors>
                 <behaviors:EventToCommandBehavior Command="{Binding ActivateCommand}" Event="Click" PassArguments="True"/>
             </i:Interaction.Behaviors>-->
-            <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
-                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
-            </Canvas>
-        </Button>
-        <Button x:Name="GrainbarFileBrowsButt" Grid.Row="1" Grid.Column="0"
+                <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                    <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
+                </Canvas>
+            </Button>
+            <Button x:Name="GrainbarFolderBrowsButt" Grid.Row="1" Grid.Column="0"
                 Margin="235,50,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" 
                 HorizontalContentAlignment="Center" Height="23" Width="23"
                 RenderTransformOrigin="0.565,0.696" FontSize="24" FontFamily="Stencil"  
-                Click="FileBrowsButt_Click" HorizontalAlignment="Left"  >
-            <Canvas x:Name="Canvas" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
-                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
-            </Canvas>
-        </Button>
-        <Button x:Name="CloseButt" Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="0"
+                Click="FolderBrowsButt_Click" HorizontalAlignment="Left"  >
+                <Canvas x:Name="Canvas" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                    <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
+                </Canvas>
+            </Button>
+            <Button x:Name="CloseButt" Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="0"
                 HorizontalAlignment="Left" Margin="451.197,6,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top"
                 HorizontalContentAlignment="Center" Width="23" Height="23" 
                 RenderTransformOrigin="0.565,0.696" FontSize="14" FontFamily="PMingLiU-ExtB" 
                 Click="CloseButt_Click">
-            <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
-                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="13" Y2="6" X2="6"/>
-                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="6" Y2="13" X2="6"/>
-            </Canvas>
-        </Button>
-        <Button x:Name="MinimizeButt" Grid.Row="0" Grid.Column="0"  
+                <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                    <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="13" Y2="6" X2="6"/>
+                    <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="13" Y1="6" Y2="13" X2="6"/>
+                </Canvas>
+            </Button>
+            <Button x:Name="MinimizeButt" Grid.Row="0" Grid.Column="0"  
                 HorizontalAlignment="Left" Margin="428.197,6,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" 
                 HorizontalContentAlignment="Center" Width="23" Height="23"
                 RenderTransformOrigin="0.565,0.696"  FontSize="18" FontFamily="Kartika" 
                 Click="MinimizeButt_Click">
-            <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
-                <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
-            </Canvas>
-        </Button>
-        <Grid x:Name="SettingsGrid" 
+                <Canvas HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="19">
+                    <Line Stroke="#FFF1EBEB" Height="19" Width="19" X1="6" Y1="13" Y2="13" X2="13"/>
+                </Canvas>
+            </Button>
+            <Grid x:Name="SettingsGrid"
               Background="#333333" HorizontalAlignment="Left" Height="190" Width="204" Margin="33,36,-215,0" VerticalAlignment="Top" 
               Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" RenderTransformOrigin="0.5,0.5" >
-            <Grid.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform/>
-                    <SkewTransform/>
-                    <RotateTransform/>
-                    <TranslateTransform/>
-                </TransformGroup>
-            </Grid.RenderTransform>
-            <Grid>
-                <Grid.Effect>
-                    <DropShadowEffect BlurRadius="10" Direction="-90" RenderingBias="Quality" ShadowDepth="1"/>
-                </Grid.Effect>
-                <Button x:Name="SettingsOkButt"
+                <Grid.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Grid.RenderTransform>
+                <Grid>
+                    <Grid.Effect>
+                        <DropShadowEffect BlurRadius="10" Direction="-90" RenderingBias="Quality" ShadowDepth="1"/>
+                    </Grid.Effect>
+                    <Button x:Name="SettingsOkButt"
                         Content="OK"
                         HorizontalAlignment="Left" Margin="106,154,0,0" VerticalAlignment="Top" Width="88" Height="26"
                         Click="SettingsButton_Click"  FontSize="14"/>
-                <CheckBox x:Name="AgrologDataChb" 
+                    <CheckBox x:Name="AgrologDataChb" 
                           Style="{StaticResource CheckBoxMetroStyle}" 
                           IsChecked="{Binding IsAgrologDataCollect, ElementName=FakeTemp,  Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                           Content="Принимать данные Agrolog" HorizontalAlignment="Left" 
                           Margin="0,10,0,0" VerticalAlignment="Top" Width="184" 
                           Background="#FF110F0F" Foreground="#FFF1EBEB"/>
-                <CheckBox x:Name="GrainbarDataChb" 
+                    <CheckBox x:Name="GrainbarDataChb" 
                           Style="{StaticResource CheckBoxMetroStyle}" 
                           IsChecked="{Binding IsGrainbarDataCollect, ElementName=FakeTemp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                           Content="Принимать данные Грейнбар" HorizontalAlignment="Left" 
                           Margin="0,33,0,0" VerticalAlignment="Top" Width="194" 
                           Background="#FF110F0F" Foreground="#FFF1EBEB"/>
-                <CheckBox x:Name="AutostartChb" 
+                    <CheckBox x:Name="AutostartChb" 
                           Style="{StaticResource CheckBoxMetroStyle}" 
                           IsChecked="{Binding IsAutostart, Mode=TwoWay, ElementName=FakeTemp, UpdateSourceTrigger=PropertyChanged}" 
                           Content="Автозапуск с Windows" HorizontalAlignment="Left" 
                           Margin="0,56,0,0" VerticalAlignment="Top" Width="184" 
                           Background="#FF110F0F" Foreground="#FFF1EBEB"/>
-                <CheckBox x:Name="DataSubstitutionChb" 
+                    <CheckBox x:Name="DataSubstitutionChb" 
                           Style="{StaticResource CheckBoxMetroStyle}" 
                           IsChecked="{Binding IsDataSubstitution, ElementName=FakeTemp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                           Content="Махинации с данными" HorizontalAlignment="Left" 
                           Margin="0,79,0,0" VerticalAlignment="Top" Width="184" 
+                          Visibility="Hidden"
                           Background="#FF110F0F" Foreground="#FFF1EBEB"/>
+                    <StackPanel Margin="0,102,0,0" 
+                            VerticalAlignment="Top" HorizontalAlignment="Left" 
+                            Orientation="Horizontal">
+                        <Button x:Name="ArchiveButton" Content="+" Width="20" Height="20" 
+                            Margin="6,0,0,0" Padding="0,-2,0,0"/>
+                        <Label x:Name="ArchiveLabel" Content="Перенести данные в архив"/>
+                    </StackPanel>
+                </Grid>
             </Grid>
-        </Grid>
-        <Grid x:Name="FileBrowsGrid" 
+
+            <Grid x:Name="FolderBrowsGrid" 
               HorizontalAlignment="Left" Height="220.372" 
               Margin="33.197,36,-215.182,0" VerticalAlignment="Top" Width="204"
               Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" 
               RenderTransformOrigin="0.5,0.5">
-            <!--<Grid.DataContext>
-                <viewmodel:FileBrowserViewModel/>
-            </Grid.DataContext>-->
-            <Grid.Triggers>
-            </Grid.Triggers>
-            <Grid.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform/>
-                    <SkewTransform/>
-                    <RotateTransform/>
-                    <TranslateTransform/>
-                </TransformGroup>
-            </Grid.RenderTransform>
-            <Grid>
-                <Grid.Effect>
-                    <DropShadowEffect BlurRadius="10" Direction="-90" RenderingBias="Quality" ShadowDepth="1"/>
-                </Grid.Effect>
-                <TreeView x:Name="FileBrowsTreeView" 
+
+                <Grid.Triggers>
+                </Grid.Triggers>
+                <Grid.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Grid.RenderTransform>
+                <Grid>
+                    <Grid.Effect>
+                        <DropShadowEffect BlurRadius="10" Direction="-90" RenderingBias="Quality" ShadowDepth="1"/>
+                    </Grid.Effect>
+                    <TreeView x:Name="FolderBrowsTreeView" 
                           ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalAlignment="Left"
                           Height="190" VerticalAlignment="Top" Width="204" 
                           BorderBrush="{x:Null}" 
-                          ItemsSource="{Binding Folders, UpdateSourceTrigger=PropertyChanged}">
-                    <TreeView.Resources>
-                        <HierarchicalDataTemplate 
+                          ItemsSource="{Binding Items, UpdateSourceTrigger=PropertyChanged}">
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate 
                          DataType="{x:Type fbViewModel:FolderViewModel}" 
                          ItemsSource="{Binding Children}">
-                        </HierarchicalDataTemplate>
-                    </TreeView.Resources>
-                    <i:EventTrigger EventName="LostFocus">
-                        <i:InvokeCommandAction Command="{Binding DeactivateCommand}"/>
-                    </i:EventTrigger>
-                </TreeView>
-                <Button x:Name="FileBrowsOkButt"  
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+                        <i:EventTrigger EventName="LostFocus">
+                            <i:InvokeCommandAction Command="{Binding DeactivateCommand}"/>
+                        </i:EventTrigger>
+                    </TreeView>
+                    <Button x:Name="FolderBrowsOkButt"  
                         Content="ВЫБРАТЬ" 
                         HorizontalAlignment="Left" VerticalAlignment="Top" Width="64"  Height="22.372" 
                         FontSize="14" Margin="130,195,0,0">
-                    <i:Interaction.Triggers>
-                        <i:EventTrigger EventName="Click">
-                            <i:InvokeCommandAction Command="{Binding DeactivateCommand}"/>
-                        </i:EventTrigger>
-                    </i:Interaction.Triggers>
-                </Button>
-                <Button x:Name="FileBrowsPlusButt" 
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding DeactivateCommand}"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Button>
+                    <Button x:Name="FolderBrowsPlusButt" 
                         Content="ПАПКА"  
                         HorizontalAlignment="Left" VerticalAlignment="Top" Width="64" Height="22.372" 
                         FontSize="14" Margin="10,195,0,0"
+                        Visibility="{Binding Involve, Converter={StaticResource BooleanToVisibilityConverter},
+                                    Mode=OneWay}"
                         FocusManager.FocusedElement="{Binding ElementName=NewFolderBox}">
-                </Button>
-                <TextBox x:Name="NewFolderBox" 
+                    </Button>
+                    <TextBox x:Name="NewFolderBox" 
                          Text="{Binding NewFolderName, Mode=TwoWay}" 
+                         BorderBrush="Black"
                          TextWrapping="Wrap" Margin="226.5,149,-117.5,48.372" 
                          RenderTransformOrigin="0.5,0.5">
-                    
-                    <i:Interaction.Behaviors>
-                        <behaviors:TextBoxEnterKeyFocusNextBehavior/>
-                    </i:Interaction.Behaviors>
-                    <!--<TextBox.InputBindings>
+
+                        <i:Interaction.Behaviors>
+                            <behaviors:TextBoxEnterKeyFocusNextBehavior/>
+                        </i:Interaction.Behaviors>
+                        <!--<TextBox.InputBindings>
                         <KeyBinding Key="Enter"
                                     Command="{Binding CreateNewFolderCommand}" >
                         </KeyBinding>
                     </TextBox.InputBindings>-->
-                    
-                    <TextBox.RenderTransform>
-                        <TransformGroup>
-                            <ScaleTransform/>
-                            <SkewTransform/>
-                            <RotateTransform/>
-                            <TranslateTransform/>
-                        </TransformGroup>
-                    </TextBox.RenderTransform>
-                </TextBox>
+
+                        <TextBox.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBox.RenderTransform>
+                    </TextBox>
+                </Grid>
+            </Grid>
+            <!--<ScrollBar Style="{DynamicResource ResourceKey=styleScrollBar}" Orientation="Vertical" HorizontalAlignment="Left" Margin="284,26,0,0" Grid.Row="1" VerticalAlignment="Top" Height="112" Width="30"/>-->
+
+            <Grid x:Name="AboutGrid" HorizontalAlignment="Left" Height="220.372" Margin="33.197,36,-215.182,0" 
+              VerticalAlignment="Top" Width="204" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" RenderTransformOrigin="0.5,0.5"
+               Background="#333333" >
+                <Grid.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Grid.RenderTransform>
+                <Grid.Effect>
+                    <DropShadowEffect BlurRadius="10" Direction="-90" RenderingBias="Quality" ShadowDepth="1"/>
+                </Grid.Effect>
+                <TextBlock x:Name="AboutTextBlock" Padding="5"  TextWrapping="WrapWithOverflow"  HorizontalAlignment="Left" Foreground="#EFEFEF"
+                           ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="0,0,0,0.372" Width="204">
+                <Run Text="{Binding ApplicationName, ElementName=FakeTemp, Mode=OneWay}" FontSize="20" FontWeight="Bold" />
+                <LineBreak />
+                <Run Text="Версия: " FontSize="14" />
+                <Run Text="{Binding AssemblyVersion, ElementName=FakeTemp, Mode=OneWay}" FontSize="14" />
+                <LineBreak />
+                <LineBreak />
+                <Run Text="{Binding Description, ElementName=FakeTemp, Mode=OneWay}" FontSize="14" />
+                <LineBreak />
+                <LineBreak />
+                <Run Text="Игорь Салженицин" FontSize="14" />
+                <LineBreak />
+                <Run Text='ОАО "БЕЛСОЛОД"  2016г.' FontSize="14" />
+                </TextBlock>
+                <Button x:Name="AboutOkButton"  
+                    Content="Понятно"  VerticalAlignment="Top" Click="AboutOKButton_Click"  
+                    Height="26" Width="83" FontSize="14" Margin="111,184,10,0"/>
             </Grid>
         </Grid>
-        <!--<ScrollBar Style="{DynamicResource ResourceKey=styleScrollBar}" Orientation="Vertical" HorizontalAlignment="Left" Margin="284,26,0,0" Grid.Row="1" VerticalAlignment="Top" Height="112" Width="30"/>-->
-        <Grid x:Name="CreateReportGrid" Margin="-233,87,475,189" Grid.Row="1" Grid.Column="0"
+        <Grid x:Name="CreateReportGrid" Margin="-233,138,496,189" Grid.Column="0"
               RenderTransformOrigin="0.5,0.5" Background="#333333">
-
             <Grid.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -689,9 +834,8 @@
                        HorizontalAlignment="Left"  VerticalAlignment="Top" Width="202"  FontSize="14" Margin="8,8,0,0"/>
             </Grid>
         </Grid>
-        <Grid x:Name="AboutGrid" HorizontalAlignment="Left" Height="220.372" Margin="33.197,36,-215.182,0" 
-              VerticalAlignment="Top" Width="204" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" RenderTransformOrigin="0.5,0.5"
-               Background="#333333" >
+        <Grid x:Name="ArchiveGrid" Margin="-231.666,138,495.666,189" Grid.Column="0"
+              RenderTransformOrigin="0.5,0.5" Background="#333333">
             <Grid.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -700,30 +844,33 @@
                     <TranslateTransform/>
                 </TransformGroup>
             </Grid.RenderTransform>
-            <Grid.Effect>
-                <DropShadowEffect BlurRadius="10" Direction="-90" RenderingBias="Quality" ShadowDepth="1"/>
-            </Grid.Effect>
-            <TextBlock x:Name="AboutTextBlock" Padding="5"  TextWrapping="WrapWithOverflow"  HorizontalAlignment="Left" Foreground="#EFEFEF"
-                           ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="0,0,0,0.372" Width="204">
-                <Run Text="{Binding ApplicationName, ElementName=FakeTemp, Mode=OneWay}" FontSize="20" FontWeight="Bold" />
-                <LineBreak />
-                <Run Text="Версия: " FontSize="14" />
-                <Run Text="{Binding AssemblyVersion, ElementName=FakeTemp, Mode=OneWay}" FontSize="14" />
-                <LineBreak />
-                <LineBreak />
-                <Run Text="{Binding Description, ElementName=FakeTemp, Mode=OneWay}" FontSize="14" />
-                <LineBreak />
-                <LineBreak />
-                <Run Text="Игорь Салженицин" FontSize="14" />
-                <LineBreak />
-                <Run Text='ОАО "БЕЛСОЛОД"  2016г.' FontSize="14" />
-            </TextBlock>
-            <Button x:Name="AboutOkButton"  
-                    Content="Понятно"  VerticalAlignment="Top" Click="AboutOKButton_Click"  
-                    Height="26" Width="83" FontSize="14" Margin="111,184,10,0"/>
+            <Grid x:Name="grid" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Grid.RenderTransform>
+                <Grid.Effect>
+                    <DropShadowEffect BlurRadius="10" Direction="-90" RenderingBias="Quality" ShadowDepth="1"/>
+                </Grid.Effect>
+                <Button x:Name="ArchiveAgrologButton" 
+                        Content="Agrolog" 
+                        HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="88" Height="26"
+                        Click="ArchiveButton_Click"  FontSize="14" />
+                <Button x:Name="ArchiveGrainbarButton" 
+                        Content="Грейнбар"
+                        HorizontalAlignment="Left" Margin="122,40,0,0" VerticalAlignment="Top" Width="88" Height="26"
+                        Click="ArchiveButton_Click"  FontSize="14" />
+                <Label x:Name="ArchiveQuestionLabel"
+                       Content="УКАЖИТЕ ТИП ДАННЫХ" 
+                       HorizontalAlignment="Left"  VerticalAlignment="Top" Width="202"  
+                       HorizontalContentAlignment="Center"
+                       FontSize="14" Margin="8,8,0,0"/>
+            </Grid>
         </Grid>
-
-
     </Grid>
 </Window>
 

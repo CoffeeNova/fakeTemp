@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interactivity;
-using CoffeeJelly.tempa.FileBrowser.ViewModel;
+using CoffeeJelly.tempa.FolderBrowser.ViewModel;
 
 namespace CoffeeJelly.tempa.Behaviors
 {
@@ -37,11 +37,11 @@ namespace CoffeeJelly.tempa.Behaviors
                 if (e.Key == Key.Return)
                     if (e.Key == Key.Enter)
                     {
-                        var viewModel = textBox.DataContext as FileBrowserViewModel;
+                        var viewModel = textBox.DataContext as FolderBrowserViewModel;
                         if (viewModel == null) return;
 
-                        if (viewModel.CreateNewFolderCommand.CanExecute(null))
-                            viewModel.CreateNewFolderCommand.Execute(null);
+                        //if (viewModel.CreateNewFolderCommand.CanExecute(null))
+                        viewModel.CreateNewFolderCommand.Execute(textBox.Text);
                         textBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
                         
                     }

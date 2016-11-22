@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using NWTweak;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace CoffeeJelly.tempa
 {
@@ -437,7 +438,49 @@ namespace CoffeeJelly.tempa
             return Encoding.ASCII;
         }
 
-        public static Task Delay(double milliseconds)
+
+        internal static string ArchiveDataFileName(string dateFormat, DateTime initDate, DateTime finalDate, string restName)
+        {
+            return $"{initDate.Date.ToString(dateFormat)}-{finalDate.Date.ToString(dateFormat)} {restName}";
+        }
+
+        internal static bool ArchiveDataFileNameValidation(string dateFormat, string fileName)
+        {
+            try
+            {
+                string shortFileName = fileName.Split('\\').Last();
+                string[] splittedByEmpty = shortFileName.Split(' ');
+                string dateRange = splittedByEmpty.First();
+                string[] splittedToDates = dateRange.Split('-');
+                string initDate = splittedToDates.First();
+                string finalDate = splittedToDates.Last();
+
+                if (!DateValidation(initDate, dateFormat) ||
+                    !DateValidation(finalDate, dateFormat) ||
+                    !Path.HasExtension(splittedByEmpty.Last()))
+                    throw new Exception("ArchiveDataFileNameValidation fails");
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
+        }
+
+        internal static bool DateValidation(string dateString, string dateFormat)
+        {
+            DateTime dt;
+            return DateTime.TryParseExact(
+                    dateString,
+                    dateFormat,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out dt);
+        }
+
+        internal static Task Delay(double milliseconds)
         {
             var tcs = new TaskCompletionSource<bool>();
             System.Timers.Timer timer = new System.Timers.Timer();
@@ -449,6 +492,12 @@ namespace CoffeeJelly.tempa
             timer.AutoReset = false;
             timer.Start();
             return tcs.Task;
+        }
+
+        internal static string MakeExcelReportFileNameFromDataFilePath(string dataFilePath)
+        {
+            string dataFileName = System.IO.Path.GetFileNameWithoutExtension(dataFilePath);
+            return dataFileName + " report.xlsm";
         }
 
         internal delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);

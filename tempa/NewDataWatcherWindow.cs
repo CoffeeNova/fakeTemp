@@ -50,9 +50,6 @@ namespace CoffeeJelly.tempa
 
             checkAgrolog = Internal.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
             checkGrainbar = Internal.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
-
-
-
         }
 
         private void CheckDataFiles()
@@ -88,11 +85,12 @@ namespace CoffeeJelly.tempa
         {
             if (fileInfo.CreationTime.Year >= DateTime.Today.Year)
                 return;
-            LogMaker.Log($"Начало нового периода. Копирую данные файла {fileInfo.Name} в архив.", false);
+            
+            LogMaker.Log($"Обнаружено начало нового периода для {Internal.GetProgramName<T>()}.", false);
             ArchieveDataFile<T>(fileInfo);
         }
 
-        private void ArchieveDataFile<T>(FileInfo dataFileInfo) where T : ITermometer
+        public void ArchieveDataFile<T>(FileInfo dataFileInfo) where T : ITermometer
         {
             List<T> dataList = ReadDataFile<T>(dataFileInfo.Name, false).Result;
 
@@ -103,18 +101,24 @@ namespace CoffeeJelly.tempa
 
             DateTime firstDate = dataList.First().MeasurementDate;
             DateTime lastDate = dataList.Last().MeasurementDate;
-            string archievedName = $"{firstDate.Date:dd.MM.yy}-{lastDate.Date:dd.MM.yy} {dataFileInfo.Name}";
-            bool transferResult = TransferDataFileToArchieve(dataFileInfo, archievedName);
+            string format = Constants.ARCHIVE_DATA_FILE_NAME_DATE_FORMAT;
+            string archivedName = 
+                $"{firstDate.Date.ToString(format)}-{lastDate.Date.ToString(format)} {dataFileInfo.Name}";
+            string archiveFolderPath = typeof(T) == typeof(TermometerAgrolog) ? 
+                                                    Constants.APPLICATION_ARCHIVE_AGROLOG_DATA_FOLDER_PATH : 
+                                                    Constants.APPLICATION_ARCHIVE_GRAINBAR_DATA_FOLDER_PATH;
+            bool transferResult = TransferDataFileToArchive(dataFileInfo, archivedName, archiveFolderPath);
             if (transferResult)
                 CreateNewDataFile<T>(Constants.APPLICATION_DATA_FOLDER_PATH.PathFormatter(), DefineDataFileName<T>());
         }
 
-        private bool TransferDataFileToArchieve(FileInfo dataFileInfo, string archievedName)
+        private bool TransferDataFileToArchive(FileInfo dataFileInfo, string archievedName, string archiveFolderPath)
         {
             try
             {
+                LogMaker.Log($"Копирую данные файла {dataFileInfo.Name} в архив.", false);
                 var archievedFileInfo =
-                    dataFileInfo.CopyTo(Constants.APPLICATION_ARCHIEVE_DATA_FOLDER_PATH.PathFormatter() + archievedName);
+                    dataFileInfo.CopyTo(archiveFolderPath.PathFormatter() + archievedName);
                 return archievedFileInfo.Exists;
             }
             catch (Exception ex)
@@ -127,7 +131,6 @@ namespace CoffeeJelly.tempa
                         $"В архиве уже существует файл с таким именем {archievedName}. \r\n Приложение будет закрыто.",
                         "Критическая ошибка", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes,
                         MessageBoxOptions.ServiceNotification);
-                    ExceptionHandler.Handle(ex, true);
                 }
                 else
                 {
@@ -135,6 +138,7 @@ namespace CoffeeJelly.tempa
                     MessageBox.Show($"Ошибка сохранения в архив {archievedName}. \r\n Приложение будет закрыто.",
                     "Критическая ошибка", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes, MessageBoxOptions.ServiceNotification);
                 }
+                ExceptionHandler.Handle(ex, true);
             }
             return false;
         }

@@ -39,7 +39,8 @@ namespace CoffeeJelly.tempa
             if (!sensorsCount.HasValue)
                 return;
             Model.Axes.Clear();
-            Model.LegendTitle = "Legend";
+            Model.LegendTitle = "Легенда";
+            Model.Title = Caption;
             Model.LegendOrientation = LegendOrientation.Horizontal;
             Model.LegendPlacement = LegendPlacement.Outside;
             Model.LegendPosition = LegendPosition.TopRight;
@@ -78,8 +79,8 @@ namespace CoffeeJelly.tempa
                 IntervalLength = 30
             };
             List<Termometer> termometers = TermoData.FindAll(t => t.Cable == SelectedCable.Cable);
-            float? maxValue = float.MinValue;
-            float? minValue = float.MaxValue;
+            double? maxValue = double.MinValue;
+            double? minValue = double.MaxValue;
             termometers.ForEach((t) =>
             {//finding min and max sensor values
                 maxValue = maxValue < t.Sensor.Max() ? t.Sensor.Max() : maxValue;
@@ -145,8 +146,7 @@ namespace CoffeeJelly.tempa
                 termometers.ForEach(t =>
                 {
                     if (t.Sensor[i].HasValue)
-                        lineSerie.Points.Add(new DataPoint(DateTimeAxis.ToDouble(t.MeasurementDate), t.Sensor[i].Value));
-
+                        lineSerie.Points.Add(new DataPoint(DateTimeAxis.ToDouble(t.MeasurementDate),  t.Sensor[i].Value));
                 });
                 this.SetPropertyValue($"Sensor{i}HasValue", true);
 
@@ -201,21 +201,6 @@ namespace CoffeeJelly.tempa
         private void SelectedCableChanged()
         {
             CreateNewLineSeries();
-        }
-
-        private void FinalDateChanged()
-        {
-            //AxisZoomChange();
-        }
-
-        private void InitialDateChanged()
-        {
-            //AxisZoomChange();
-        }
-
-        private void ActualDateChanged()
-        {
-            //AxisZoomChange();
         }
 
         private void ZoomChanged()
@@ -373,6 +358,8 @@ namespace CoffeeJelly.tempa
             get { return _displayDateEnd; }
             set { _displayDateEnd = value; NotifyPropertyChanged(); }
         }
+
+        public string Caption { get; set; }
 
         public List<Termometer> TermoData
         {

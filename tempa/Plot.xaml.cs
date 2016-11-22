@@ -35,6 +35,8 @@ namespace CoffeeJelly.tempa
             if (data.Count < 2)
                 throw new PlotDataException("Have no data for plotting.");
             (DataContext as PlotViewModel).TermoData = data;
+            (DataContext as PlotViewModel).Caption = data.First().MeasurementDate.ToString("dd.MM.yy") 
+                + " - " + data.Last().MeasurementDate.ToString("dd.MM.yy");
             GenerateCheckBoxes(data.First().SensorsCount);
         }
 

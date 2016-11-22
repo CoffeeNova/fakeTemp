@@ -44,6 +44,23 @@ namespace CoffeeJelly.tempa.Extensions
             return str + "\\";
         }
 
+        public static string PathRemoveLastPart(this string str, out string lastPart)
+        {
+            if (str == null)
+                throw new ArgumentNullException(nameof(str));
+            if (str == string.Empty)
+                throw new ArgumentException($"{nameof(str)} should not be empty.");
+
+            str.PathFormatter();
+            var splittedStr = str.Split('\\');
+            string formattedStr = string.Empty;
+            for (int i = 0; i <= splittedStr.Length - 2; i++)
+                formattedStr += splittedStr[i].PathFormatter();
+
+            lastPart = splittedStr[splittedStr.Length - 1];
+            return formattedStr;
+        }
+
         public static bool EqualsAny(this string str, params string[] patterns)
         {
             foreach (string pattern in patterns)

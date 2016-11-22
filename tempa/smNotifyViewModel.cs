@@ -79,7 +79,7 @@ namespace CoffeeJelly.tempa
                         {
                             UIWindowInstance.Visibility = Visibility.Visible;
                             UIWindowInstance.WindowState = WindowState.Normal;
-                            if (!UIWindowInstance.IsFileBrowsTreeOnForm && !UIWindowInstance.IsSettingsGridOnForm && !UIWindowInstance.IsAboutOnForm)
+                            if (!UIWindowInstance.IsFolderBrowsTreeOnForm && !UIWindowInstance.IsSettingsGridOnForm && !UIWindowInstance.IsAboutOnForm)
                                 UIWindowInstance.RaiseEvent(new RoutedEventArgs(UIwindow.SettingShowEvent, UIWindowInstance));
                         }));
                     }
@@ -100,7 +100,7 @@ namespace CoffeeJelly.tempa
                         {
                             UIWindowInstance.Visibility = Visibility.Visible;
                         UIWindowInstance.WindowState = WindowState.Normal;
-                        if (!UIWindowInstance.IsFileBrowsTreeOnForm && !UIWindowInstance.IsSettingsGridOnForm && !UIWindowInstance.IsAboutOnForm)
+                        if (!UIWindowInstance.IsFolderBrowsTreeOnForm && !UIWindowInstance.IsSettingsGridOnForm && !UIWindowInstance.IsAboutOnForm)
                             UIWindowInstance.RaiseEvent(new RoutedEventArgs(UIwindow.AboutShowEvent, UIWindowInstance));
                         }));
                     }

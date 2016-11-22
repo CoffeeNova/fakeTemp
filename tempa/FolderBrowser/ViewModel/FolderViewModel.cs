@@ -4,23 +4,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CoffeeJelly.tempa.FileBrowser.ViewModel
+namespace CoffeeJelly.tempa.FolderBrowser.ViewModel
 {
     public class FolderViewModel : TreeViewItemViewModel
     {
         public FolderViewModel(Folder folder, FolderViewModel parent, bool haveChildren)
             : base(parent, haveChildren)
         {
+            if (folder == null)
+                throw new ArgumentNullException(nameof(folder));
             base.PropertyChanged += FolderViewModel_PropertyChanged;
             _folder = folder;
         }
-
-        private readonly Folder _folder;
-
-
-        public string FolderName => _folder.FolderName;
-
-        public string FolderPath => _folder.FullPath;
 
         protected override void LoadChildren()
         {
@@ -28,7 +23,7 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
             {
                 _folder.ExploreSubfolders();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 LogMaker.Log($"Нет доступа к данным каталога \"{_folder.FolderName}\"", true);
                 ExceptionHandler.Handle(ex, false);
@@ -51,11 +46,18 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
         private void FolderViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(base.IsSelected) && (sender as FolderViewModel).IsSelected)
-                SelectedFolderViewPathChanged?.Invoke((sender as FolderViewModel).FolderPath);
+                SelectedFolderViewPathChanged?.Invoke((sender as FolderViewModel).FullName);
         }
 
         public delegate void SelectedFolderViewPathChangedHandler(string selectedFolderViewPath);
         public static event SelectedFolderViewPathChangedHandler SelectedFolderViewPathChanged;
 
+        private readonly Folder _folder;
+
+        public Folder Folder => _folder;
+
+        public string Name => _folder.FolderName;
+
+        public string FullName => _folder.FullName;
     }
 }

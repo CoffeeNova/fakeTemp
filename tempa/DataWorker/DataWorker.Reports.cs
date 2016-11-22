@@ -118,7 +118,7 @@ namespace CoffeeJelly.tempa
                     string termometerName = termometerData.First().TermometerName;
                     termometerName = Convert.ToInt32(termometerName).ToString(); //Converting to int and back to remove strings like 001
 
-                    var sensor = new float?[TermometerAgrolog.Sensors];
+                    var sensor = new double?[TermometerAgrolog.Sensors];
                     for (int i = 0; i < sensor.Count(); i++)
                     {
                         AgrologSensor requiredSensor = termometerData.FirstOrDefault(x => x.SensorName == (i + 1).ToString());
@@ -126,7 +126,7 @@ namespace CoffeeJelly.tempa
                         if (string.IsNullOrEmpty(sensorValue))
                             sensor[i] = null;
                         else
-                            sensor[i] = float.Parse(sensorValue, CultureInfo.InvariantCulture.NumberFormat);
+                            sensor[i] = double.Parse(sensorValue, CultureInfo.InvariantCulture.NumberFormat);
                     }
 
                     return new TermometerAgrolog(date, siloName, termometerName, sensor);
@@ -218,7 +218,7 @@ namespace CoffeeJelly.tempa
             {
                 string siloName = termometerData.SiloName;
                 string termometerName = termometerData.TermometerName;
-                var sensor = new float?[TermometerGrainbar.Sensors];
+                var sensor = new double?[TermometerGrainbar.Sensors];
 
                 for (int i = 0; i < sensor.Count(); i++)
                 {
@@ -226,7 +226,7 @@ namespace CoffeeJelly.tempa
                     if (string.IsNullOrEmpty(sensorValue))
                         sensor[i] = null;
                     else
-                        sensor[i] = float.Parse(sensorValue, CultureInfo.InvariantCulture.NumberFormat);
+                        sensor[i] = double.Parse(sensorValue, CultureInfo.InvariantCulture.NumberFormat);
                 }
 
                 return new TermometerGrainbar(date, siloName, termometerName, sensor);

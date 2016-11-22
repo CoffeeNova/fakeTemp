@@ -7,7 +7,7 @@ namespace CoffeeJelly.tempa.Extensions
 {
     //public static class NumericExtension
     //{
-    //    public static bool InRange(this float?[] value, float minValue, float maxValue)
+    //    public static bool InRange(this double?[] value, double minValue, double maxValue)
     //    {
     //        value.All(e =>
     //        {

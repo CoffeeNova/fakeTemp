@@ -73,7 +73,6 @@ namespace CoffeeJelly.tempa.Converters
 
     public class LogTextBlockConverter : IValueConverter
     {
-
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (string.IsNullOrEmpty(value as string)) return new FlowDocument();
@@ -110,7 +109,6 @@ namespace CoffeeJelly.tempa.Converters
 
     public class ReverseBoolConvertor : IValueConverter
     {
-
         public object Convert(object value, System.Type targetType, object parameter, CultureInfo culture)
         {
             if (!(value is bool))
@@ -250,4 +248,5 @@ namespace CoffeeJelly.tempa.Converters
             throw new NotSupportedException($"{nameof(AllIsTrueEqualsHiddenConvertor)} can only be used for one way to source conversion.");
         }
     }
+
 }

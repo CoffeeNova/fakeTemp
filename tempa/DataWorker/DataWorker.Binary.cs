@@ -25,10 +25,8 @@ namespace CoffeeJelly.tempa
             throw new ArgumentException("path should have not be empty or null value.");
 
             List<T> termometerList;
-            //BinaryFormatter formatter = new BinaryFormatter();
             using (FileStream fs = new FileStream(path.PathFormatter() + fileName, FileMode.OpenOrCreate))
             {
-                //termometerList = (List<T>)formatter.Deserialize(fs);
                 fs.Position = 0;
                 var serializer = MessagePackSerializer.Get<List<T>>();
                 termometerList = serializer.Unpack(fs);
@@ -47,14 +45,11 @@ namespace CoffeeJelly.tempa
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("path should have not be empty or null value.");
 
-            // BinaryFormatter formatter = new BinaryFormatter();
             using (FileStream fs = new FileStream(path.PathFormatter() + fileName, FileMode.Create))
             {
-                //formatter.Serialize(fs, termometerList);
                 var serializer = MessagePackSerializer.Get<List<T>>();
                 serializer.Pack(fs, termometerList);
             }
-
         }
 
     }

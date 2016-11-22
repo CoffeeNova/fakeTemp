@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-namespace CoffeeJelly.tempa.FileBrowser.ViewModel
+namespace CoffeeJelly.tempa.FolderBrowser.ViewModel
 {
     /// <summary>
     /// Base class for all ViewModel classes displayed by TreeViewItems.  
@@ -71,22 +71,24 @@ namespace CoffeeJelly.tempa.FileBrowser.ViewModel
             get { return _expanded; }
             set
             {
-                if (this.HasDummyChild && value)
-                {
+                if (value == _expanded)
+                    return;
+
+                if (value && this.HasDummyChild)
                     this.Children.Remove(DummyChild);
+
+                if (value)
+                {
+                    this.Children.Clear();
                     this.LoadChildren();
                 }
 
-                if (value != _expanded)
-                {
-                    _expanded = value;
-                    NotifyPropertyChanged();
-                }
-                
                 // Expand all the way up to the root.
                 if (_expanded && _parent != null && _parent.IsExpanded == false)
                     _parent.IsExpanded = true;
 
+                _expanded = value;
+                NotifyPropertyChanged();
             }
         }
 

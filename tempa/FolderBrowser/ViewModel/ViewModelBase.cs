@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-namespace CoffeeJelly.tempa.FileBrowser.ViewModel
+namespace CoffeeJelly.tempa.FolderBrowser.ViewModel
 {
     public class ViewModelBase : INotifyPropertyChanged
     {

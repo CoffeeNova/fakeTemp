@@ -150,6 +150,7 @@
       <DependentUpon>LogViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\Converters.cs" />
+    <Compile Include="Converters\CurrentDataFromFilePathConverter.cs" />
     <Compile Include="CriticalTasks.cs" />
     <Compile Include="DataWorker\DataWorker.Binary.cs" />
     <Compile Include="DataWorker\DataWorker.Excel.cs" />
@@ -164,9 +165,10 @@
     <Compile Include="Extensions\StringExtension.cs" />
     <Compile Include="DataWorker\DataWorker.Reports.cs" />
     <Compile Include="Extensions\TaskExtension.cs" />
-    <Compile Include="FileBrowser\Model\Folder.cs" />
-    <Compile Include="FileBrowser\ViewModel\FolderViewModel.cs" />
-    <Compile Include="FileBrowser\ViewModel\TreeViewItemViewModel.cs" />
+    <Compile Include="FolderBrowser\Model\Folder.cs" />
+    <Compile Include="FolderBrowser\ViewModel\FileViewModel.cs" />
+    <Compile Include="FolderBrowser\ViewModel\FolderViewModel.cs" />
+    <Compile Include="FolderBrowser\ViewModel\TreeViewItemViewModel.cs" />
     <Compile Include="GlobalConstants.cs" />
     <Compile Include="Internal.cs" />
     <Compile Include="LogMaker.cs" />
@@ -180,9 +182,9 @@
     <Compile Include="Properties\VersionInfo.cs" />
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Converters\TreeViewItemExtensions.cs" />
-    <Compile Include="FileBrowser\ViewModel\ArchiveViewModel.cs" />
-    <Compile Include="FileBrowser\ViewModel\FileBrowserViewModel.cs" />
-    <Compile Include="FileBrowser\ViewModel\ViewModelBase.cs" />
+    <Compile Include="FolderBrowser\ViewModel\ArchiveFolderViewModel.cs" />
+    <Compile Include="FolderBrowser\ViewModel\FolderBrowserViewModel.cs" />
+    <Compile Include="FolderBrowser\ViewModel\ViewModelBase.cs" />
     <Page Include="Controls\LogViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

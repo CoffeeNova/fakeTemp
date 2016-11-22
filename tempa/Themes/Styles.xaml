@@ -2212,7 +2212,7 @@
         <Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}"/>
         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-        <Setter Property ="Header" Value="{Binding FolderName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/>
+        <Setter Property ="Header" Value="{Binding Name, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/>
         <Setter Property="behaviors:TreeViewAutoScrollBehavior.AutoScroll" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
@@ -2229,6 +2229,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="15"/>
                                     <ColumnDefinition />
+                                    <!--<ColumnDefinition />-->
                                 </Grid.ColumnDefinitions>
                                 <ToggleButton x:Name="Expander" 
                                               Grid.Column="0"
@@ -2236,11 +2237,12 @@
                                               IsChecked="{Binding Path=IsExpanded,
                                     RelativeSource={RelativeSource TemplatedParent}}"
                                               ClickMode="Press"/>
-
+        
                                 <ContentPresenter x:Name="PART_Header" 
                                                   Grid.Column="1"
                                                   ContentSource="Header"
                                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                <Rectangle x:Name="HeaderRect" Grid.Column="1"/>
                             </Grid>
                         </Border>
                         <ItemsPresenter x:Name="ItemsHost"/>
@@ -2276,7 +2278,8 @@
                                 <Condition Property="IsMouseOver" SourceName="Bd" Value="true"/>
                                 <Condition Property="IsSelected" Value="false"/>
                             </MultiTrigger.Conditions>
-                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource MouseOverListItem}"/>
+                            <!--<Setter Property="Background" TargetName="Bd" Value="{StaticResource MouseOverListItem}"/>-->
+                            <Setter Property="Foreground" Value="{StaticResource MouseOverListItem}"/>
                         </MultiTrigger>
                         <!--<MultiTrigger>
                             <MultiTrigger.Conditions>
