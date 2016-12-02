@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CoffeeJelly.tempadll.Extensions;
-using CoffeeJelly.tempa.Exceptions;
+using CoffeeJelly.tempadll.Exceptions;
 using System.Reflection;
 
-namespace CoffeeJelly.tempa
+namespace CoffeeJelly.tempadll
 {
     [Serializable]
     public class TermometerAgrolog : Termometer

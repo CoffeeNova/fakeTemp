@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.IO;
 using OfficeOpenXml;
 using CoffeeJelly.tempadll.Extensions;
-using CoffeeJelly.tempa.Exceptions;
+using CoffeeJelly.tempadll.Exceptions;
 
-namespace CoffeeJelly.tempa
+namespace CoffeeJelly.tempadll
 {
     public static partial class DataWorker
     {

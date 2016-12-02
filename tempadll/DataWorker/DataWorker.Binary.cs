@@ -8,8 +8,9 @@ using System.IO;
 using System.Threading;
 using CoffeeJelly.tempadll.Extensions;
 using MsgPack.Serialization;
+using CoffeeJelly.tempadll;
 
-namespace CoffeeJelly.tempa
+namespace CoffeeJelly.tempadll
 {
     public static partial class DataWorker
     {

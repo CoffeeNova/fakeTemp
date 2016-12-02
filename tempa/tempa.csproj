@@ -13,6 +13,10 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -25,12 +29,8 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -55,10 +55,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EPPlus, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
-      <HintPath>..\packages\EPPlus.4.1.0\lib\net40\EPPlus.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="FirstFloor.ModernUI, Version=1.0.9.0, Culture=neutral, PublicKeyToken=bc9b0c37bf06c6a9, processorArchitecture=MSIL">
       <HintPath>..\packages\ModernUI.WPF.1.0.9\lib\net40\FirstFloor.ModernUI.dll</HintPath>
       <Private>True</Private>
@@ -83,13 +79,9 @@
       <HintPath>..\packages\ModernUI.WPF.1.0.9\lib\net40\Microsoft.Windows.Shell.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="MsgPack, Version=0.8.0.0, Culture=neutral, PublicKeyToken=a2625990d5dc0167, processorArchitecture=MSIL">
-      <HintPath>..\packages\MsgPack.Cli.0.8.0\lib\net35-client\MsgPack.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NLog40, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\NLog40.dll</HintPath>
+      <HintPath>bin\Debug\NLog.dll</HintPath>
     </Reference>
     <Reference Include="OxyPlot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
       <HintPath>..\packages\OxyPlot.Core.1.0.0\lib\net40\OxyPlot.dll</HintPath>
@@ -152,20 +144,16 @@
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="Converters\CurrentDataFromFilePathConverter.cs" />
     <Compile Include="CriticalTasks.cs" />
-    <Compile Include="DataWorker\DataWorker.Binary.cs" />
-    <Compile Include="DataWorker\DataWorker.Excel.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="DwmDropShadow.cs" />
     <Compile Include="ExceptionHandler.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Behaviors\AutoScrollBehavior.cs" />
-    <Compile Include="DataWorker\DataWorker.Reports.cs" />
     <Compile Include="Extensions\TaskExtension.cs" />
     <Compile Include="FolderBrowser\Model\Folder.cs" />
     <Compile Include="FolderBrowser\ViewModel\FileViewModel.cs" />
     <Compile Include="FolderBrowser\ViewModel\FolderViewModel.cs" />
     <Compile Include="FolderBrowser\ViewModel\TreeViewItemViewModel.cs" />
-    <Compile Include="GlobalConstants.cs" />
     <Compile Include="Internal.cs" />
     <Compile Include="LogMaker.cs" />
     <Compile Include="NewDataWatcherWindow.cs" />
@@ -174,7 +162,6 @@
     </Compile>
     <Compile Include="PlotViewModel.cs" />
     <Compile Include="smNotifyViewModel.cs" />
-    <Compile Include="Termometer.cs" />
     <Compile Include="Properties\VersionInfo.cs" />
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Converters\TreeViewItemExtensions.cs" />
@@ -234,12 +221,12 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="app.config" />
     <None Include="other files\GrainbarPatternReport.txt" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="app.config" />
     <None Include="other files\AgrologPatternReport.csv" />
     <EmbeddedResource Include="other files\reportTemplate.xlsm" />
     <None Include="packages.config" />
@@ -255,7 +242,7 @@
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
       <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <ProductName>Microsoft .NET Framework 4 %28x86 и x64%29</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

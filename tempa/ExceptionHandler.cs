@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NLog;
 using System.Windows;
+using CoffeeJelly.tempadll;
 
 namespace CoffeeJelly.tempa
 {

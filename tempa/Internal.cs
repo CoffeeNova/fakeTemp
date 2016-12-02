@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using NWTweak;
 using System.Threading.Tasks;
 using System.Globalization;
+using CoffeeJelly.tempadll;
 
 namespace CoffeeJelly.tempa
 {

@@ -18,6 +18,8 @@ using CoffeeJelly.tempadll.Extensions;
 using System.Collections.ObjectModel;
 using CoffeeJelly.tempa.Controls;
 using CoffeeJelly.tempa.FolderBrowser.ViewModel;
+using CoffeeJelly.tempadll;
+using CoffeeJelly.tempadll.Exceptions;
 
 namespace CoffeeJelly.tempa
 {

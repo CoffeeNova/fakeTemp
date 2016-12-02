@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using CoffeeJelly.tempadll;
 
 namespace CoffeeJelly.tempa.FolderBrowser.ViewModel
 {

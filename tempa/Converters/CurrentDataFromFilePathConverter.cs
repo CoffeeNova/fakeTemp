@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Data;
 using CoffeeJelly.tempadll.Extensions;
+using CoffeeJelly.tempadll;
 
 namespace CoffeeJelly.tempa.Converters
 {

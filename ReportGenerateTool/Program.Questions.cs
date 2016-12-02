@@ -1,5 +1,4 @@
-﻿using CoffeeJelly.tempa;
-using CoffeeJelly.tempadll.Extensions;
+﻿using CoffeeJelly.tempadll.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CoffeeJelly.tempadll;
 
 namespace CoffeeJelly.ReportGenerateTool
 {

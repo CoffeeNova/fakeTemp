@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Windows.Interop;
 using System.Windows.Markup;
+using CoffeeJelly.tempadll;
 
 namespace CoffeeJelly.tempa
 {

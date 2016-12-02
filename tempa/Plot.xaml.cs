@@ -8,6 +8,7 @@ using System.Windows.Media;
 using CoffeeJelly.tempa.Exceptions;
 using System.Globalization;
 using System.Threading;
+using CoffeeJelly.tempadll;
 
 namespace CoffeeJelly.tempa
 {

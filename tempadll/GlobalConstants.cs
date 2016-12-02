@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using CoffeeJelly.tempadll.Extensions;
 
-namespace CoffeeJelly.tempa
+namespace CoffeeJelly.tempadll
 {
     public static class Constants
     {
