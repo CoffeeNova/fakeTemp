@@ -14,6 +14,7 @@ using System.Threading;
 using System.ComponentModel;
 using CoffeeJelly.tempa.Exceptions;
 using CoffeeJelly.tempa.Extensions;
+using CoffeeJelly.tempadll.Extensions;
 using System.Collections.ObjectModel;
 using CoffeeJelly.tempa.Controls;
 using CoffeeJelly.tempa.FolderBrowser.ViewModel;

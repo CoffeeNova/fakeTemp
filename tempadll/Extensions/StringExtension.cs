@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace CoffeeJelly.tempa.Extensions
+namespace CoffeeJelly.tempadll.Extensions
 {
     public static class StringExtension
     {

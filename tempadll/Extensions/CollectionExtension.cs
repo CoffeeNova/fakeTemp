@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 
-namespace CoffeeJelly.tempa.Extensions
+namespace CoffeeJelly.tempadll.Extensions
 {
     /// <summary>
     /// Предоставляет статический класс, для расширенной работы с коллекциями

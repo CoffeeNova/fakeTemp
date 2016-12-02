@@ -61,7 +61,7 @@ namespace CoffeeJelly.tempa.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Date and time: 2010-01-01 00:00:00,,,
+        ///   Looks up a localized string similar to Date and time: 2001-01-01 00:00:00,,,
         ///Netcontrollers: ,,,
         ///,,,
         ///Silo,Cable,Sensor,Value (°C)
@@ -111,13 +111,7 @@ namespace CoffeeJelly.tempa.Properties {
         ///35,7,2,
         ///35,7,3,
         ///35,7,4,
-        ///35,7,5,
-        ///35,7,6,
-        ///35,7,7,
-        ///35,8,1,
-        ///35,8,2,
-        ///35,8,3,
-        ///35,8, [rest of string was truncated]&quot;;.
+        ///35, [rest of string was truncated]&quot;;.
         /// </summary>
         public static string AgrologPatternReport {
             get {
@@ -129,7 +123,7 @@ namespace CoffeeJelly.tempa.Properties {
         ///   Looks up a localized string similar to 
         ///СИТ ГРЕЙНБАР
         ///
-        ///Измерение от 01.01.10, 00:00:00  Температура предупрежденя 30.0
+        ///Измерение от 01.01.01, 00:00:00  Температура предупрежденя 30.0
         ///  № |ш.м.п.|Сил.      |       Т1       Т2       Т3       Т4       Т5       Т6
         ///------------------------------------------------------------------------------
         ///  1 | 1 1 2|5-2       |      0.0      0.0       0.0      0.0      0.0      0.0

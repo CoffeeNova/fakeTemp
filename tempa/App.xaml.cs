@@ -11,7 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Hardcodet.Wpf.TaskbarNotification;
 using NLog;
-using CoffeeJelly.tempa.Extensions;
+using CoffeeJelly.tempadll.Extensions;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Windows.Interop;

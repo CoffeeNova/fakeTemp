@@ -5,8 +5,7 @@ using System.Linq;
 using System.Globalization;
 using System.Threading;
 
-using CoffeeJelly.tempa;
-using CoffeeJelly.tempa.Extensions;
+using CoffeeJelly.tempadll.Extensions;
 using System.IO;
 using System.Reflection;
 using System.Text;

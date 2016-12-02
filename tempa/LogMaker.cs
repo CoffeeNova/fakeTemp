@@ -7,7 +7,7 @@ using System.Windows.Threading;
 
 namespace CoffeeJelly.tempa
 {
-    static class LogMaker
+    public static class LogMaker
     {
         public static void Log(string message, bool isError)
         {
@@ -23,11 +23,6 @@ namespace CoffeeJelly.tempa
                     Log(message, isError);
                 }));
         }
-        //public static string FormattedMessage
-        //{
-        //    get;
-        //    private set;
-        //}
 
         public delegate void MessageDelegate(string message, DateTime time, bool isError);
         public static event MessageDelegate newMessage;

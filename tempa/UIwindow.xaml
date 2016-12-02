@@ -557,7 +557,7 @@
             Width="464"  Height="174" 
                RenderTransformOrigin="1.067,0.385" >
 
-                <StackPanel  Width="120" Height="21"
+                <!--<StackPanel  Width="120" Height="21"
                          HorizontalAlignment="Left" VerticalAlignment="Top"
                          Orientation="Horizontal" Margin="0,-2,0,0" d:DataContext="{StaticResource NewDataWatcherWindow}">
                     <Label Content="A" FontSize="10" VerticalContentAlignment="Center" Margin="10,0,0,0"/>
@@ -570,7 +570,7 @@
                          Text="{Binding Path=TotalReportsProcessedG, Mode=OneWay,
                              UpdateSourceTrigger=PropertyChanged}" FontSize="10" 
                          VerticalContentAlignment="Center"/>
-                </StackPanel>
+                </StackPanel>-->
 
                 <controls:LogViewer x:Name="LogScrollViewer" ScrollViewer.VerticalScrollBarVisibility="Auto"
                            

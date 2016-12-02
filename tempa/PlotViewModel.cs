@@ -9,7 +9,7 @@ using OxyPlot.Series;
 using OxyPlot.Axes;
 using System.Windows.Input;
 using System.Threading.Tasks;
-using CoffeeJelly.tempa.Extensions;
+using CoffeeJelly.tempadll.Extensions;
 using System.Reflection;
 
 namespace CoffeeJelly.tempa

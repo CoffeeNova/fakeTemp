@@ -87,9 +87,9 @@
       <HintPath>..\packages\MsgPack.Cli.0.8.0\lib\net35-client\MsgPack.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+    <Reference Include="NLog40, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\NLog.dll</HintPath>
+      <HintPath>bin\Debug\NLog40.dll</HintPath>
     </Reference>
     <Reference Include="OxyPlot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
       <HintPath>..\packages\OxyPlot.Core.1.0.0\lib\net40\OxyPlot.dll</HintPath>
@@ -159,10 +159,6 @@
     <Compile Include="ExceptionHandler.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Behaviors\AutoScrollBehavior.cs" />
-    <Compile Include="Extensions\CollectionExtension.cs" />
-    <Compile Include="Extensions\NumericExtension.cs" />
-    <Compile Include="Extensions\ObjectExtension.cs" />
-    <Compile Include="Extensions\StringExtension.cs" />
     <Compile Include="DataWorker\DataWorker.Reports.cs" />
     <Compile Include="Extensions\TaskExtension.cs" />
     <Compile Include="FolderBrowser\Model\Folder.cs" />
@@ -234,14 +230,15 @@
     </Compile>
     <Resource Include="other files\ToDo.txt" />
     <Resource Include="other files\Issues.txt" />
+    <Content Include="NLog.config">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="other files\GrainbarPatternReport.txt" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Content Include="NLog.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <None Include="app.config" />
     <None Include="other files\AgrologPatternReport.csv" />
     <EmbeddedResource Include="other files\reportTemplate.xlsm" />
@@ -271,6 +268,12 @@
       <ProductName>Windows Installer 4.5</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\tempadll\Termodll.csproj">
+      <Project>{419437b3-cef3-4d33-a07b-e70f502f1a13}</Project>
+      <Name>Termodll</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -6,7 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
-using CoffeeJelly.tempa.Extensions;
+using CoffeeJelly.tempadll.Extensions;
 using MsgPack.Serialization;
 
 namespace CoffeeJelly.tempa

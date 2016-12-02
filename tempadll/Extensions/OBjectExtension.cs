@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CoffeeJelly.tempa.Extensions
+namespace CoffeeJelly.tempadll.Extensions
 {
     public static class PropertyExtension
     {

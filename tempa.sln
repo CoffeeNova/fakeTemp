@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tempa", "tempa\tempa.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportGenerateTool", "ReportGenerateTool\ReportGenerateTool.csproj", "{96DCAA19-5180-4B60-90CA-1991FC324F84}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TermoServer", "TermoServer\TermoServer.csproj", "{57517250-DE3D-4E0C-A2E9-F5616304FFF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Termodll", "tempadll\Termodll.csproj", "{419437B3-CEF3-4D33-A07B-E70F502F1A13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{96DCAA19-5180-4B60-90CA-1991FC324F84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96DCAA19-5180-4B60-90CA-1991FC324F84}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96DCAA19-5180-4B60-90CA-1991FC324F84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57517250-DE3D-4E0C-A2E9-F5616304FFF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57517250-DE3D-4E0C-A2E9-F5616304FFF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57517250-DE3D-4E0C-A2E9-F5616304FFF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57517250-DE3D-4E0C-A2E9-F5616304FFF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{419437B3-CEF3-4D33-A07B-E70F502F1A13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{419437B3-CEF3-4D33-A07B-E70F502F1A13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{419437B3-CEF3-4D33-A07B-E70F502F1A13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{419437B3-CEF3-4D33-A07B-E70F502F1A13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
