@@ -79,7 +79,7 @@ namespace CoffeeJelly.tempa.FolderBrowser.ViewModel
                 });
                 foreach (string fileName in Directory.GetFiles(archiveDataFolderPath, "*" + patternExtension))
                 {
-                    if (!Internal.ArchiveDataFileNameValidation(Constants.ARCHIVE_DATA_FILE_NAME_DATE_FORMAT, fileName))
+                    if (!CoffeeJTools.ArchiveDataFileNameValidation(Constants.ARCHIVE_DATA_FILE_NAME_DATE_FORMAT, fileName))
                         continue;
                     var info = new FileInfo(fileName);
                     Items.Add(new FileViewModel(info, null));

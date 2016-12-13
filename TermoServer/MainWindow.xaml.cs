@@ -16,6 +16,7 @@ using NLog;
 using System.Threading;
 using System.Globalization;
 using System.Diagnostics;
+using CoffeeJelly.tempadll;
 
 namespace CoffeeJelly.TermoServer
 {
@@ -46,43 +47,17 @@ namespace CoffeeJelly.TermoServer
 
         private void ManualInitializing()
         {
-            InitializeGrainbarTimer();
         }
 
-        private void InitializeGrainbarTimer()
-        {
-            _grainbarTimer = new System.Timers.Timer();
-            _grainbarTimer.Interval = _grainBarTimerInterval;
-            _grainbarTimer.Elapsed += _grainbarTimer_Elapsed;
-            _grainbarTimer.Enabled = true;
-            _grainbarTimer.AutoReset = true;
-            _grainbarTimer.Start();
-        }
-
-        private void _grainbarTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            if (DateTime.Now.Hour != Settings.GrainbarAutoCreateReportHour ||
-                DateTime.Now.Minute != Settings.GrainbarAutoCreateReportMinute)
-                return;
-
-            TrySaveGrainbarReport();
-
-        }
-
-        private void TrySaveGrainbarReport()
-        {
-
-        }
-
-        //private Process GrainbarProcess()
-        //{
-        //    var process = Process.GetProcessesByName()
-        //}
 
         //private bool 
-        private System.Timers.Timer _grainbarTimer;
-        private static readonly double _grainBarTimerInterval = 1000; //ms
         private static readonly Logger _log = LogManager.GetCurrentClassLogger();
+
+        private void Window_Initialized(object sender, EventArgs e)
+        {
+            GrainbarReportCreator.TestReportCreate();
+
+        }
     }
 
 

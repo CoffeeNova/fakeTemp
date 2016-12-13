@@ -43,14 +43,14 @@ namespace CoffeeJelly.tempa
 
         private void Settings()
         {
-            _agrologReportsFolderBrowserViewModel.Path = Internal.CheckRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.AGROLOG_REPORTS_FOLDER_PATH);
-            _grainbarReportsFolderBrowserViewModel.Path = Internal.CheckRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.GRAINBAR_REPORTS_FOLDER_PATH);
-            _agrologDataFolderBrowserViewModel.Path = Internal.CheckRegistrySettings(Constants.ACTIVE_AGROLOG_DATA_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.APPLICATION_AGROLOG_DATA_FILE_PATH);
-            _grainbarDataFolderBrowserViewModel.Path = Internal.CheckRegistrySettings(Constants.ACTIVE_GRAINBAR_DATA_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.APPLICATION_GRAINBAR_DATA_FILE_PATH);
-            IsAgrologDataCollect = Internal.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
-            IsGrainbarDataCollect = Internal.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
-            IsAutostart = Internal.CheckRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, true);
-            IsDataSubstitution = Internal.CheckRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, false);
+            _agrologReportsFolderBrowserViewModel.Path = CoffeeJTools.CheckRegistrySettings(Constants.AGROLOG_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.AGROLOG_REPORTS_FOLDER_PATH);
+            _grainbarReportsFolderBrowserViewModel.Path = CoffeeJTools.CheckRegistrySettings(Constants.GRAINBAR_REPORTS_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.GRAINBAR_REPORTS_FOLDER_PATH);
+            _agrologDataFolderBrowserViewModel.Path = CoffeeJTools.CheckRegistrySettings(Constants.ACTIVE_AGROLOG_DATA_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.APPLICATION_AGROLOG_DATA_FILE_PATH);
+            _grainbarDataFolderBrowserViewModel.Path = CoffeeJTools.CheckRegistrySettings(Constants.ACTIVE_GRAINBAR_DATA_PATH_REGKEY, Constants.SETTINGS_LOCATION, Constants.APPLICATION_GRAINBAR_DATA_FILE_PATH);
+            IsAgrologDataCollect = CoffeeJTools.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            IsGrainbarDataCollect = CoffeeJTools.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            IsAutostart = CoffeeJTools.CheckRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, true);
+            IsDataSubstitution = CoffeeJTools.CheckRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, false);
         }
 
         private void ManualInitializing()
@@ -164,7 +164,7 @@ namespace CoffeeJelly.tempa
 
             try
             {
-                Internal.CopyResource(Constants.EXCEL_TEMPLATE_REPORT_NAME, tempExcelTemplateName);
+                CoffeeJTools.CopyResource(Constants.EXCEL_TEMPLATE_REPORT_NAME, tempExcelTemplateName);
                 var tempExcelTemplate = new FileInfo(tempExcelTemplateName);
                 DataWorker.CreateNewExcelReport<T>(reportPath, reportFileName, Constants.APPLICATION_DIRECTORY, Constants.EXCEL_TEMPLATE_REPORT_TEMP_NAME, reportData);
                 tempExcelTemplate.Delete();
@@ -192,7 +192,7 @@ namespace CoffeeJelly.tempa
                 catch (PlotDataException ex)
                 {
                     LogMaker.InvokedLog(
-                        $"Не достаточно данных для построения графика \"{Internal.GetProgramName<T>()}\", cм. Error.log.", true, this.Dispatcher);
+                        $"Не достаточно данных для построения графика \"{CoffeeJTools.GetProgramName<T>()}\", cм. Error.log.", true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     tcs.SetResult(null);
                     //tcs.SetException(ex);
@@ -200,7 +200,7 @@ namespace CoffeeJelly.tempa
                 catch (Exception ex)
                 {
                     LogMaker.InvokedLog(
-                        $"Не получилось построить график \"{Internal.GetProgramName<T>()}\", cм. Error.log.", true, this.Dispatcher);
+                        $"Не получилось построить график \"{CoffeeJTools.GetProgramName<T>()}\", cм. Error.log.", true, this.Dispatcher);
                     ExceptionHandler.Handle(ex, false);
                     tcs.SetResult(null);
                     //tcs.SetException(ex);
@@ -244,7 +244,7 @@ namespace CoffeeJelly.tempa
 
             try //сохраним в реестре последний выбранный путь
             {
-                Internal.SaveRegistrySettings(regKey, Constants.SETTINGS_LOCATION, viewModel.Path);
+                CoffeeJTools.SaveRegistrySettings(regKey, Constants.SETTINGS_LOCATION, viewModel.Path);
             }
             catch (InvalidOperationException ex)
             {
@@ -285,7 +285,7 @@ namespace CoffeeJelly.tempa
 
                 var reportData = DataWorker.ReadBinary<T>(dataFolderPath, dataFileName);
 
-                LogMaker.InvokedLog($"Построение графика \"{Internal.GetProgramName<T>()}\"", false, this.Dispatcher);
+                LogMaker.InvokedLog($"Построение графика \"{CoffeeJTools.GetProgramName<T>()}\"", false, this.Dispatcher);
 
                 var data = reportData.Select(t => t as Termometer).ToList();
 
@@ -293,7 +293,7 @@ namespace CoffeeJelly.tempa
                 {
                     var p = new MainPlotWindow(data);
                     p.Show();
-                    p.Closed += (sender, e) => ClosePlotCallback(Internal.GetProgramName<T>(), ref p);
+                    p.Closed += (sender, e) => ClosePlotCallback(CoffeeJTools.GetProgramName<T>(), ref p);
                     return p;
                 });
 
@@ -432,7 +432,7 @@ namespace CoffeeJelly.tempa
                     System.IO.Path.GetDirectoryName(_agrologDataFolderBrowserViewModel.Path),
                     System.IO.Path.GetFileName(_agrologDataFolderBrowserViewModel.Path),
                     Constants.EXCEL_REPORT_FOLDER_PATH,
-                    Internal.MakeExcelReportFileNameFromDataFilePath(_agrologDataFolderBrowserViewModel.Path));
+                    CoffeeJTools.MakeExcelReportFileNameFromDataFilePath(_agrologDataFolderBrowserViewModel.Path));
                 await task.AwaitCriticalTask();
                 AgrologReportPermission = true;
             }
@@ -443,7 +443,7 @@ namespace CoffeeJelly.tempa
                     System.IO.Path.GetDirectoryName(_grainbarDataFolderBrowserViewModel.Path),
                     System.IO.Path.GetFileName(_grainbarDataFolderBrowserViewModel.Path),
                     Constants.EXCEL_REPORT_FOLDER_PATH,
-                    Internal.MakeExcelReportFileNameFromDataFilePath(_grainbarDataFolderBrowserViewModel.Path));
+                    CoffeeJTools.MakeExcelReportFileNameFromDataFilePath(_grainbarDataFolderBrowserViewModel.Path));
                 await task.AwaitCriticalTask();
                 GrainbarReportPermission = true;
             }
@@ -516,10 +516,10 @@ namespace CoffeeJelly.tempa
             {
                 try
                 {
-                    Internal.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsAgrologDataCollect);
-                    Internal.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsGrainbarDataCollect);
-                    Internal.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, IsAutostart);
-                    Internal.SaveRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, IsDataSubstitution);
+                    CoffeeJTools.SaveRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsAgrologDataCollect);
+                    CoffeeJTools.SaveRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, IsGrainbarDataCollect);
+                    CoffeeJTools.SaveRegistrySettings(Constants.IS_AUTOSTART_REGKEY, Constants.SETTINGS_LOCATION, IsAutostart);
+                    CoffeeJTools.SaveRegistrySettings(Constants.IS_DATA_SUBSTITUTION_REGKEY, Constants.SETTINGS_LOCATION, IsDataSubstitution);
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -598,7 +598,7 @@ namespace CoffeeJelly.tempa
             string path = (sender as Button)?.Name == "AShowExcelBut"
                 ? _agrologDataFolderBrowserViewModel.Path
                 : _grainbarDataFolderBrowserViewModel.Path;
-            string reportName = Internal.MakeExcelReportFileNameFromDataFilePath(path);
+            string reportName = CoffeeJTools.MakeExcelReportFileNameFromDataFilePath(path);
             reportPath += reportName;
 
             try

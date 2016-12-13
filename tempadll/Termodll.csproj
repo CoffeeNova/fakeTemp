@@ -31,10 +31,15 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EPPlus">
       <HintPath>..\packages\EPPlus.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.UIAutomationClient, Version=12.0.20617.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\UIAComWrapper.1.1.0.14\lib\net40\Interop.UIAutomationClient.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
@@ -51,8 +56,11 @@
     <Reference Include="MsgPack">
       <HintPath>..\packages\MsgPack.Cli.0.8.0\lib\net35-client\MsgPack.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.IO, Version=2.6.8.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.1.1.8\lib\net40\System.IO.dll</HintPath>
       <Private>True</Private>
@@ -66,11 +74,20 @@
       <HintPath>..\packages\Microsoft.Bcl.1.1.8\lib\net40\System.Threading.Tasks.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="twpRegwrk, Version=1.7.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\tempa\bin\Debug\twpRegwrk.dll</HintPath>
+    </Reference>
+    <Reference Include="UIAComWrapper, Version=1.1.0.14, Culture=neutral, PublicKeyToken=78cbcf77433a85e5, processorArchitecture=MSIL">
+      <HintPath>..\packages\UIAComWrapper.1.1.0.14\lib\net40\UIAComWrapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -78,14 +95,17 @@
     <Compile Include="DataWorker\DataWorker.Excel.cs" />
     <Compile Include="DataWorker\DataWorker.Reports.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Extensions\CollectionExtension.cs" />
     <Compile Include="Extensions\NumericExtension.cs" />
     <Compile Include="Extensions\OBjectExtension.cs" />
     <Compile Include="Extensions\StringExtension.cs" />
     <Compile Include="GlobalConstants.cs" />
+    <Compile Include="Tools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\VersionInfo.cs" />
     <Compile Include="Termometer.cs" />
+    <Compile Include="WinApi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -117,4 +137,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
+  <PropertyGroup>
+    <PreBuildEvent>"$(FrameworkDir)\$(FrameworkVersion)ilasm" "$(SolutionDir)\packages\twpRegwrk.il" /dll /output="$(TargetDir)\twpRegwrk.dll"</PreBuildEvent>
+  </PropertyGroup>
 </Project>

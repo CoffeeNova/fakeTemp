@@ -119,10 +119,6 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="twpRegwrk, Version=1.7.0.0, Culture=neutral, PublicKeyToken=a70167ab1677fa16, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\twpRegwrk.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
@@ -154,7 +150,6 @@
     <Compile Include="FolderBrowser\ViewModel\FileViewModel.cs" />
     <Compile Include="FolderBrowser\ViewModel\FolderViewModel.cs" />
     <Compile Include="FolderBrowser\ViewModel\TreeViewItemViewModel.cs" />
-    <Compile Include="Internal.cs" />
     <Compile Include="LogMaker.cs" />
     <Compile Include="NewDataWatcherWindow.cs" />
     <Compile Include="Plot.xaml.cs">
@@ -264,7 +259,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>"$(FrameworkDir)\$(FrameworkVersion)\ilasm" "$(SolutionDir)\packages\twpRegwrk.il" /dll /output="$(TargetDir)\twpRegwrk.dll"</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -16,17 +16,23 @@ namespace CoffeeJelly.tempadll
         public const string AGROLOG_FOLDER_NAME = "Agrolog";
         public const string GRAINBAR_FOLDER_NAME = "Grainbar";
         public const string APPLICATION_DATA_FOLDER = "Data";
+        public const string TEMP_FOLDER_NAME = "Temp";
         public const string APPLICATION_EXCEL_REPORT_FOLDER = "Reports";
         public const string APPLICATION_ARCHIVE_DATA_FOLDER = "Archive data";
         public const string AGROLOG_DATA_FILE = "Agrolog.dat";
         public const string GRAINBAR_DATA_FILE = "Grainbar.dat";
         public const string AGROLOG_EXCEL_REPORT_FILE_NAME = "Agrolog report.xlsm";
         public const string GRAINBAR_EXCEL_REPORT_FILE_NAME = "Grainbar report.xlsm";
+        public const string GRAINBAR_PROGRAM_PROCESS_NAME = "teremok";
+        public const string GRAINBAR_WORK_WITH_ARCHIVE_WINDOW_CLASS_NAME = "TfWorkArhive";
+        public const string GRAINBAR_MAIN_WINDOW_CLASS_NAME = "TMAIN";
+        public const string DIALOG_WINDOW_CLASS_NAME = "#32770";
+        public const string AUTOCREATED_GRAINBAR_REPORT_NAME = "AutoGrainbar.txt";
+
         public const string AGROLOG_REPORTS_PATH_REGKEY = "agrologReports";
         public const string GRAINBAR_REPORTS_PATH_REGKEY = "grainbarReports";
         public const string ACTIVE_AGROLOG_DATA_PATH_REGKEY = "activeAgrologData";
         public const string ACTIVE_GRAINBAR_DATA_PATH_REGKEY = "activeGrainbarData";
-
         public const string IS_AGROLOG_DATA_COLLECT_REGKEY = "isAgrologDataCollect";
         public const string IS_GRAINBAR_DATA_COLLECT_REGKEY = "isGrainbarDataCollect";
         public const string IS_AUTOSTART_REGKEY = "isAutoStart";
@@ -54,10 +60,7 @@ namespace CoffeeJelly.tempadll
       
         public static readonly string APPLICATION_DATA_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() + 
             APPLICATION_DATA_FOLDER;
-        //public static readonly string APPLICATION_AGROLOG_DATA_FOLDER_PATH = APPLICATION_DATA_FOLDER_PATH.PathFormatter() +
-        //    AGROLOG_FOLDER_NAME;
-        //public static readonly string APPLICATION_GRAINBAR_DATA_FOLDER_PATH = APPLICATION_DATA_FOLDER_PATH.PathFormatter() +
-        //    GRAINBAR_FOLDER_NAME;
+
         public static readonly string APPLICATION_ARCHIVE_AGROLOG_DATA_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() +
             APPLICATION_ARCHIVE_DATA_FOLDER.PathFormatter() + AGROLOG_FOLDER_NAME;
         public static readonly string APPLICATION_ARCHIVE_GRAINBAR_DATA_FOLDER_PATH = APPLICATION_DIRECTORY.PathFormatter() +
@@ -73,5 +76,8 @@ namespace CoffeeJelly.tempadll
         public static readonly string EXCEL_TEMPLATE_REPORT_NAME = ROOT_APPLICATION_NAMESPACE + 
             ".other_files." + EXCEL_TEMPLATE_REPORT_TEMP_NAME;
 
+        public static readonly string GRAINBAR_TEMP_FOLDER_FULL_NAME = APPLICATION_DIRECTORY.PathFormatter() + GRAINBAR_FOLDER_NAME.PathFormatter() +
+            TEMP_FOLDER_NAME;
+        public static readonly string DEFAULT_GRAINBAR_AUTOCREATED_REPORT_FULL_NAME = GRAINBAR_TEMP_FOLDER_FULL_NAME.PathFormatter() + AUTOCREATED_GRAINBAR_REPORT_NAME;
     }
 }

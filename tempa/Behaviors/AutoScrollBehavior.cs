@@ -118,10 +118,10 @@ namespace CoffeeJelly.tempa.Behaviors
             var treeViewItem = e.OriginalSource as TreeViewItem;
             if (treeViewItem == null) return;
 
-            var treeView = Internal.FindVisualParentElement(treeViewItem, typeof(TreeView));
+            var treeView = CoffeeJTools.FindVisualParentElement(treeViewItem, typeof(TreeView));
 
             ScrollViewer scroller =
-                (ScrollViewer)Internal.FindVisualChildElement(treeView, typeof(ScrollViewer));
+                (ScrollViewer)CoffeeJTools.FindVisualChildElement(treeView, typeof(ScrollViewer));
             scroller.ScrollToBottom();
             treeViewItem.BringIntoView();
             e.Handled = true;

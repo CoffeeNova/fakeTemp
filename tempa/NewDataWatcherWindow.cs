@@ -50,8 +50,8 @@ namespace CoffeeJelly.tempa
             FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(
                         XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
 
-            checkAgrolog = Internal.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
-            checkGrainbar = Internal.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            checkAgrolog = CoffeeJTools.CheckRegistrySettings(Constants.IS_AGROLOG_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
+            checkGrainbar = CoffeeJTools.CheckRegistrySettings(Constants.IS_GRAINBAR_DATA_COLLECT_REGKEY, Constants.SETTINGS_LOCATION, true);
         }
 
         private void CheckDataFiles()
@@ -88,7 +88,7 @@ namespace CoffeeJelly.tempa
             if (fileInfo.CreationTime.Year >= DateTime.Today.Year)
                 return;
             
-            LogMaker.Log($"Обнаружено начало нового периода для {Internal.GetProgramName<T>()}.", false);
+            LogMaker.Log($"Обнаружено начало нового периода для {CoffeeJTools.GetProgramName<T>()}.", false);
             ArchieveDataFile<T>(fileInfo);
         }
 
@@ -157,7 +157,7 @@ namespace CoffeeJelly.tempa
 
         private bool WatcherInit<T>(ref FileSystemWatcher watcher, string reportsPath, string fileExtension) where T : ITermometer
         {
-            string programName = Internal.GetProgramName<T>();
+            string programName = CoffeeJTools.GetProgramName<T>();
 
             try
             {
@@ -188,7 +188,7 @@ namespace CoffeeJelly.tempa
         {
             if (watcher == null)
                 return;
-            string programName = Internal.GetProgramName<T>();
+            string programName = CoffeeJTools.GetProgramName<T>();
             LogMaker.Log($"Данные {programName} из каталога \"{watcher.Path}\" не принимаются.", false);
             watcher.EnableRaisingEvents = false;
             watcher.Dispose();
@@ -293,7 +293,7 @@ namespace CoffeeJelly.tempa
             }
 
             FileInfo[] filesInfo = dirInfo.GetFiles("*." + fileExtension);
-            string programName = Internal.GetProgramName<T>();
+            string programName = CoffeeJTools.GetProgramName<T>();
             string dataFileName = DefineDataFileName<T>();
 
             LogMaker.Log($"Начинаю проверку каталога \"{path}\" на наличие новых данных {programName}...", false);
@@ -333,7 +333,7 @@ namespace CoffeeJelly.tempa
 
         private async Task<List<T>> NewDataVerification<T>(string path, string fileName, List<T> dataList, bool isAsync) where T : ITermometer
         {
-            string programName = Internal.GetProgramName<T>();
+            string programName = CoffeeJTools.GetProgramName<T>();
             LogMaker.Log($"Обнаружен новый файл \"{programName}\" отчета {fileName}. Начинаем процесс парсинга...", false);
 
             List<T> initReportList = null;
@@ -416,7 +416,7 @@ namespace CoffeeJelly.tempa
             string regKeyPath = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_REPORTS_PATH_REGKEY : Constants.GRAINBAR_REPORTS_PATH_REGKEY;
             string regKeyValue = typeof(T) == typeof(TermometerAgrolog) ? Constants.AGROLOG_REPORTS_FOLDER_PATH : Constants.GRAINBAR_REPORTS_FOLDER_PATH;
 
-            return Internal.CheckRegistrySettings(regKeyPath, Constants.SETTINGS_LOCATION, regKeyValue);
+            return CoffeeJTools.CheckRegistrySettings(regKeyPath, Constants.SETTINGS_LOCATION, regKeyValue);
         }
 
 
