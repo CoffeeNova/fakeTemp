@@ -88,7 +88,7 @@ namespace CoffeeJelly.tempa
                 minValue = minValue > t.Sensor.Min() ? t.Sensor.Min() : minValue;
             });
             valueAxis.AbsoluteMaximum = maxValue.Value + VERTICAL_AXE_ADDITIONAL_RANGE;
-            valueAxis.AbsoluteMinimum = 0;
+            valueAxis.AbsoluteMinimum = minValue.Value - VERTICAL_AXE_ADDITIONAL_RANGE;
             valueAxis.IsZoomEnabled = false;
             Model.Axes.Add(valueAxis);
         }

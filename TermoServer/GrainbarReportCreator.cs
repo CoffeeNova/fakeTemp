@@ -8,6 +8,7 @@ using CoffeeJelly.tempadll;
 using NLog;
 using System.Windows.Automation;
 using System.Threading;
+using Gma.UserActivityMonitor;
 
 namespace CoffeeJelly.TermoServer
 {
@@ -32,6 +33,12 @@ namespace CoffeeJelly.TermoServer
             _grainbarTimer.AutoReset = true;
             TrySaveGrainbarReport();
         }
+        internal static async void TestDisableGlobalControl()
+        {
+            _controlDisabled = DisableGlobalControl();
+            await CoffeeJTools.Delay(10000);
+            _controlDisabled = EnableGlobalControl();
+        }
 
         private static void _grainbarTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -39,8 +46,39 @@ namespace CoffeeJelly.TermoServer
                 DateTime.Now.Minute != Settings.GrainbarAutoCreateReportMinute)
                 return;
 
+            if (DisableControl)
+                _controlDisabled = DisableGlobalControl();
             TrySaveGrainbarReport();
+            _controlDisabled = EnableGlobalControl();
 
+        }
+
+        private static bool DisableGlobalControl()
+        {
+            if (!_controlDisabled)
+            {
+                HookManager.KeyBlock += HookManager_Block;
+                HookManager.MouseClickBlock += HookManager_Block;
+                _log.Info("Control disabled");
+                return true;
+            }
+            return false;
+        }
+
+        private static bool EnableGlobalControl()
+        {
+            if (_controlDisabled)
+            {
+                HookManager.KeyBlock -= HookManager_Block;
+                HookManager.MouseClickBlock -= HookManager_Block;
+                _log.Info("Control enabled");
+                return true;
+            }
+            return false;
+        }
+
+        private static void HookManager_Block(object sender, System.Windows.Forms.KeyPressEventArgs e)
+        {
         }
 
         private static bool TrySaveGrainbarReport()
@@ -82,14 +120,13 @@ namespace CoffeeJelly.TermoServer
                 //нажмем на кнопку и в открытом окне нажмем кнопку выбора текущих данных
                 var currentArchiveButtonAe = CurrentArchiveButtonAe(measurementPanelAe);
                 AutomationElement workWithArchiveWindowAe;
-                //if (currentArchiveButtonAe.Current.Name != "Текущий")
-                //{
-                //    CoffeeJTools.SimulateClickUIAutomation(currentArchiveButtonAe, false);
-                //    workWithArchiveWindowAe = GetWindowAeByClass(grainbarProcess.Id, Constants.GRAINBAR_WORK_WITH_ARCHIVE_WINDOW_CLASS_NAME);
-                //    var openCurrentDataButtonAe = OpenCurrentDataButtonAe(workWithArchiveWindowAe);
-                //    CoffeeJTools.SimulateClickUIAutomation(openCurrentDataButtonAe, false);
-                //}
-
+                if (currentArchiveButtonAe.Current.Name != "Текущий")
+                {
+                    CoffeeJTools.SimulateClickUIAutomation(currentArchiveButtonAe, false);
+                    workWithArchiveWindowAe = GetWindowAeByClass(grainbarProcess.Id, Constants.GRAINBAR_WORK_WITH_ARCHIVE_WINDOW_CLASS_NAME);
+                    var openCurrentDataButtonAe = OpenCurrentDataButtonAe(workWithArchiveWindowAe);
+                    CoffeeJTools.SimulateClickUIAutomation(openCurrentDataButtonAe, false);
+                }
 
                 //3.0 В списоке измерений, кликнем мышкой в верхнюю область, чтобы выделить последнее измерение.
                 var measurementListAe = MeasurementListAe(measurementPanelAe);
@@ -101,9 +138,6 @@ namespace CoffeeJelly.TermoServer
                     object pattern = null;
                     scrollBarAe.TryGetCurrentPattern(patternId, out pattern);
                     ((RangeValuePattern)pattern).SetValue(0);
-                        
-                    var scrollBarRangeValuePattern = scrollBarAe.GetCurrentPattern(ValuePattern.Pattern) as RangeValuePattern;
-                    scrollBarRangeValuePattern?.SetValue(0);
                     Thread.Sleep(100);
                 }
                 CoffeeJTools.SimulateClickUIAutomation(measurementListAe, false, new System.Windows.Vector(5, 5));
@@ -127,7 +161,7 @@ namespace CoffeeJelly.TermoServer
                 var openButtonAe = OpenButtonAe(openDialogWindowAe);
                 var obip = openButtonAe.GetCurrentPattern(InvokePattern.Pattern) as InvokePattern;
                 obip?.Invoke();
-
+                return true;
             }
             catch (GrainbarProcessNotExistException ex)
             {
@@ -326,6 +360,10 @@ namespace CoffeeJelly.TermoServer
         private static readonly double _grainBarTimerInterval = 1000; //ms
         private static Logger _log = LogManager.GetCurrentClassLogger();
         private static string _fullReportName = Constants.DEFAULT_GRAINBAR_AUTOCREATED_REPORT_FULL_NAME;
+        private static bool _controlDisabled = false;
+
         public static string FullReportName => _fullReportName;
+
+        public static bool DisableControl { get; set; }
     }
 }

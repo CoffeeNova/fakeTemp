@@ -55,8 +55,8 @@ namespace CoffeeJelly.TermoServer
 
         private void Window_Initialized(object sender, EventArgs e)
         {
-            GrainbarReportCreator.TestReportCreate();
-
+            //GrainbarReportCreator.TestReportCreate();
+            GrainbarReportCreator.TestDisableGlobalControl();
         }
     }
 

@@ -341,7 +341,7 @@ namespace CoffeeJelly
 
         public static void CopyResource(string resourceName, string outputFileFullPath)
         {
-            using (Stream resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+            using (Stream resource = Assembly.GetCallingAssembly().GetManifestResourceStream(resourceName))
             {
                 if (resource == null)
                 {

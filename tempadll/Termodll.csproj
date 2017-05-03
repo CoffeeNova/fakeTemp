@@ -75,6 +75,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -101,6 +102,15 @@
     <Compile Include="Extensions\OBjectExtension.cs" />
     <Compile Include="Extensions\StringExtension.cs" />
     <Compile Include="GlobalConstants.cs" />
+    <Compile Include="HookManager\GlobalEventProvider.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="HookManager\HookManager.Callbacks.cs" />
+    <Compile Include="HookManager\HookManager.cs" />
+    <Compile Include="HookManager\HookManager.Structures.cs" />
+    <Compile Include="HookManager\HookManager.Windows.cs" />
+    <Compile Include="HookManager\LpfnWinEvent.cs" />
+    <Compile Include="HookManager\MouseEventExtArgs.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\VersionInfo.cs" />
@@ -138,6 +148,6 @@
     <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
   <PropertyGroup>
-    <PreBuildEvent>"$(FrameworkDir)\$(FrameworkVersion)ilasm" "$(SolutionDir)\packages\twpRegwrk.il" /dll /output="$(TargetDir)\twpRegwrk.dll"</PreBuildEvent>
+    <PreBuildEvent>"$(FrameworkDir)\$(FrameworkVersion)ilasm" "$(SolutionDir)packages\twpRegwrk.il" /dll /output="$(TargetDir)twpRegwrk.dll"</PreBuildEvent>
   </PropertyGroup>
 </Project>
